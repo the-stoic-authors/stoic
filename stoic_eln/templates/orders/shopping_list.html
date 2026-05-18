@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Lista della spesa") }}{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-start mb-3">
+  <div>
+    <h1>{{ _("Lista della spesa") }}</h1>
+    <p class="text-muted mb-0">
+      {{ _("Sostanze da riordinare in base allo stato del magazzino.") }}
+    </p>
+  </div>
+  <a href="{{ url_for('orders.list_view') }}" class="btn btn-outline-secondary">
+    <i data-lucide="arrow-left"></i> {{ _("Torna agli ordini") }}
+  </a>
+</div>
+
+{# ── Settings card (collapsible) ────────────────────────────────────── #}
+<div class="card mb-3">
+  <div class="card-body py-2">
+    <details>
+      <summary class="text-muted small" style="cursor: pointer">
+        <i data-lucide="settings" style="width:14px;height:14px"></i>
+        {{ _("Cosa includere nella lista") }}
+      </summary>
+      <form method="post" action="{{ url_for('orders.shopping_list_settings') }}"
+            class="mt-3">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="row g-2">
+          <div class="col-md-4">
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" id="opt_low"
+                     name="include_low_stock" value="1"
+                     {% if flags.include_low_stock %}checked{% endif %}>
+              <label class="form-check-label" for="opt_low">
+                {{ _("Sostanze sotto soglia") }}
+              </label>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" id="opt_empty"
+                     name="include_empty" value="1"
+                     {% if flags.include_empty %}checked{% endif %}>
+              <label class="form-check-label" for="opt_empty">
+                {{ _("Sostanze esaurite") }}
+              </label>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" id="opt_exp"
+                     name="include_expiring" value="1"
+                     {% if flags.include_expiring %}checked{% endif %}>
+              <label class="form-check-label" for="opt_exp">
+                {{ _("Sostanze in scadenza") }}
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="mt-2">
+          <button type="submit" class="btn btn-sm btn-outline-primary">
+            {{ _("Salva preferenze") }}
+          </button>
+        </div>
+      </form>
+    </details>
+  </div>
+</div>
+
+{% if suggestions %}
+<form method="post" action="{{ url_for('orders.shopping_list_create_orders') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+  <div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <strong>
+        {{ _("%(n)d sostanze suggerite", n=suggestions|length) }}
+      </strong>
+      <div class="d-flex gap-2 align-items-center">
+        <label class="form-check-label small text-muted me-2">
+          <input class="form-check-input me-1" type="checkbox" id="select_all"
+                 onclick="document.querySelectorAll('input.row-check').forEach(c=>c.checked=this.checked)">
+          {{ _("seleziona tutte") }}
+        </label>
+        <button type="submit" class="btn btn-success btn-sm">
+          <i data-lucide="shopping-cart"></i>
+          {{ _("Crea ordini selezionati") }}
+        </button>
+      </div>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0 small">
+        <thead>
+          <tr>
+            <th style="width:32px"></th>
+            <th>{{ _("Sostanza") }}</th>
+            <th>{{ _("Motivo") }}</th>
+            <th class="text-end">{{ _("Quantità suggerita") }}</th>
+            <th>{{ _("Ultimo fornitore") }}</th>
+            <th class="text-end">{{ currency_glyph() }} {{ _("stimato") }}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% set ns = namespace(total=0.0) %}
+          {% for s in suggestions %}
+          {% set rl, rc = s.reason_label_color %}
+          {% if s.estimated_total_cost_eur %}
+          {% set ns.total = ns.total + s.estimated_total_cost_eur %}
+          {% endif %}
+          <tr>
+            <td>
+              <input type="checkbox" class="form-check-input row-check"
+                     name="substance_id" value="{{ s.substance.id }}">
+            </td>
+            <td>
+              <a href="{{ url_for('substances.detail', substance_id=s.substance.id) }}"
+                 class="text-decoration-none fw-semibold">
+                {{ s.substance.name }}
+              </a>
+              {% if s.substance.cas_number %}
+              <div class="text-muted" style="font-size:0.75rem">{{ s.substance.cas_number }}</div>
+              {% endif %}
+            </td>
+            <td>
+              <span class="badge text-bg-{{ rc }}">{{ _(rl) }}</span>
+              {% if s.substance.low_stock_summary %}
+                <div class="text-muted small">{{ s.substance.low_stock_summary }}</div>
+              {% endif %}
+            </td>
+            <td class="text-end font-monospace">{{ s.suggested_quantity_display }}</td>
+            <td>
+              {{ s.last_supplier or "—" }}
+              {% if s.last_catalogue_number %}
+                <div class="text-muted small">{{ s.last_catalogue_number }}</div>
+              {% endif %}
+            </td>
+            <td class="text-end font-monospace">
+              {% if s.estimated_total_cost_eur is not none %}
+                {{ s.estimated_total_cost_eur|currency }}
+              {% else %}—{% endif %}
+            </td>
+            <td class="text-end">
+              {# Build pre-fill query string for the customise link #}
+              {% set qs = {'substance_id': s.substance.id} %}
+              {% if s.suggested_quantity_g is not none %}
+                {% set _x = qs.update({'ordered_quantity_g': s.suggested_quantity_g}) %}
+              {% endif %}
+              {% if s.suggested_quantity_mL is not none %}
+                {% set _x = qs.update({'ordered_quantity_mL': s.suggested_quantity_mL}) %}
+              {% endif %}
+              {% if s.estimated_total_cost_eur is not none %}
+                {% set _x = qs.update({'ordered_total_eur': s.estimated_total_cost_eur}) %}
+              {% endif %}
+              {% if s.last_supplier %}
+                {% set _x = qs.update({'supplier': s.last_supplier}) %}
+              {% endif %}
+              {% if s.last_catalogue_number %}
+                {% set _x = qs.update({'catalogue_number': s.last_catalogue_number}) %}
+              {% endif %}
+              <a href="{{ url_for('orders.new', **qs) }}"
+                 class="btn btn-sm btn-link p-0"
+                 title="{{ _('Personalizza prima di creare') }}">
+                <i data-lucide="edit-2" style="width:14px;height:14px"></i>
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        {% if ns.total > 0 %}
+        <tfoot>
+          <tr class="border-top">
+            <td colspan="5" class="text-end fw-semibold">
+              {{ _("Totale stimato selezionabili:") }}
+            </td>
+            <td class="text-end font-monospace fw-semibold">
+              {{ ns.total|currency }}
+            </td>
+            <td></td>
+          </tr>
+        </tfoot>
+        {% endif %}
+      </table>
+    </div>
+  </div>
+</form>
+
+<p class="text-muted small">
+  {{ _("Nota:") }}
+  {{ _("la quantità suggerita è soglia + 50%% di buffer. Il fornitore e il costo stimato vengono dall'ultimo lotto acquistato. Verifica e personalizza prima di confermare l'ordine.") }}
+</p>
+
+{% else %}
+<div class="card">
+  <div class="card-body text-center py-5">
+    <i data-lucide="check-circle" class="text-success mb-3"
+       style="width: 48px; height: 48px;"></i>
+    <p class="text-muted mb-0">
+      {{ _("Nessuna sostanza da riordinare. Magazzino in ordine.") }}
+    </p>
+    <p class="text-muted small mt-2">
+      {{ _("Verifica le impostazioni qui sopra se ti aspettavi qualche suggerimento.") }}
+    </p>
+  </div>
+</div>
+{% endif %}
+
+<script>if (window.lucide) lucide.createIcons();</script>
+{% endblock %}

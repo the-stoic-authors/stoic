@@ -1,0 +1,495 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Backup") }}{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center justify-content-between mb-3">
+  <div>
+    <h1 class="mb-1">{{ _("Backup") }}</h1>
+    <p class="text-muted mb-0">{{ _("Snapshot del database compressi e gestiti automaticamente.") }}</p>
+  </div>
+  <a href="{{ url_for('settings.index') }}" class="btn btn-link">
+    <i data-lucide="chevron-left"></i> {{ _("Impostazioni") }}
+  </a>
+</div>
+
+<div class="row g-3">
+
+  {# ── Cifratura DB live (patch 14.2) ───────────────────────── #}
+  <div class="col-12">
+    <div class="card border-{{ 'success' if live_db_encrypted else 'secondary' }}">
+      <div class="card-body">
+        <div class="d-flex align-items-start gap-3">
+          <i data-lucide="{{ 'database-zap' if live_db_encrypted else 'database' }}"
+             style="width:36px;height:36px"
+             class="text-{{ 'success' if live_db_encrypted else 'muted' }}"></i>
+          <div class="flex-grow-1">
+            {% if live_db_encrypted %}
+              <strong class="d-block">{{ _("DB live cifrato (SQLCipher)") }}</strong>
+              <p class="text-muted small mb-2">
+                {{ _("Il file") }} <code>instance/stoic_eln.db</code>
+                {{ _("è cifrato a livello di pagina con AES-256-CBC + "
+                     "HMAC-SHA512. Chi accede al filesystem senza la "
+                     "passphrase vede dati opachi.") }}
+              </p>
+              <p class="small text-muted mb-0">
+                {{ _("Per disattivare:") }}
+                <code>flask db-decrypt</code>
+                {{ _("(richiede Stoic fermo).") }}
+              </p>
+            {% else %}
+              <strong class="d-block">{{ _("DB live in chiaro") }}</strong>
+              <p class="text-muted small mb-2">
+                {{ _("Il database del laboratorio è memorizzato in chiaro su "
+                     "disco. La cifratura dei backup (sopra) protegge i "
+                     "file in") }} <code>instance/backups/</code>,
+                {{ _("ma chi ha accesso a") }}
+                <code>instance/stoic_eln.db</code>
+                {{ _("può aprirlo con qualunque client SQLite.") }}
+              </p>
+              {% if not settings.encryption_enabled %}
+              <div class="alert alert-warning small mb-2">
+                {{ _("Per attivare la cifratura del DB live serve prima una "
+                     "passphrase configurata (sezione sotto).") }}
+              </div>
+              {% elif not sqlcipher_available %}
+              <div class="alert alert-warning small mb-2">
+                <strong>{{ _("sqlcipher3 non installato.") }}</strong>
+                {{ _("Esegui:") }} <code>pip install sqlcipher3-binary</code>
+              </div>
+              {% else %}
+              <div class="alert alert-warning small mb-2">
+                <strong>{{ _("Attivabile via CLI:") }}</strong>
+                <ol class="mb-0 mt-2 small">
+                  <li>{{ _("Ferma Stoic") }} (<kbd>Ctrl-C</kbd>
+                      {{ _("sul terminale di") }} <code>make run</code>)</li>
+                  <li><code>.venv/bin/flask db-encrypt</code></li>
+                  <li>{{ _("Riavvia") }} <code>make run</code></li>
+                </ol>
+              </div>
+              <p class="small text-muted mb-0">
+                {{ _("La passphrase è la stessa dei backup, quindi una "
+                     "sola cosa da ricordare. Il DB live cifrato è "
+                     "protetto contro filesystem compromessi o accessi "
+                     "non autorizzati al disco.") }}
+              </p>
+              {% endif %}
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── Crittografia (patch 14.1) ────────────────────────────── #}
+  <div class="col-12">
+    <div class="card border-{{ 'success' if settings.encryption_enabled else 'warning' }}">
+      <div class="card-body">
+        <div class="d-flex align-items-start gap-3">
+          <i data-lucide="{{ 'shield-check' if settings.encryption_enabled else 'shield-alert' }}"
+             style="width:36px;height:36px"
+             class="text-{{ 'success' if settings.encryption_enabled else 'warning' }}"></i>
+          <div class="flex-grow-1">
+            {% if settings.encryption_enabled %}
+              <strong class="d-block">{{ _("Crittografia attiva") }}</strong>
+              <p class="text-muted small mb-2">
+                {{ _("I backup vengono cifrati con AES-256-GCM. La passphrase "
+                     "è in") }} <code>instance/backup.key</code>.
+              </p>
+              <details>
+                <summary class="small text-primary" style="cursor:pointer">
+                  {{ _("Cambia o disabilita") }}
+                </summary>
+                <div class="mt-3 row g-3">
+                  <div class="col-md-7">
+                    <form method="post"
+                          action="{{ url_for('settings.backups_passphrase') }}">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <div class="alert alert-warning small mb-2">
+                        <strong>{{ _("Attenzione:") }}</strong>
+                        {{ _("Cambiare la passphrase rende illeggibili tutti "
+                             "i backup cifrati esistenti.") }}
+                      </div>
+                      <input type="password" name="passphrase"
+                             class="form-control form-control-sm mb-2"
+                             placeholder="{{ _('Nuova passphrase (min 12 char)') }}"
+                             autocomplete="new-password" required>
+                      <input type="password" name="passphrase_confirm"
+                             class="form-control form-control-sm mb-2"
+                             placeholder="{{ _('Conferma') }}"
+                             autocomplete="new-password" required>
+                      <button type="submit" class="btn btn-sm btn-primary">
+                        <i data-lucide="key-round"></i> {{ _("Cambia passphrase") }}
+                      </button>
+                    </form>
+                  </div>
+                  <div class="col-md-5">
+                    <form method="post"
+                          action="{{ url_for('settings.backups_passphrase_disable') }}">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox"
+                               id="disable-enc-confirm"
+                               name="confirm" value="yes">
+                        <label class="form-check-label small" for="disable-enc-confirm">
+                          {{ _("Disabilita: capisco che i prossimi backup "
+                               "saranno in chiaro") }}
+                        </label>
+                      </div>
+                      <button type="submit" class="btn btn-sm btn-outline-danger">
+                        <i data-lucide="shield-off"></i> {{ _("Disattiva crittografia") }}
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              </details>
+            {% else %}
+              <strong class="d-block">{{ _("Crittografia non attiva") }}</strong>
+              <p class="text-muted small mb-3">
+                {{ _("I backup sono salvati in chiaro. Per dati di laboratorio "
+                     "vivamente raccomandato attivare la crittografia: chiunque "
+                     "abbia accesso a") }} <code>instance/backups/</code>
+                {{ _("può leggere il contenuto del database.") }}
+              </p>
+              <form method="post"
+                    action="{{ url_for('settings.backups_passphrase') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="row g-2 align-items-end">
+                  <div class="col-md-5">
+                    <label class="form-label small text-muted">
+                      {{ _("Passphrase (min 12 caratteri)") }}
+                    </label>
+                    <input type="password" name="passphrase"
+                           class="form-control form-control-sm"
+                           autocomplete="new-password" required>
+                  </div>
+                  <div class="col-md-5">
+                    <label class="form-label small text-muted">
+                      {{ _("Conferma") }}
+                    </label>
+                    <input type="password" name="passphrase_confirm"
+                           class="form-control form-control-sm"
+                           autocomplete="new-password" required>
+                  </div>
+                  <div class="col-md-2">
+                    <button type="submit" class="btn btn-warning btn-sm w-100">
+                      <i data-lucide="lock"></i> {{ _("Attiva") }}
+                    </button>
+                  </div>
+                </div>
+                <div class="alert alert-danger small mt-3 mb-0">
+                  <strong>{{ _("Conserva la passphrase in un posto sicuro.") }}</strong>
+                  {{ _("Se la perdi, i backup cifrati diventano "
+                       "irrecuperabili. Anthropic, Stoic e chiunque altro "
+                       "non potrà aiutarti a recuperarli.") }}
+                </div>
+              </form>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── Sorgente passphrase (patch 14.3) ─────────────────────── #}
+  <div class="col-12">
+    <div class="card">
+      <div class="card-body">
+        <div class="d-flex align-items-start gap-3">
+          <i data-lucide="key-square" style="width:36px;height:36px"
+             class="text-muted"></i>
+          <div class="flex-grow-1">
+            <strong class="d-block mb-2">{{ _("Sorgente della passphrase") }}</strong>
+            <p class="text-muted small mb-3">
+              {{ _("Da dove Stoic legge la passphrase quando si avvia. La scelta determina "
+                   "il livello di protezione contro furto del filesystem.") }}
+            </p>
+
+            <form method="post"
+                  action="{{ url_for('settings.backups_passphrase_source') }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              {% for s in pp_sources %}
+              <div class="form-check mb-3">
+                <input class="form-check-input" type="radio"
+                       name="source" id="pp-src-{{ s.value }}"
+                       value="{{ s.value }}"
+                       {% if s.current %}checked{% endif %}>
+                <label class="form-check-label" for="pp-src-{{ s.value }}">
+                  <strong>{{ s.label }}</strong>
+                </label>
+                <p class="text-muted small mb-0 mt-1">{{ s.description }}</p>
+              </div>
+              {% endfor %}
+              <button type="submit" class="btn btn-sm btn-primary">
+                <i data-lucide="save"></i> {{ _("Salva (richiede riavvio)") }}
+              </button>
+            </form>
+
+            {% if pp_source == pp_source_prompt and backup_key_exists %}
+            <hr class="my-3">
+            <div class="alert alert-warning small mb-2">
+              <strong>{{ _("Attenzione:") }}</strong>
+              {{ _("Hai scelto la modalità 'prompt' (passphrase solo in RAM) ma il file "
+                   "instance/backup.key esiste ancora su disco. Finché c'è, chi prende "
+                   "il filesystem può estrarla. Eliminalo per attivare davvero il modo "
+                   "passphrase-only.") }}
+            </div>
+            <form method="post"
+                  action="{{ url_for('settings.backups_passphrase_key_delete') }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox"
+                       id="confirm-delete-key" name="confirm" value="yes">
+                <label class="form-check-label small" for="confirm-delete-key">
+                  {{ _("Confermo: ho memorizzato la passphrase, posso eliminare il file") }}
+                </label>
+              </div>
+              <button type="submit" class="btn btn-sm btn-outline-danger">
+                <i data-lucide="file-x-2"></i>
+                {{ _("Elimina instance/backup.key") }}
+              </button>
+            </form>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── Configurazione ───────────────────────────────────────── #}
+  <div class="col-12 col-lg-5">
+    <div class="card h-100">
+      <div class="card-header">
+        <strong>{{ _("Configurazione") }}</strong>
+      </div>
+      <div class="card-body">
+        <form method="post"
+              action="{{ url_for('settings.backups_config') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+          <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox"
+                   id="bkp-enabled" name="enabled"
+                   {% if settings.enabled %}checked{% endif %}>
+            <label class="form-check-label" for="bkp-enabled">
+              {{ _("Backup automatici attivi") }}
+            </label>
+          </div>
+
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label class="form-label small text-muted">{{ _("Ora (UTC)") }}</label>
+              <input type="number" min="0" max="23" name="hour"
+                     class="form-control form-control-sm"
+                     value="{{ settings.hour }}">
+            </div>
+            <div class="col-6">
+              <label class="form-label small text-muted">{{ _("Minuto") }}</label>
+              <input type="number" min="0" max="59" name="minute"
+                     class="form-control form-control-sm"
+                     value="{{ settings.minute }}">
+            </div>
+          </div>
+
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label class="form-label small text-muted">
+                {{ _("Conserva ultimi (giorni)") }}
+              </label>
+              <input type="number" min="1" max="365" name="keep_daily"
+                     class="form-control form-control-sm"
+                     value="{{ settings.keep_daily }}">
+            </div>
+            <div class="col-6">
+              <label class="form-label small text-muted">
+                {{ _("+ uno a settimana per (settimane)") }}
+              </label>
+              <input type="number" min="0" max="104" name="keep_weekly"
+                     class="form-control form-control-sm"
+                     value="{{ settings.keep_weekly }}">
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small text-muted">
+              {{ _("Cartella di destinazione") }}
+            </label>
+            <input type="text" name="path"
+                   class="form-control form-control-sm"
+                   value="{{ settings.path }}"
+                   placeholder="backups">
+            <small class="text-muted d-block mt-1">
+              {{ _("Relativa a") }} <code>instance/</code>{{ _(", o assoluta.") }}<br>
+              {{ _("Attualmente:") }} <code>{{ backup_dir }}</code>
+            </small>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-sm">
+            <i data-lucide="save"></i> {{ _("Salva configurazione") }}
+          </button>
+        </form>
+
+        <hr class="my-3">
+
+        <form method="post"
+              action="{{ url_for('settings.backups_run') }}"
+              onsubmit="this.querySelector('button').disabled=true">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-outline-primary btn-sm">
+            <i data-lucide="hard-drive-download"></i>
+            {{ _("Esegui backup ora") }}
+          </button>
+        </form>
+        <small class="text-muted d-block mt-2">
+          {{ _("Forza un backup immediato e applica la retention configurata.") }}
+        </small>
+      </div>
+    </div>
+  </div>
+
+  {# ── Elenco backup ────────────────────────────────────────── #}
+  <div class="col-12 col-lg-7">
+    <div class="card h-100">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <strong>{{ _("Backup esistenti") }}</strong>
+        <span class="badge text-bg-secondary">{{ backups|length }}</span>
+      </div>
+      <div class="card-body p-0">
+        {% if backups %}
+        <div class="table-responsive">
+          <table class="table table-sm align-middle mb-0">
+            <thead>
+              <tr>
+                <th>{{ _("Data e ora (UTC)") }}</th>
+                <th class="text-end">{{ _("Dimensione") }}</th>
+                <th class="text-end" style="width: 12rem">{{ _("Azioni") }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for b in backups %}
+              <tr>
+                <td>
+                  <code class="small">{{ b.timestamp.strftime("%Y-%m-%d %H:%M:%S") }}</code>
+                  {% if b.encrypted %}
+                    <i data-lucide="lock" style="width:12px;height:12px"
+                       class="text-success ms-1"
+                       title="{{ _('Cifrato AES-256-GCM') }}"></i>
+                  {% endif %}
+                  <div class="text-muted small">{{ b.filename }}</div>
+                </td>
+                <td class="text-end font-monospace">
+                  {{ "%.2f"|format(b.size_mb) }} MB
+                </td>
+                <td class="text-end">
+                  <a href="{{ url_for('settings.backups_download', filename=b.filename) }}"
+                     class="btn btn-sm btn-outline-secondary"
+                     title="{{ _('Scarica') }}">
+                    <i data-lucide="download"></i>
+                  </a>
+                  <button type="button" class="btn btn-sm btn-outline-warning"
+                          data-bs-toggle="modal"
+                          data-bs-target="#restore-{{ loop.index }}"
+                          title="{{ _('Ripristina') }}">
+                    <i data-lucide="rotate-ccw"></i>
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-danger"
+                          data-bs-toggle="modal"
+                          data-bs-target="#delete-{{ loop.index }}"
+                          title="{{ _('Elimina') }}">
+                    <i data-lucide="trash-2"></i>
+                  </button>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5 text-muted">
+          <i data-lucide="hard-drive" style="width:36px;height:36px;opacity:0.4"></i>
+          <p class="mt-2 mb-0">{{ _("Nessun backup ancora. Esegui il primo.") }}</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+</div>
+
+{# ── Modal di conferma (uno per backup) ────────────────────── #}
+{% for b in backups %}
+<div class="modal fade" id="restore-{{ loop.index }}" tabindex="-1">
+  <div class="modal-dialog">
+    <form method="post"
+          action="{{ url_for('settings.backups_restore', filename=b.filename) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">{{ _("Ripristina backup") }}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p>{{ _("Stai per sostituire il database attuale con il backup:") }}</p>
+          <p><code>{{ b.filename }}</code></p>
+          <p class="text-muted small">
+            {{ _("Verrà prima creato un backup di sicurezza del DB attuale "
+                 "(pre-restore), e il file della live DB verrà rinominato "
+                 "con suffisso") }}
+            <code>.pre-restore-…</code>{{ _(" così non perdi nulla irreversibilmente.") }}
+          </p>
+          <div class="alert alert-warning small mb-0">
+            <strong>{{ _("Importante:") }}</strong>
+            {{ _("Dopo il ripristino devi riavviare Stoic perché le "
+                 "modifiche abbiano effetto.") }}
+          </div>
+          <div class="form-check mt-3">
+            <input class="form-check-input" type="checkbox"
+                   name="confirm" value="yes" id="rconf-{{ loop.index }}">
+            <label class="form-check-label" for="rconf-{{ loop.index }}">
+              {{ _("Sì, ripristina questo backup") }}
+            </label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-link" data-bs-dismiss="modal">
+            {{ _("Annulla") }}
+          </button>
+          <button type="submit" class="btn btn-warning">
+            <i data-lucide="rotate-ccw"></i> {{ _("Ripristina") }}
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal fade" id="delete-{{ loop.index }}" tabindex="-1">
+  <div class="modal-dialog">
+    <form method="post"
+          action="{{ url_for('settings.backups_delete', filename=b.filename) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">{{ _("Elimina backup") }}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p>{{ _("Eliminare definitivamente il file:") }}</p>
+          <p><code>{{ b.filename }}</code> ({{ "%.2f"|format(b.size_mb) }} MB)?</p>
+          <p class="text-muted small">{{ _("Questa operazione non è reversibile.") }}</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-link" data-bs-dismiss="modal">
+            {{ _("Annulla") }}
+          </button>
+          <button type="submit" class="btn btn-danger">
+            <i data-lucide="trash-2"></i> {{ _("Elimina") }}
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endfor %}
+
+<script>if (window.lucide) lucide.createIcons();</script>
+{% endblock %}

@@ -1,0 +1,152 @@
+[project]
+name = "stoic-eln"
+version = "0.9.0"
+description = "An open-source electronic lab notebook (ELN) for chemistry labs. Self-hosted, audit-ready, multi-user, AGPLv3."
+authors = [
+    {name = "The Stoic Authors"}
+]
+readme = "README.md"
+license = {text = "AGPL-3.0-or-later"}
+requires-python = ">=3.11"
+keywords = [
+    "eln", "lims", "lab", "chemistry", "laboratory",
+    "notebook", "stoichiometry", "ghs", "research",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Web Environment",
+    "Framework :: Flask",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Chemistry",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+]
+
+dependencies = [
+    "flask>=3.0,<4.0",
+    "flask-sqlalchemy>=3.1,<4.0",
+    "flask-login>=0.6.3,<1.0",
+    "flask-wtf>=1.2,<2.0",
+    "flask-babel>=4.0,<5.0",
+    "flask-migrate>=4.0,<5.0",
+    "sqlalchemy>=2.0,<3.0",
+    "alembic>=1.13,<2.0",
+    "argon2-cffi>=23.1,<24.0",
+    "python-dotenv>=1.0,<2.0",
+    "wtforms>=3.1,<4.0",
+    "email-validator>=2.0,<3.0",
+    "babel>=2.14,<3.0",
+    "httpx>=0.27,<1.0",
+    "cachetools>=5.3,<7.0",
+    # PDF generation (Settimana 5)
+    "reportlab>=4.0,<5.0",
+    # Chemistry depiction for PDFs (Settimana 5). Optional at runtime —
+    # the code falls back to plain SMILES text when this is unavailable.
+    "rdkit>=2024.3.1",
+    # Pillow is a transitive dep of both reportlab and rdkit; declared
+    # explicitly so installs are deterministic.
+    "Pillow>=10.0",
+    # click: powers the stoic CLI (`stoic install`, `stoic update`, etc).
+    # Already a transitive dep via Flask, but declared explicitly
+    # for safety in case Flask ever drops it.
+    "click>=8.1,<9.0",
+    # SVG → ReportLab Drawing for GHS pictograms in lot labels
+    # (Settimana 6 patch 12). The `qrcode` library is *not* needed —
+    # ReportLab ships its own QrCodeWidget.
+    "svglib>=1.5,<2.0",
+    # Background scheduling for nightly backups (Settimana 6 patch 14.0).
+    # In-process scheduler; no separate daemon required.
+    "APScheduler>=3.10,<4.0",
+    # AES-256-GCM encryption for database backups (Settimana 6
+    # patch 14.1). Argon2id KDF reuses argon2-cffi already in deps.
+    "cryptography>=42.0,<49.0",
+    # SQLCipher binding for full live-DB encryption (patch 14.2).
+    # Using sqlcipher3-wheels (not -binary): the official -binary
+    # only publishes Linux x86_64 wheels, while -wheels is a fork
+    # that adds macOS Intel + Apple Silicon + Windows wheels. Same
+    # API, drop-in replacement (imports as `sqlcipher3`).
+    "sqlcipher3-wheels>=0.5,<1.0",
+    # Markdown → HTML rendering for the in-app docs viewer
+    # (Settimana 6 patch 14.6). Used only at request time on
+    # the `/docs/...` routes; no template-time markdown rendering.
+    "markdown>=3.5,<4.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "pytest-flask>=1.3",
+    "ruff>=0.5",
+    "mypy>=1.10",
+    "pre-commit>=3.7",
+    "respx>=0.21",
+]
+prod = [
+    "gunicorn>=22.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/the-stoic-authors/stoic"
+Repository = "https://github.com/the-stoic-authors/stoic"
+Documentation = "https://github.com/the-stoic-authors/stoic/tree/main/docs"
+Issues = "https://github.com/the-stoic-authors/stoic/issues"
+Changelog = "https://github.com/the-stoic-authors/stoic/blob/main/CHANGELOG.md"
+
+# Operator-facing CLI: after `pip install -e .`, the `stoic`
+# command is available system-wide. Wraps the flask CLI with
+# platform-aware service management (launchd on macOS, systemd
+# user on Linux, PID-file fallback elsewhere). See
+# stoic_eln/cli/main.py for the command surface.
+[project.scripts]
+stoic = "stoic_eln.cli.main:main"
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["stoic_eln*"]
+exclude = ["tests*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["migrations"]
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "B",    # flake8-bugbear
+    "UP",   # pyupgrade
+    "C4",   # flake8-comprehensions
+    "SIM",  # flake8-simplify
+]
+ignore = [
+    "E501",  # line-too-long (handled by formatter)
+    "B008",  # function calls in argument defaults (Flask common pattern)
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = false
+warn_unused_configs = true
+ignore_missing_imports = true
+exclude = ["migrations/", "tests/"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+addopts = "-v --tb=short"

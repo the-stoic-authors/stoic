@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% block title %}{% if item %}{{ _("Modifica lotto") }}{% else %}{{ _("Nuovo lotto") }}{% endif %}{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-12 col-lg-8 col-xl-6 mx-auto">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb small">
+        <li class="breadcrumb-item">
+          <a href="{{ url_for('substances.list_view') }}">{{ _("Sostanze") }}</a>
+        </li>
+        <li class="breadcrumb-item">
+          <a href="{{ url_for('substances.detail', substance_id=substance.id) }}">{{ substance.name }}</a>
+        </li>
+        <li class="breadcrumb-item active">
+          {% if item %}{{ _("Modifica lotto") }}{% else %}{{ _("Nuovo lotto") }}{% endif %}
+        </li>
+      </ol>
+    </nav>
+
+    <div class="card">
+      <div class="card-body">
+        <h2 class="mb-1">
+          {% if item %}{{ _("Modifica lotto") }}
+          {% else %}{{ _("Nuovo lotto di") }} {{ substance.name }}
+          {% endif %}
+        </h2>
+        <p class="text-muted small mb-4">
+          {{ substance.molecular_formula or "" }}
+          {% if substance.cas_number %} · CAS {{ substance.cas_number }}{% endif %}
+        </p>
+
+        <form method="post" novalidate>
+          {{ form.hidden_tag() }}
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              {{ form.batch_code.label(class="form-label") }}
+              {{ form.batch_code(class="form-control") }}
+            </div>
+            <div class="col-md-6">
+              {{ form.catalogue_number.label(class="form-label") }}
+              {{ form.catalogue_number(class="form-control") }}
+            </div>
+            <div class="col-12">
+              {{ form.supplier.label(class="form-label") }}
+              {{ form.supplier(class="form-control") }}
+            </div>
+          </div>
+
+          <hr class="my-4">
+
+          <h5>{{ _("Quantità") }}</h5>
+          <p class="text-muted small">
+            {{ _("Compila la coppia coerente con lo stato fisico (g per solidi, mL per liquidi).") }}
+          </p>
+          <div class="row g-3">
+            <div class="col-md-6">
+              {{ form.initial_quantity_g.label(class="form-label") }}
+              {{ form.initial_quantity_g(class="form-control", step="0.001") }}
+            </div>
+            <div class="col-md-6">
+              {{ form.initial_quantity_mL.label(class="form-label") }}
+              {{ form.initial_quantity_mL(class="form-control", step="0.001") }}
+            </div>
+            <div class="col-md-6">
+              {{ form.quantity_g.label(class="form-label") }}
+              {{ form.quantity_g(class="form-control", step="0.001") }}
+              <div class="form-text">{{ _("Lascia vuoto per usare la quantità iniziale.") }}</div>
+            </div>
+            <div class="col-md-6">
+              {{ form.quantity_mL.label(class="form-label") }}
+              {{ form.quantity_mL(class="form-control", step="0.001") }}
+            </div>
+          </div>
+
+          <hr class="my-4">
+
+          <h5>{{ _("Logistica") }}</h5>
+          <div class="row g-3">
+            <div class="col-md-6">
+              {{ form.total_cost_eur.label(class="form-label") }}
+              {{ form.total_cost_eur(class="form-control", step="0.01") }}
+            </div>
+            <div class="col-md-6">
+              {{ form.location.label(class="form-label") }}
+              {{ form.location(class="form-control") }}
+            </div>
+            <div class="col-md-6">
+              {{ form.purchased_at.label(class="form-label") }}
+              {{ form.purchased_at(class="form-control", type="date") }}
+            </div>
+            <div class="col-md-6">
+              {{ form.expiry_date.label(class="form-label") }}
+              {{ form.expiry_date(class="form-control", type="date") }}
+            </div>
+            <div class="col-12">
+              {{ form.notes.label(class="form-label") }}
+              {{ form.notes(class="form-control", rows=2) }}
+            </div>
+            <div class="col-12">
+              <div class="form-check">
+                {{ form.is_active(class="form-check-input") }}
+                {{ form.is_active.label(class="form-check-label") }}
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-between mt-4">
+            <div>
+              {% if item and item.is_active %}
+              <button type="submit"
+                      formaction="{{ url_for('inventory.deactivate', item_id=item.id) }}"
+                      class="btn btn-outline-danger btn-sm"
+                      onclick="return confirm('{{ _('Disattivare questo lotto?') }}');">
+                <i data-lucide="archive"></i> {{ _("Disattiva lotto") }}
+              </button>
+              {% endif %}
+            </div>
+            <div class="d-flex gap-2">
+              <a href="{{ url_for('substances.detail', substance_id=substance.id) }}" class="btn btn-link">
+                {{ _("Annulla") }}
+              </a>
+              {{ form.submit(class="btn btn-primary") }}
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

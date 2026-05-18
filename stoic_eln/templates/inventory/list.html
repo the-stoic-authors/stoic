@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Magazzino") }}{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h1>{{ _("Magazzino") }}</h1>
+    <p class="text-muted mb-0">{{ _("%(n)d lotti visualizzati", n=items|length) }}</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('substances.list_view') }}" class="btn btn-outline-primary">
+      <i data-lucide="flask-conical"></i> {{ _("Catalogo sostanze") }}
+    </a>
+  </div>
+</div>
+
+{# Filter card — search + status + supplier + group #}
+<div class="card mb-3 stoic-sticky-search">
+  <div class="card-body">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-md-4">
+        <label class="form-label small text-muted mb-1">{{ _("Cerca") }}</label>
+        <input type="search"
+               class="form-control form-control-sm"
+               name="q"
+               value="{{ q }}"
+               placeholder="{{ _('lotto, fornitore, sostanza, CAS…') }}">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small text-muted mb-1">{{ _("Stato") }}</label>
+        <select name="status" class="form-select form-select-sm">
+          <option value="all" {% if status == 'all' %}selected{% endif %}>
+            {{ _("Tutti") }}
+          </option>
+          <option value="in_stock" {% if status == 'in_stock' %}selected{% endif %}>
+            {{ _("In stock") }}
+          </option>
+          <option value="expiring" {% if status == 'expiring' %}selected{% endif %}>
+            {{ _("In scadenza (≤30 gg)") }}
+          </option>
+          <option value="expired" {% if status == 'expired' %}selected{% endif %}>
+            {{ _("Scaduti") }}
+          </option>
+          <option value="empty" {% if status == 'empty' %}selected{% endif %}>
+            {{ _("Esauriti") }}
+          </option>
+          <option value="inactive" {% if status == 'inactive' %}selected{% endif %}>
+            {{ _("Disattivati") }}
+          </option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small text-muted mb-1">{{ _("Fornitore") }}</label>
+        <select name="supplier" class="form-select form-select-sm">
+          <option value="">{{ _("Qualsiasi") }}</option>
+          {% for s in suppliers %}
+            <option value="{{ s }}" {% if s == supplier_filter %}selected{% endif %}>{{ s }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small text-muted mb-1">{{ _("Gruppo") }}</label>
+        <select name="group" class="form-select form-select-sm">
+          <option value="">{{ _("Qualsiasi") }}</option>
+          {% for g in groups %}
+            <option value="{{ g.slug }}" {% if g.slug == group_filter %}selected{% endif %}>
+              {{ g.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-primary btn-sm w-100">
+          <i data-lucide="search"></i> {{ _("Filtra") }}
+        </button>
+      </div>
+      {# Preserve sort across submit #}
+      <input type="hidden" name="sort" value="{{ sort }}">
+      <input type="hidden" name="direction" value="{{ direction }}">
+    </form>
+    {% if q or status != 'all' or supplier_filter or group_filter %}
+    <div class="mt-2">
+      <a href="{{ url_for('inventory.list_view') }}" class="text-decoration-none small">
+        <i data-lucide="x" style="width:12px;height:12px"></i>
+        {{ _("Pulisci filtri") }}
+      </a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div id="inventory-table" class="stoic-sticky-thead">
+  {% include "inventory/_list_table.html" %}
+</div>
+{% endblock %}

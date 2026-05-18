@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Audit log") }}{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-start mb-3">
+  <div>
+    <h1>
+      <i data-lucide="file-text"></i>
+      {{ _("Audit log") }}
+    </h1>
+    <p class="text-muted mb-0">
+      {{ _("Tutti gli eventi tracciati: chi ha fatto cosa, quando, su che entità.") }}
+    </p>
+  </div>
+  <a href="{{ url_for('settings.index') }}" class="btn btn-outline-secondary">
+    <i data-lucide="arrow-left"></i> {{ _("Indietro") }}
+  </a>
+</div>
+
+{# Filters #}
+<form method="get" class="card mb-3">
+  <div class="card-body">
+    <div class="row g-2 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label small text-muted mb-1">{{ _("Cerca") }}</label>
+        <input type="search" class="form-control form-control-sm"
+               name="q" value="{{ filters.q or '' }}"
+               placeholder="{{ _('azione, entità, dettagli…') }}">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small text-muted mb-1">{{ _("Utente") }}</label>
+        <select name="user_id" class="form-select form-select-sm">
+          <option value="">{{ _("Tutti") }}</option>
+          {% for u in users %}
+          <option value="{{ u.id }}" {% if filters.user_id == u.id %}selected{% endif %}>
+            {{ u.full_name or u.username }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small text-muted mb-1">{{ _("Azione") }}</label>
+        <select name="action" class="form-select form-select-sm">
+          <option value="">{{ _("Tutte") }}</option>
+          {% for a in actions %}
+          {% set lbl, _c = label_for_action(a) %}
+          <option value="{{ a }}" {% if filters.action == a %}selected{% endif %}>
+            {{ lbl }} <small class="text-muted">({{ a }})</small>
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small text-muted mb-1">{{ _("Entità") }}</label>
+        <select name="entity_type" class="form-select form-select-sm">
+          <option value="">{{ _("Tutte") }}</option>
+          {% for et in entity_types %}
+          <option value="{{ et }}" {% if filters.entity_type == et %}selected{% endif %}>
+            {{ et }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <div class="row g-1">
+          <div class="col-6">
+            <label class="form-label small text-muted mb-1">{{ _("Da") }}</label>
+            <input type="date" class="form-control form-control-sm"
+                   name="date_from"
+                   value="{{ filters.date_from.isoformat() if filters.date_from else '' }}">
+          </div>
+          <div class="col-6">
+            <label class="form-label small text-muted mb-1">{{ _("A") }}</label>
+            <input type="date" class="form-control form-control-sm"
+                   name="date_to"
+                   value="{{ filters.date_to.isoformat() if filters.date_to else '' }}">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="d-flex gap-2 justify-content-end mt-3">
+      <a href="{{ url_for('settings.audit_log') }}"
+         class="btn btn-outline-secondary btn-sm">
+        {{ _("Reset filtri") }}
+      </a>
+      <button type="submit" class="btn btn-primary btn-sm">
+        <i data-lucide="search"></i> {{ _("Filtra") }}
+      </button>
+    </div>
+  </div>
+</form>
+
+{# Header bar with totals + export #}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div class="text-muted small">
+    {% if page_data.total > 0 %}
+      {{ _("%(total)d eventi · pagina %(page)d/%(pages)d",
+           total=page_data.total, page=page_data.page,
+           pages=page_data.total_pages) }}
+    {% else %}
+      {{ _("Nessun evento corrisponde ai filtri.") }}
+    {% endif %}
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('settings.audit_log_export_csv', **request.args) }}"
+       class="btn btn-outline-secondary btn-sm">
+      <i data-lucide="download"></i> CSV
+    </a>
+    <a href="{{ url_for('settings.audit_log_export_pdf', **request.args) }}"
+       class="btn btn-outline-secondary btn-sm">
+      <i data-lucide="file-text"></i> PDF
+    </a>
+  </div>
+</div>
+
+{% if page_data.events %}
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0 small">
+      <thead>
+        <tr>
+          <th style="width: 9rem">{{ _("Data e ora") }}</th>
+          <th>{{ _("Utente") }}</th>
+          <th>{{ _("Azione") }}</th>
+          <th>{{ _("Entità") }}</th>
+          <th>{{ _("Dettagli") }}</th>
+          <th style="width: 9rem">{{ _("IP") }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for e in page_data.events %}
+        {% set lbl, color = label_for_action(e.action or '') %}
+        <tr>
+          <td class="font-monospace small text-nowrap">
+            {{ e.created_at.strftime('%Y-%m-%d %H:%M:%S') if e.created_at else '—' }}
+          </td>
+          <td class="small">
+            {% if e.user_id %}
+              {{ e.user.full_name if e.user else ('#' ~ e.user_id) }}
+              {% if e.user and e.user.operator_code %}
+                <code class="ms-1">{{ e.user.operator_code }}</code>
+              {% endif %}
+            {% else %}
+              <span class="text-muted">{{ _("(sistema)") }}</span>
+            {% endif %}
+          </td>
+          <td>
+            <span class="badge text-bg-{{ color }}">{{ lbl }}</span>
+            <code class="text-muted small ms-1">{{ e.action or '' }}</code>
+          </td>
+          <td class="small">
+            {% if e.entity_type %}
+              {{ e.entity_type }}
+              {% if e.entity_id is not none %}
+                <code>#{{ e.entity_id }}</code>
+              {% endif %}
+            {% else %}—{% endif %}
+          </td>
+          <td>
+            {% if e.details %}
+            <details>
+              <summary class="text-muted small" style="cursor: pointer">
+                {{ _("mostra JSON") }}
+              </summary>
+              <pre class="small mb-0 mt-1"
+                   style="white-space: pre-wrap; max-height: 12rem; overflow: auto">{{ e.details|tojson(indent=2) }}</pre>
+            </details>
+            {% else %}—{% endif %}
+          </td>
+          <td class="font-monospace small text-muted">{{ e.ip_address or '—' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{# Pagination #}
+{% if page_data.total_pages > 1 %}
+<nav class="mt-3 d-flex justify-content-center" aria-label="paginator">
+  <ul class="pagination pagination-sm mb-0">
+    {% set qs = request.args.to_dict() %}
+    {% set _x = qs.pop('page', None) %}
+    {% set base_qs = qs %}
+    <li class="page-item {% if not page_data.has_prev %}disabled{% endif %}">
+      <a class="page-link" href="?{% for k,v in base_qs.items() %}{{ k }}={{ v }}&{% endfor %}page={{ page_data.page - 1 }}">‹</a>
+    </li>
+    {# Show first, last, and ±2 around current #}
+    {% set window = [] %}
+    {% for p in range(1, page_data.total_pages + 1) %}
+      {% if p == 1 or p == page_data.total_pages or (p >= page_data.page - 2 and p <= page_data.page + 2) %}
+        {% set _ = window.append(p) %}
+      {% endif %}
+    {% endfor %}
+    {% set last = 0 %}
+    {% for p in window %}
+      {% if last and p > last + 1 %}
+        <li class="page-item disabled"><span class="page-link">…</span></li>
+      {% endif %}
+      <li class="page-item {% if p == page_data.page %}active{% endif %}">
+        <a class="page-link" href="?{% for k,v in base_qs.items() %}{{ k }}={{ v }}&{% endfor %}page={{ p }}">{{ p }}</a>
+      </li>
+      {% set last = p %}
+    {% endfor %}
+    <li class="page-item {% if not page_data.has_next %}disabled{% endif %}">
+      <a class="page-link" href="?{% for k,v in base_qs.items() %}{{ k }}={{ v }}&{% endfor %}page={{ page_data.page + 1 }}">›</a>
+    </li>
+  </ul>
+</nav>
+{% endif %}
+
+{% else %}
+<div class="card">
+  <div class="card-body text-center py-5">
+    <i data-lucide="file-text" class="text-muted mb-3" style="width: 48px; height: 48px;"></i>
+    <p class="text-muted mb-0">
+      {{ _("Nessun evento corrisponde ai filtri impostati.") }}
+    </p>
+  </div>
+</div>
+{% endif %}
+<script>if (window.lucide) lucide.createIcons();</script>
+{% endblock %}

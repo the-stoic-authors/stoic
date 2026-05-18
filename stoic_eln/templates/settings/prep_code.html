@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Codice delle preparazioni") }} — {{ _("Impostazioni") }}{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb small mb-2">
+    <li class="breadcrumb-item">
+      <a href="{{ url_for('settings.index') }}" class="text-decoration-none">{{ _("Impostazioni") }}</a>
+    </li>
+    <li class="breadcrumb-item active">{{ _("Codice delle preparazioni") }}</li>
+  </ol>
+</nav>
+
+<div class="page-header mb-3">
+  <h1>{{ _("Codice delle preparazioni") }}</h1>
+  <p class="text-muted">
+    {{ _("Configura come vengono generati i codici delle miscele preparate (es. HCl 6N → HCL6N-2026-001).") }}
+  </p>
+</div>
+
+<form method="post" action="{{ url_for('settings.prep_code') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+  <div class="card mb-3">
+    <div class="card-header"><strong>{{ _("Formato del codice") }}</strong></div>
+    <div class="card-body">
+      <p class="small text-muted">
+        {{ _("Stringa di formato con i placeholder seguenti:") }}
+      </p>
+      <ul class="small text-muted">
+        <li><code>{mix}</code> — {{ _("slug del nome miscela (es. HCl 6N → HCL6N, max 16 caratteri)") }}</li>
+        <li><code>{year}</code> — {{ _("anno corrente (es. 2026)") }}</li>
+        <li><code>{seq}</code> — {{ _("numero sequenziale (puoi usare {seq:03d} per zero-padding)") }}</li>
+      </ul>
+
+      <div class="mb-3">
+        <label class="form-label">{{ _("Formato") }}</label>
+        <input type="text" name="format" class="form-control font-monospace"
+               value="{{ current_format }}"
+               placeholder="{{ default_format }}"
+               hx-post="{{ url_for('settings.prep_code_preview') }}"
+               hx-trigger="keyup changed delay:300ms"
+               hx-target="#preview-output"
+               hx-include="this"
+               hx-headers='{"X-CSRFToken": "{{ csrf_token() }}"}'
+               required>
+        <small class="text-muted">
+          {{ _("Default:") }} <code>{{ default_format }}</code>
+        </small>
+      </div>
+
+      <div class="alert alert-secondary">
+        <strong>{{ _("Anteprima:") }}</strong>
+        <span id="preview-output"><code>{{ preview }}</code></span>
+        <div class="small text-muted mt-1">
+          {{ _("Esempio con: miscela=HCL6N, anno=2026, seq=1") }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mb-3">
+    <div class="card-header"><strong>{{ _("Progressività della sequenza") }}</strong></div>
+    <div class="card-body">
+      <p class="small text-muted">
+        {{ _("Su quale base si incrementa il numero {seq}?") }}
+      </p>
+
+      <div class="form-check mb-2">
+        <input class="form-check-input" type="radio" name="scope" id="scope-lab"
+               value="lab" {% if current_scope == 'lab' %}checked{% endif %}>
+        <label class="form-check-label" for="scope-lab">
+          <strong>{{ _("Laboratorio (globale)") }}</strong>
+          <div class="small text-muted">
+            {{ _("Tutte le preparazioni del laboratorio condividono la stessa numerazione per anno.") }}
+            {{ _("Esempio: HCL6N-2026-001, HCL1N-2026-002, ELUENTEA-2026-003.") }}
+          </div>
+        </label>
+      </div>
+
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="scope" id="scope-mix"
+               value="mix" {% if current_scope == 'mix' %}checked{% endif %}>
+        <label class="form-check-label" for="scope-mix">
+          <strong>{{ _("Per miscela") }}</strong>
+          <div class="small text-muted">
+            {{ _("Ogni miscela ha la sua serie indipendente per anno.") }}
+            {{ _("Esempio: HCL6N-2026-001, HCL6N-2026-002, HCL1N-2026-001.") }}
+          </div>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex justify-content-end gap-2">
+    <a href="{{ url_for('settings.index') }}" class="btn btn-link">{{ _("Annulla") }}</a>
+    <button type="submit" class="btn btn-primary">
+      <i data-lucide="save"></i> {{ _("Salva") }}
+    </button>
+  </div>
+</form>
+{% endblock %}

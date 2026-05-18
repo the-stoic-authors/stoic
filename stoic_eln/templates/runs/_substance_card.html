@@ -1,0 +1,98 @@
+{# Substance details collapse panel.
+   Args:
+     substance       — Substance instance (required)
+     panel_id        — unique HTML id for the collapse panel (required)
+#}
+{% set sub = substance %}
+{% set pid = panel_id %}
+
+<button class="btn btn-sm btn-link p-0 px-1 text-muted"
+        type="button"
+        data-bs-toggle="collapse"
+        data-bs-target="#{{ pid }}"
+        aria-expanded="false"
+        aria-controls="{{ pid }}"
+        title="{{ _('Mostra/nascondi scheda') }}">
+  <i data-lucide="info" style="width:14px;height:14px"></i>
+</button>
+
+<div id="{{ pid }}" class="collapse mt-2 substance-card-collapse">
+  <div class="card card-body small bg-body-tertiary">
+
+    <div class="row g-2">
+      <div class="col-md-6">
+        <strong>{{ sub.name }}</strong>
+        {% if sub.cas_number %}
+          <code class="ms-2">{{ sub.cas_number }}</code>
+        {% endif %}
+        {% if sub.iupac_name and sub.iupac_name != sub.name %}
+          <div class="text-muted">{{ sub.iupac_name }}</div>
+        {% endif %}
+      </div>
+      <div class="col-md-6">
+        {% if sub.molecular_formula %}
+          <span class="me-3">{{ _("Formula") }}: <code>{{ sub.molecular_formula }}</code></span>
+        {% endif %}
+        {% if sub.molecular_weight %}
+          <span>MW: <code>{{ '%.2f'|format(sub.molecular_weight) }}</code></span>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="row g-2 mt-1">
+      {% if sub.melting_point_c is not none %}
+      <div class="col-md-3"><span class="text-muted">{{ _("MP:") }}</span> {{ '%g'|format(sub.melting_point_c) }} °C</div>
+      {% endif %}
+      {% if sub.boiling_point_c is not none %}
+      <div class="col-md-3"><span class="text-muted">{{ _("BP:") }}</span> {{ '%g'|format(sub.boiling_point_c) }} °C</div>
+      {% endif %}
+      {% if sub.density is not none %}
+      <div class="col-md-3"><span class="text-muted">{{ _("Densità:") }}</span> {{ '%g'|format(sub.density) }} g/mL</div>
+      {% endif %}
+      {% if sub.state %}
+      <div class="col-md-3">
+        <span class="text-muted">{{ _("Stato:") }}</span>
+        {{ {'solid': _('solido'), 'liquid': _('liquido'), 'gas': _('gas')}.get(sub.state, sub.state) }}
+      </div>
+      {% endif %}
+    </div>
+
+    {# GHS pictograms (if any) — small inline list #}
+    {% if sub.ghs_pictograms %}
+    <div class="mt-2">
+      <strong class="small">{{ _("Pittogrammi GHS:") }}</strong>
+      {% for p in sub.ghs_pictograms %}
+        <span class="badge text-bg-warning me-1">{{ p }}</span>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {# H phrases #}
+    {% if sub.h_phrases %}
+    <div class="small mt-1">
+      <strong>{{ _("Frasi H:") }}</strong>
+      {% for h in sub.h_phrases %}
+        <code class="me-2">{{ h }}</code>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {# P phrases #}
+    {% if sub.p_phrases %}
+    <div class="small">
+      <strong>{{ _("Frasi P:") }}</strong>
+      {% for p in sub.p_phrases %}
+        <code class="me-2">{{ p }}</code>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="mt-2 small">
+      <a href="{{ url_for('substances.detail', substance_id=sub.id) }}"
+         target="_blank" class="text-decoration-none">
+        <i data-lucide="external-link" style="width:12px;height:12px"></i>
+        {{ _("Apri scheda completa") }}
+      </a>
+    </div>
+  </div>
+</div>

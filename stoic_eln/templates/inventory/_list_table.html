@@ -1,0 +1,186 @@
+{# Inventory list table — Settimana 6 patch 1.
+
+Columns:
+  Sostanza · Lotto · Fornitore · Posizione · Acquistato · Scadenza
+  · Iniziale · Residuo · Costo totale · €/g (or €/mL) · €/mol · Stato
+
+Sortable header: each column header is a link that toggles asc/desc.
+The current sort column gets an arrow indicator.
+#}
+{% macro sort_link(column, label) -%}
+  {% set is_active = sort == column %}
+  {% set new_dir = "desc" if (is_active and direction == "asc") else "asc" %}
+  <a href="{{ url_for('inventory.list_view',
+                       q=q, status=status, group=group_filter,
+                       supplier=supplier_filter,
+                       sort=column, direction=new_dir,
+                       show_inactive='1' if show_inactive else '') }}"
+     class="text-reset text-decoration-none">
+    {{ label }}
+    {% if is_active %}
+      {% if direction == "asc" %}<i data-lucide="chevron-up" style="width:12px;height:12px"></i>
+      {% else %}<i data-lucide="chevron-down" style="width:12px;height:12px"></i>
+      {% endif %}
+    {% endif %}
+  </a>
+{%- endmacro %}
+
+{% if items %}
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0 small">
+      <thead>
+        <tr>
+          <th>{{ sort_link("substance", _("Sostanza")) }}</th>
+          <th>{{ sort_link("batch", _("Lotto")) }}</th>
+          <th>{{ sort_link("supplier", _("Fornitore")) }}</th>
+          <th>{{ _("Posizione") }}</th>
+          <th>{{ sort_link("purchased", _("Acquistato")) }}</th>
+          <th>{{ sort_link("expiry", _("Scadenza")) }}</th>
+          <th class="text-end">{{ _("Iniziale") }}</th>
+          <th class="text-end">{{ sort_link("remaining", _("Residuo")) }}</th>
+          <th class="text-end">{{ sort_link("total_cost", _("Costo")) }}</th>
+          <th class="text-end">{{ currency_glyph() }}/u</th>
+          <th class="text-end">{{ currency_glyph() }}/mol</th>
+          <th>{{ _("Stato") }}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+        {% set sub = item.substance %}
+        {% set mix = item.mixture %}
+        {% set status_label, status_color = item.status_label_color %}
+        <tr class="{% if not item.is_active %}text-muted{% endif %}">
+          <td>
+            {% if mix %}
+              <a href="{{ url_for('mixtures.detail', mixture_id=mix.id) }}"
+                 class="text-decoration-none fw-semibold">
+                {{ mix.name }}
+              </a>
+              <span class="badge text-bg-light ms-1" style="font-size: 0.65rem">{{ _("miscela") }}</span>
+              {% if mix.primary_concentration is not none and mix.primary_concentration_unit %}
+                <div class="text-muted" style="font-size: 0.75rem">
+                  {{ "%g"|format(mix.primary_concentration) }} {{ mix.primary_concentration_unit }}
+                </div>
+              {% endif %}
+            {% elif sub %}
+              <a href="{{ url_for('substances.detail', substance_id=sub.id) }}"
+                 class="text-decoration-none fw-semibold">
+                {{ sub.name }}
+              </a>
+              {% if sub.cas_number %}
+                <div class="text-muted" style="font-size: 0.75rem">{{ sub.cas_number }}</div>
+              {% endif %}
+            {% else %}
+              <span class="text-muted">—</span>
+            {% endif %}
+          </td>
+          <td><code>{{ item.batch_code or "—" }}</code></td>
+          <td>
+            {{ item.supplier or "—" }}
+            {% if item.catalogue_number %}
+              <div class="text-muted" style="font-size: 0.75rem">{{ item.catalogue_number }}</div>
+            {% endif %}
+          </td>
+          <td class="text-muted">{{ item.location or "—" }}</td>
+          <td>{{ item.purchased_at.isoformat() if item.purchased_at else "—" }}</td>
+          <td>
+            {% if item.expiry_date %}
+              {% set days_left = (item.expiry_date - today).days %}
+              {{ item.expiry_date.isoformat() }}
+              {% if days_left < 0 %}
+                <div class="text-danger" style="font-size: 0.75rem">
+                  {{ _("scaduto da %(d)d gg", d=-days_left) }}
+                </div>
+              {% elif days_left < 30 %}
+                <div class="text-warning" style="font-size: 0.75rem">
+                  {{ _("entro %(d)d gg", d=days_left) }}
+                </div>
+              {% endif %}
+            {% else %}—{% endif %}
+          </td>
+          <td class="text-end font-monospace">{{ item.initial_quantity_display }}</td>
+          <td class="text-end font-monospace">
+            {{ item.quantity_display }}
+            {% if item.percent_remaining is not none %}
+              <span class="text-muted small">({{ "%.0f"|format(item.percent_remaining) }}%)</span>
+            {% endif %}
+          </td>
+          <td class="text-end font-monospace">
+            {% if item.total_cost_eur is not none %}{{ item.total_cost_eur|currency }}
+            {% else %}—{% endif %}
+          </td>
+          <td class="text-end font-monospace">
+            {% if item.cost_per_unit is not none %}
+              {{ item.cost_per_unit|currency(decimals=4) }}
+              <span class="text-muted small">{{ item.cost_per_unit_unit }}</span>
+            {% else %}—{% endif %}
+          </td>
+          <td class="text-end font-monospace">
+            {% if item.cost_per_mole is not none %}
+              {{ item.cost_per_mole|currency }}
+            {% else %}—{% endif %}
+          </td>
+          <td>
+            <span class="badge text-bg-{{ status_color }}">{{ _(status_label) }}</span>
+          </td>
+          <td class="text-end">
+            <a href="{{ url_for('inventory.edit', item_id=item.id) }}"
+               class="btn btn-sm btn-link p-0" title="{{ _('Modifica') }}">
+              <i data-lucide="edit-2" style="width:14px;height:14px"></i>
+            </a>
+            {% if item.is_active %}
+            <form method="post"
+                  action="{{ url_for('inventory.deactivate', item_id=item.id) }}"
+                  class="d-inline ms-1"
+                  onsubmit="return confirm('{{ _('Disattivare questo lotto?') }}')">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-sm btn-link p-0 text-danger"
+                      title="{{ _('Disattiva') }}">
+                <i data-lucide="archive" style="width:14px;height:14px"></i>
+              </button>
+            </form>
+            {% else %}
+            <form method="post"
+                  action="{{ url_for('inventory.reactivate', item_id=item.id) }}"
+                  class="d-inline ms-1">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-sm btn-link p-0 text-success"
+                      title="{{ _('Riattiva') }}">
+                <i data-lucide="rotate-ccw" style="width:14px;height:14px"></i>
+              </button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      {# Footer with totals #}
+      <tfoot>
+        <tr class="border-top">
+          <td colspan="8" class="text-end fw-semibold">{{ _("Totale visualizzato:") }}</td>
+          <td class="text-end font-monospace fw-semibold">
+            {{ items_total_cost|currency }}
+          </td>
+          <td colspan="4"></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="card">
+  <div class="card-body text-center py-5">
+    <i data-lucide="package" class="text-muted mb-3" style="width: 48px; height: 48px;"></i>
+    <p class="text-muted mb-0">
+      {% if q or status != 'all' or group_filter or supplier_filter %}
+        {{ _("Nessun lotto corrisponde ai filtri impostati.") }}
+      {% else %}
+        {{ _("Nessun lotto in magazzino. Aggiungi un lotto da una sostanza.") }}
+      {% endif %}
+    </p>
+  </div>
+</div>
+{% endif %}
+<script>if (window.lucide) lucide.createIcons();</script>

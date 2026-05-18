@@ -1,0 +1,268 @@
+<!doctype html>
+{% from "_macros/logo.html" import logo_mark %}
+<html lang="{{ get_locale() }}" data-bs-theme="{{ current_theme if current_theme != 'system' else 'light' }}" data-stoic-theme="{{ current_theme }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ lab_name }}{% endblock %} — Stoic ELN</title>
+
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/favicon.svg') }}">
+
+  <!-- Bootstrap 5 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+
+  <!-- Lucide icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <!-- HTMX for live interactions -->
+  <script src="https://unpkg.com/htmx.org@1.9.12" defer></script>
+
+  <!-- App CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+
+  {% block head_extra %}{% endblock %}
+
+  <script>
+    // Apply system theme preference at page load if needed (avoids flash)
+    (function() {
+      const stored = "{{ current_theme }}";
+      if (stored === "system") {
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-bs-theme', prefersDark ? 'dark' : 'light');
+      }
+    })();
+  </script>
+</head>
+<body>
+  {% if current_user.is_authenticated %}
+  <div class="app-shell">
+
+    <!-- ─── Sidebar ─────────────────────────────────────────────────── -->
+    <aside class="app-sidebar" id="sidebar">
+      <div class="app-brand">
+        {{ logo_mark(class="brand-mark-img") }}
+        <span class="brand-text">Stoic <span class="brand-accent">ELN</span></span>
+      </div>
+
+      <nav class="app-nav">
+        <div class="nav-section-label">{{ _("Laboratorio") }}</div>
+        <a class="nav-item {% if request.endpoint == 'main.dashboard' %}active{% endif %}"
+           href="{{ url_for('main.dashboard') }}">
+          <i data-lucide="layout-dashboard"></i>
+          <span>{{ _("Dashboard") }}</span>
+        </a>
+        <a class="nav-item disabled" href="#" tabindex="-1" aria-disabled="true">
+          <i data-lucide="arrow-left-right"></i>
+          <span>{{ _("Reazioni") }}</span>
+          <small class="badge text-bg-secondary ms-auto">{{ _("Settimana 3") }}</small>
+        </a>
+        <a class="nav-item disabled" href="#" tabindex="-1" aria-disabled="true">
+          <i data-lucide="history"></i>
+          <span>{{ _("Storico run") }}</span>
+        </a>
+        <a class="nav-item {% if request.endpoint and request.endpoint.startswith('substances.') %}active{% endif %}"
+           href="{{ url_for('substances.list_view') }}">
+          <i data-lucide="flask-conical"></i>
+          <span>{{ _("Sostanze") }}</span>
+        </a>
+
+        <div class="nav-section-label">{{ _("Magazzino") }}</div>
+        <a class="nav-item {% if request.endpoint and request.endpoint.startswith('inventory.') %}active{% endif %}"
+           href="{{ url_for('inventory.list_view') }}">
+          <i data-lucide="package"></i>
+          <span>{{ _("Inventario") }}</span>
+        </a>
+
+        {% if current_user.is_admin %}
+        <div class="nav-section-label">{{ _("Admin") }}</div>
+        <a class="nav-item disabled" href="#" tabindex="-1" aria-disabled="true">
+          <i data-lucide="users"></i>
+          <span>{{ _("Utenti") }}</span>
+        </a>
+        <a class="nav-item disabled" href="#" tabindex="-1" aria-disabled="true">
+          <i data-lucide="bar-chart-3"></i>
+          <span>{{ _("Report") }}</span>
+        </a>
+        <a class="nav-item disabled" href="#" tabindex="-1" aria-disabled="true">
+          <i data-lucide="shield-check"></i>
+          <span>{{ _("Audit log") }}</span>
+        </a>
+        <a class="nav-item disabled" href="#" tabindex="-1" aria-disabled="true">
+          <i data-lucide="settings"></i>
+          <span>{{ _("Impostazioni") }}</span>
+        </a>
+        {% endif %}
+      </nav>
+
+      <div class="app-sidebar-footer">
+        <small class="text-muted">v{{ app_version }}</small>
+      </div>
+    </aside>
+
+    <!-- ─── Main column ─────────────────────────────────────────────── -->
+    <div class="app-main">
+
+      <!-- Header bar -->
+      <header class="app-header">
+        <button class="btn btn-link text-light d-md-none" type="button"
+                onclick="document.getElementById('sidebar').classList.toggle('open')">
+          <i data-lucide="menu"></i>
+        </button>
+
+        <div class="app-header-title">{{ lab_name }}</div>
+
+        <div class="app-header-actions">
+          <!-- Theme switcher -->
+          <div class="dropdown">
+            <button class="btn btn-link text-light dropdown-toggle" type="button"
+                    data-bs-toggle="dropdown" aria-expanded="false"
+                    title="{{ _('Tema') }}">
+              {% if current_theme == 'dark' %}
+                <i data-lucide="moon"></i>
+              {% elif current_theme == 'light' %}
+                <i data-lucide="sun"></i>
+              {% else %}
+                <i data-lucide="monitor"></i>
+              {% endif %}
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li>
+                <a class="dropdown-item {% if current_theme == 'system' %}active{% endif %}"
+                   href="{{ url_for('auth.set_theme', theme='system') }}">
+                  <i data-lucide="monitor"></i> {{ _("Sistema") }}
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item {% if current_theme == 'light' %}active{% endif %}"
+                   href="{{ url_for('auth.set_theme', theme='light') }}">
+                  <i data-lucide="sun"></i> {{ _("Chiaro") }}
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item {% if current_theme == 'dark' %}active{% endif %}"
+                   href="{{ url_for('auth.set_theme', theme='dark') }}">
+                  <i data-lucide="moon"></i> {{ _("Scuro") }}
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Locale switcher -->
+          <div class="dropdown">
+            <button class="btn btn-link text-light dropdown-toggle" type="button"
+                    data-bs-toggle="dropdown" aria-expanded="false">
+              {{ get_locale()|upper }}
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              {% for code, label in available_locales %}
+              <li>
+                <a class="dropdown-item {% if get_locale() == code %}active{% endif %}"
+                   href="{{ url_for('auth.set_locale', lang=code) }}">{{ label }}</a>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+
+          <!-- User menu -->
+          <div class="dropdown">
+            <button class="btn btn-link text-light dropdown-toggle" type="button"
+                    data-bs-toggle="dropdown" aria-expanded="false">
+              <i data-lucide="user-circle"></i>
+              <span class="d-none d-sm-inline">{{ current_user.full_name }}</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li>
+                <a class="dropdown-item" href="{{ url_for('auth.change_password') }}">
+                  <i data-lucide="key"></i> {{ _("Cambia password") }}
+                </a>
+              </li>
+              <li><hr class="dropdown-divider"></li>
+              <li>
+                <a class="dropdown-item" href="{{ url_for('auth.logout') }}">
+                  <i data-lucide="log-out"></i> {{ _("Logout") }}
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </header>
+
+      <!-- Flash messages -->
+      <div class="flash-area">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category if category != 'message' else 'info' }} alert-dismissible fade show">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+        {% endwith %}
+      </div>
+
+      <!-- Page content -->
+      <main class="app-content">
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+  </div>
+
+  {% else %}
+  <!-- Anonymous layout (login) -->
+  <div class="auth-shell" data-bs-theme="{{ current_theme if current_theme != 'system' else 'light' }}">
+    <!-- Top bar with theme/locale switchers, available even when not logged in -->
+    <div class="auth-topbar">
+      <a class="auth-brand" href="{{ url_for('main.index') }}">
+        {{ logo_mark(class="brand-mark-img") }}
+        <span class="brand-text">Stoic <span class="brand-accent">ELN</span></span>
+      </a>
+      <div class="auth-topbar-actions">
+        <a class="btn btn-link" href="{{ url_for('auth.set_theme', theme='light') }}" title="{{ _('Chiaro') }}">
+          <i data-lucide="sun"></i>
+        </a>
+        <a class="btn btn-link" href="{{ url_for('auth.set_theme', theme='dark') }}" title="{{ _('Scuro') }}">
+          <i data-lucide="moon"></i>
+        </a>
+        <a class="btn btn-link" href="{{ url_for('auth.set_theme', theme='system') }}" title="{{ _('Sistema') }}">
+          <i data-lucide="monitor"></i>
+        </a>
+        <span class="auth-divider"></span>
+        {% for code, label in available_locales %}
+          <a class="btn btn-link {% if get_locale() == code %}active{% endif %}"
+             href="{{ url_for('auth.set_locale', lang=code) }}">{{ code|upper }}</a>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="flash-area auth-flash">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category if category != 'message' else 'info' }} alert-dismissible fade show">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+      {% endwith %}
+    </div>
+
+    <main class="auth-content">
+      {% block auth_content %}{% endblock %}
+    </main>
+  </div>
+  {% endif %}
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Render Lucide icons
+    if (window.lucide && window.lucide.createIcons) {
+      lucide.createIcons();
+    }
+    // Re-render after HTMX swaps content
+    document.body.addEventListener('htmx:afterSwap', () => {
+      if (window.lucide && window.lucide.createIcons) {
+        lucide.createIcons();
+      }
+    });
+  </script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

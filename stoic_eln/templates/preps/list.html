@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Preparazioni") }}{% endblock %}
+
+{% block content %}
+<div class="page-header mb-3">
+  <h1>{{ _("Storico preparazioni") }}</h1>
+  <p class="text-muted mb-0">
+    {{ _("Tutte le miscele preparate dai precursori, ordinate dalla più recente.") }}
+  </p>
+</div>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-md-5">
+        <label for="q" class="form-label small">{{ _("Cerca") }}</label>
+        <input type="search"
+               class="form-control"
+               name="q" id="q"
+               value="{{ q }}"
+               placeholder="{{ _('Codice o nome miscela…') }}"
+               hx-get="{{ url_for('preps.list_view') }}"
+               hx-trigger="keyup changed delay:300ms, search"
+               hx-target="#preps-table"
+               hx-include="[name=mixture_id], [name=year]">
+      </div>
+      <div class="col-md-3">
+        <label for="mixture_id" class="form-label small">{{ _("Miscela") }}</label>
+        <select name="mixture_id" id="mixture_id" class="form-select"
+                hx-get="{{ url_for('preps.list_view') }}"
+                hx-trigger="change"
+                hx-target="#preps-table"
+                hx-include="[name=q], [name=year]">
+          <option value="">— {{ _("tutte") }} —</option>
+          {% for m in mixtures %}
+          <option value="{{ m.id }}"
+                  {% if m.id == selected_mixture_id %}selected{% endif %}>
+            {{ m.name }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label for="year" class="form-label small">{{ _("Anno") }}</label>
+        <select name="year" id="year" class="form-select"
+                hx-get="{{ url_for('preps.list_view') }}"
+                hx-trigger="change"
+                hx-target="#preps-table"
+                hx-include="[name=q], [name=mixture_id]">
+          <option value="">— {{ _("tutti") }} —</option>
+          {% for y in years %}
+          <option value="{{ y }}"
+                  {% if y == selected_year %}selected{% endif %}>{{ y }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <button class="btn btn-secondary w-100" type="submit">
+          <i data-lucide="search"></i>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="preps-table" class="stoic-sticky-thead">
+  {% include "preps/_list_table.html" %}
+</div>
+{% endblock %}

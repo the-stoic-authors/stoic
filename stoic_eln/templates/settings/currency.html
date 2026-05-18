@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Valuta") }} — {{ _("Impostazioni") }}{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-start mb-3">
+  <div>
+    <h1>{{ _("Valuta") }}</h1>
+    <p class="text-muted mb-0">
+      {{ _("La valuta del laboratorio: usata per tutti i costi (lotti, ordini, run, statistiche).") }}
+    </p>
+  </div>
+  <a href="{{ url_for('settings.index') }}" class="btn btn-outline-secondary">
+    <i data-lucide="arrow-left"></i> {{ _("Indietro") }}
+  </a>
+</div>
+
+<div class="card mb-3">
+  <div class="card-body">
+    <div class="row g-2 mb-3">
+      <div class="col-auto">
+        <div class="text-muted small mb-1">{{ _("Codice attuale") }}</div>
+        <code class="fs-3">{{ current_code }}</code>
+      </div>
+      <div class="col-auto ms-3">
+        <div class="text-muted small mb-1">{{ _("Visualizzazione") }}</div>
+        <div class="fs-3 font-monospace">{{ format_currency(123.45) }}</div>
+      </div>
+    </div>
+
+    <form method="post" action="{{ url_for('settings.update_currency') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="row g-2 align-items-end">
+        <div class="col-md-4">
+          <label class="form-label small text-muted">
+            {{ _("Scegli da elenco") }}
+          </label>
+          <select name="code_select" class="form-select"
+                  onchange="document.getElementById('code_input').value=this.value;
+                            document.getElementById('preview').textContent = this.value;">
+            <option value="">— {{ _("scegli…") }} —</option>
+            {% for code in common_codes %}
+            <option value="{{ code }}" {% if code == current_code %}selected{% endif %}>
+              {{ code }}{% if symbols.get(code) %} ({{ symbols[code] }}){% endif %}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small text-muted">
+            {{ _("oppure inserisci codice ISO") }}
+          </label>
+          <input type="text" id="code_input" name="code" maxlength="3"
+                 class="form-control text-uppercase"
+                 placeholder="UZS, ZMW, …"
+                 value="{{ current_code }}"
+                 oninput="this.value=this.value.toUpperCase();
+                          document.getElementById('preview').textContent = this.value;">
+        </div>
+        <div class="col-md-3">
+          <button type="submit" class="btn btn-primary">
+            <i data-lucide="save"></i> {{ _("Salva") }}
+          </button>
+        </div>
+      </div>
+      <div class="form-text mt-2">
+        {{ _("Il codice deve essere ISO 4217 a 3 lettere (es. EUR, USD, JPY, UZS, ZMW…). Per le valute con simbolo riconosciuto verrà mostrato il simbolo (€, $, £, ¥, ₹…), altrimenti il codice stesso.") }}
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header"><strong>{{ _("Esempi di formattazione") }}</strong></div>
+  <ul class="list-group list-group-flush small">
+    <li class="list-group-item d-flex justify-content-between">
+      <span>{{ _("Costo di un lotto") }}</span>
+      <code>{{ format_currency(380.00) }}</code>
+    </li>
+    <li class="list-group-item d-flex justify-content-between">
+      <span>{{ _("Costo unitario") }}</span>
+      <code>{{ format_currency(76.0000, decimals=4) }}/g</code>
+    </li>
+    <li class="list-group-item d-flex justify-content-between">
+      <span>{{ _("Totale ordine") }}</span>
+      <code>{{ format_currency(1234.56) }}</code>
+    </li>
+  </ul>
+</div>
+<script>if (window.lucide) lucide.createIcons();</script>
+{% endblock %}

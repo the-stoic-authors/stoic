@@ -1,0 +1,117 @@
+{# Single checklist row.
+   Expects: item (ChecklistItem)
+   Optional: edit_mode (bool) — when True the text becomes a small editable
+             input + Conferma button instead of a span.
+   Optional: can_edit (bool, default True) — when False, the row renders
+             as printed text: no checkbox toggling, no action buttons.
+#}
+{% set can_edit = can_edit if can_edit is defined else True %}
+<li class="checklist-item d-flex align-items-center gap-2 mb-1"
+    id="checklist-item-{{ item.id }}">
+
+  {% if can_edit %}
+  {# Toggle the done flag with a checkbox. The form auto-submits on change
+     and HTMX swaps the row in place. #}
+  <form method="post"
+        action="{{ url_for('reactions.toggle_checklist_item', item_id=item.id) }}"
+        hx-post="{{ url_for('reactions.toggle_checklist_item', item_id=item.id) }}"
+        hx-target="#checklist-item-{{ item.id }}"
+        hx-swap="outerHTML"
+        class="d-inline-flex align-items-center mb-0">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="checkbox"
+           class="form-check-input"
+           {% if item.is_default_done %}checked{% endif %}
+           onchange="this.form.requestSubmit()">
+  </form>
+  {% else %}
+  {# View mode: read-only checkbox, no form, no toggling on click #}
+  <input type="checkbox"
+         class="form-check-input"
+         {% if item.is_default_done %}checked{% endif %}
+         disabled>
+  {% endif %}
+
+  {# Either the text label or an inline edit input #}
+  {% if edit_mode %}
+    <form method="post"
+          action="{{ url_for('reactions.edit_checklist_item', item_id=item.id) }}"
+          hx-post="{{ url_for('reactions.edit_checklist_item', item_id=item.id) }}"
+          hx-target="#checklist-item-{{ item.id }}"
+          hx-swap="outerHTML"
+          class="d-flex align-items-center gap-1 flex-grow-1 mb-0">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="text" name="text" value="{{ item.text }}"
+             class="form-control form-control-sm"
+             autofocus>
+      <button type="submit" class="btn btn-sm btn-primary"
+              title="{{ _('Conferma') }}">
+        <i data-lucide="check" style="width:14px;height:14px"></i>
+      </button>
+      <button type="button" class="btn btn-sm btn-link text-muted"
+              hx-get="{{ url_for('reactions.checklist_row', item_id=item.id) }}"
+              hx-target="#checklist-item-{{ item.id }}"
+              hx-swap="outerHTML"
+              title="{{ _('Annulla') }}">
+        <i data-lucide="x" style="width:14px;height:14px"></i>
+      </button>
+    </form>
+  {% else %}
+    <span class="checklist-text flex-grow-1 {% if item.is_default_done %}done{% endif %}">{{ item.text }}</span>
+
+    {% if can_edit %}
+    <span class="checklist-actions d-inline-flex align-items-center">
+      {# Modifica #}
+      <button type="button"
+              class="btn btn-sm btn-link text-muted p-0 px-1"
+              title="{{ _('Modifica') }}"
+              hx-get="{{ url_for('reactions.checklist_row', item_id=item.id, edit=1) }}"
+              hx-target="#checklist-item-{{ item.id }}"
+              hx-swap="outerHTML">
+        <i data-lucide="pencil" style="width:14px;height:14px"></i>
+      </button>
+
+      {# Sposta su #}
+      <form method="post"
+            action="{{ url_for('reactions.move_checklist_item', item_id=item.id, direction='up') }}"
+            hx-post="{{ url_for('reactions.move_checklist_item', item_id=item.id, direction='up') }}"
+            hx-target="closest .checklist"
+            class="d-inline">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-sm btn-link text-muted p-0 px-1"
+                title="{{ _('Sposta su') }}">
+          <i data-lucide="chevron-up" style="width:14px;height:14px"></i>
+        </button>
+      </form>
+
+      {# Sposta giù #}
+      <form method="post"
+            action="{{ url_for('reactions.move_checklist_item', item_id=item.id, direction='down') }}"
+            hx-post="{{ url_for('reactions.move_checklist_item', item_id=item.id, direction='down') }}"
+            hx-target="closest .checklist"
+            class="d-inline">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-sm btn-link text-muted p-0 px-1"
+                title="{{ _('Sposta giù') }}">
+          <i data-lucide="chevron-down" style="width:14px;height:14px"></i>
+        </button>
+      </form>
+
+      {# Elimina #}
+      <form method="post"
+            action="{{ url_for('reactions.delete_checklist_item', item_id=item.id) }}"
+            hx-post="{{ url_for('reactions.delete_checklist_item', item_id=item.id) }}"
+            hx-target="closest .checklist"
+            hx-confirm="{{ _('Eliminare questa voce?') }}"
+            class="d-inline">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-sm btn-link text-danger p-0 px-1"
+                title="{{ _('Elimina') }}">
+          <i data-lucide="trash-2" style="width:14px;height:14px"></i>
+        </button>
+      </form>
+    </span>
+    {% endif %}
+  {% endif %}
+</li>
+<script>if (window.lucide) lucide.createIcons();</script>

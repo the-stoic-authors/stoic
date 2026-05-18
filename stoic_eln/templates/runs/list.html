@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Storico run") }} — Stoic{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2 class="mb-0">{{ _("Storico run") }}</h2>
+  <a href="{{ url_for('runs.stats') }}" class="btn btn-outline-primary">
+    <i data-lucide="bar-chart-3"></i> {{ _("Statistiche") }}
+  </a>
+</div>
+
+{% if runs %}
+<div class="card stoic-sticky-thead">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead>
+        <tr>
+          <th>{{ _("Codice") }}</th>
+          <th>{{ _("Template") }}</th>
+          <th>{{ _("Stato") }}</th>
+          <th>{{ _("Operatore") }}</th>
+          <th>{{ _("Scala") }}</th>
+          <th>{{ _("Resa") }}</th>
+          <th class="text-end">{{ _("Costo") }} ({{ currency_glyph() }})</th>
+          <th>{{ _("Data") }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in runs %}
+        <tr style="cursor: pointer"
+            onclick="window.location='{{ url_for('runs.detail', run_id=r.id) }}'">
+          <td><code class="fw-semibold">{{ r.code }}</code></td>
+          <td>
+            <a href="{{ url_for('reactions.detail', reaction_id=r.reaction_id) }}"
+               class="text-decoration-none"
+               onclick="event.stopPropagation()">
+              <code>{{ r.template_code_snapshot or '—' }}</code>
+            </a>
+            <div class="small text-muted">{{ r.template_title_snapshot or '' }}</div>
+          </td>
+          <td><span class="badge text-bg-{{ r.status_color }}">{{ r.status_label_it }}</span></td>
+          <td class="small">
+            {% if r.operator %}
+              {{ r.operator.full_name }}
+              <code class="ms-1">{{ r.operator.operator_code or '' }}</code>
+            {% else %}—{% endif %}
+          </td>
+          <td class="font-monospace">
+            {% if r.scale_mmol is not none %}{{ '%g'|format(r.scale_mmol) }} mmol{% else %}—{% endif %}
+          </td>
+          <td class="font-monospace">
+            {% if r.yield_g is not none %}
+              {{ '%.3f'|format(r.yield_g) }} g
+              {% if r.yield_percent is not none %}
+                <span class="small text-muted">({{ '%.1f'|format(r.yield_percent) }}%)</span>
+              {% endif %}
+            {% else %}—{% endif %}
+          </td>
+          <td class="font-monospace text-end">
+            {% set rcost = run_costs.get(r.id) %}
+            {% if rcost and rcost.has_data %}
+              {{ rcost.total_eur|currency }}
+            {% else %}<span class="text-muted">—</span>{% endif %}
+          </td>
+          <td class="small text-muted">
+            {{ r.created_at.strftime('%Y-%m-%d') }}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="card">
+  <div class="card-body text-center py-5">
+    <i data-lucide="history" class="text-muted mb-3" style="width: 48px; height: 48px;"></i>
+    <p class="text-muted mb-0">{{ _("Nessun run ancora eseguito.") }}</p>
+  </div>
+</div>
+{% endif %}
+<script>if (window.lucide) lucide.createIcons();</script>
+{% endblock %}

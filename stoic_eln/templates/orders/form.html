@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block title %}
+  {% if order %}{{ _("Modifica ordine") }}{% else %}{{ _("Nuovo ordine") }}{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="page-header mb-3">
+  <h1>
+    {% if order %}{{ _("Modifica ordine") }}
+    {% else %}{{ _("Nuovo ordine") }}{% endif %}
+  </h1>
+  {% if order %}
+  <p class="text-muted">
+    {{ _("Modifica i dati dell'ordine pianificato. Una volta ordinato non sarà più modificabile da qui.") }}
+  </p>
+  {% endif %}
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <form method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <div class="row g-3">
+
+        {# Substance picker — only when creating, locked when editing #}
+        <div class="col-12">
+          <label class="form-label">{{ _("Sostanza") }}</label>
+          {% if order %}
+            {# Edit mode: substance can't be changed #}
+            <input type="text" class="form-control" disabled
+                   value="{{ pre_substance.name }}{% if pre_substance.cas_number %} — {{ pre_substance.cas_number }}{% endif %}">
+            <input type="hidden" name="substance_id" value="{{ pre_substance.id }}">
+          {% elif pre_substance %}
+            {# New, pre-populated #}
+            <input type="text" class="form-control" disabled
+                   value="{{ pre_substance.name }}{% if pre_substance.cas_number %} — {{ pre_substance.cas_number }}{% endif %}">
+            <input type="hidden" name="substance_id" value="{{ pre_substance.id }}">
+          {% else %}
+            <select name="substance_id" class="form-select" required>
+              <option value="">{{ _("Seleziona…") }}</option>
+              {% for s in substances %}
+              <option value="{{ s.id }}">
+                {{ s.name }}{% if s.cas_number %} — {{ s.cas_number }}{% endif %}
+              </option>
+              {% endfor %}
+            </select>
+          {% endif %}
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">{{ _("Fornitore") }}</label>
+          <input type="text" class="form-control" name="supplier"
+                 value="{{ order.supplier if order else (pre.supplier or '') }}"
+                 placeholder="{{ _('Sigma-Aldrich, TCI, …') }}">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">{{ _("Numero catalogo") }}</label>
+          <input type="text" class="form-control" name="catalogue_number"
+                 value="{{ order.catalogue_number if order else (pre.catalogue_number or '') }}"
+                 placeholder="{{ _('es. 109207-100G') }}">
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label">{{ _("Quantità (g)") }}</label>
+          <input type="number" step="any" min="0" class="form-control"
+                 name="ordered_quantity_g"
+                 value="{{ order.ordered_quantity_g if order and order.ordered_quantity_g is not none else (pre.ordered_quantity_g if pre.ordered_quantity_g is not none else '') }}">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">{{ _("Quantità (mL)") }}</label>
+          <input type="number" step="any" min="0" class="form-control"
+                 name="ordered_quantity_mL"
+                 value="{{ order.ordered_quantity_mL if order and order.ordered_quantity_mL is not none else (pre.ordered_quantity_mL if pre.ordered_quantity_mL is not none else '') }}">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">{{ _("Costo totale") }} ({{ currency_glyph() }})</label>
+          <input type="number" step="any" min="0" class="form-control"
+                 name="ordered_total_eur"
+                 value="{{ order.ordered_total_eur if order and order.ordered_total_eur is not none else (pre.ordered_total_eur if pre.ordered_total_eur is not none else '') }}">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">{{ _("Riferimento interno") }}</label>
+          <input type="text" class="form-control" name="internal_order_ref"
+                 value="{{ order.internal_order_ref if order else '' }}"
+                 placeholder="{{ _('PO interno, numero richiesta, …') }}">
+        </div>
+
+        <div class="col-12">
+          <label class="form-label">{{ _("Note") }}</label>
+          <textarea class="form-control" name="notes" rows="2">{{ order.notes if order else '' }}</textarea>
+        </div>
+
+        <div class="col-12 d-flex gap-2 justify-content-end">
+          {% if order %}
+          <a href="{{ url_for('orders.detail', order_id=order.id) }}"
+             class="btn btn-outline-secondary">{{ _("Annulla") }}</a>
+          {% else %}
+          <a href="{{ url_for('orders.list_view') }}"
+             class="btn btn-outline-secondary">{{ _("Annulla") }}</a>
+          {% endif %}
+          <button type="submit" class="btn btn-primary">
+            {% if order %}{{ _("Salva modifiche") }}
+            {% else %}{{ _("Crea ordine pianificato") }}{% endif %}
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

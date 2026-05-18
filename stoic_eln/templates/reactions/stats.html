@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Statistiche") }} — {{ reaction.template_code }}{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-start mb-3">
+  <div>
+    <h1 class="d-flex align-items-baseline gap-3">
+      <i data-lucide="bar-chart-2"></i>
+      {{ _("Statistiche") }}
+      <code class="fs-4">{{ reaction.template_code }}</code>
+    </h1>
+    {% if stats.template_title %}
+    <p class="text-muted mb-0">{{ stats.template_title }}</p>
+    {% endif %}
+    <p class="text-muted small mb-0">
+      {{ _("Aggregato sulle versioni:") }} <code>{{ reaction.template_code_base }}.*</code>
+      · {{ _("%(n)d run completati", n=stats.n_runs) }}
+    </p>
+  </div>
+  <a href="{{ url_for('reactions.detail', reaction_id=reaction.id) }}"
+     class="btn btn-outline-secondary">
+    <i data-lucide="arrow-left"></i> {{ _("Torna al template") }}
+  </a>
+</div>
+
+{% if not stats.has_data %}
+<div class="card">
+  <div class="card-body text-center py-5">
+    <i data-lucide="info" class="text-muted mb-3" style="width: 48px; height: 48px;"></i>
+    <p class="text-muted mb-0">
+      {{ _("Nessun run completato per questo template.") }}
+    </p>
+  </div>
+</div>
+{% else %}
+
+{# ─── Aggregate KPIs ─────────────────────────────────────────────── #}
+<div class="row g-3 mb-3">
+  <div class="col-md-3">
+    <div class="card h-100">
+      <div class="card-body">
+        <div class="text-muted small mb-1">{{ _("Run completati") }}</div>
+        <div class="fs-3 font-monospace">{{ stats.n_runs }}</div>
+        <div class="text-muted small">
+          {% if stats.n_runs_with_cost < stats.n_runs %}
+            {{ _("%(n)d con costo", n=stats.n_runs_with_cost) }}
+          {% else %}
+            {{ _("tutti con dati di costo") }}
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card h-100">
+      <div class="card-body">
+        <div class="text-muted small mb-1">{{ _("Costo medio") }} ({{ currency_glyph() }}/g)</div>
+        <div class="fs-3 font-monospace">
+          {% if stats.avg_cost_per_g is not none %}{{ stats.avg_cost_per_g|currency }}{% else %}—{% endif %}
+        </div>
+        <div class="text-muted small">
+          {% if stats.min_cost_per_g is not none and stats.max_cost_per_g is not none and stats.n_runs_with_cost > 1 %}
+            {{ stats.min_cost_per_g|currency }} – {{ "%.2f"|format(stats.max_cost_per_g) }}
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card h-100">
+      <div class="card-body">
+        <div class="text-muted small mb-1">{{ _("Costo medio per run") }}</div>
+        <div class="fs-3 font-monospace">
+          {% if stats.avg_cost_eur is not none %}{{ stats.avg_cost_eur|currency }}{% else %}—{% endif %}
+        </div>
+        <div class="text-muted small">
+          {% if stats.min_cost_eur is not none and stats.max_cost_eur is not none and stats.n_runs_with_cost > 1 %}
+            {{ stats.min_cost_eur|currency }} – {{ "%.2f"|format(stats.max_cost_eur) }}
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card h-100">
+      <div class="card-body">
+        <div class="text-muted small mb-1">{{ _("Resa media") }}</div>
+        <div class="fs-3 font-monospace">
+          {% if stats.avg_yield_percent is not none %}{{ "%.1f"|format(stats.avg_yield_percent) }}%{% else %}—{% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{# ─── Sparklines ────────────────────────────────────────────────── #}
+{% if sparkline_cost_per_g or sparkline_yield or sparkline_cost_eur %}
+<div class="card mb-3">
+  <div class="card-header"><strong>{{ _("Trend nel tempo") }}</strong></div>
+  <div class="card-body">
+    <div class="row g-4">
+      {% if sparkline_cost_per_g %}
+      <div class="col-md-6">
+        <div class="text-muted small mb-2">{{ currency_glyph() }}/g {{ _("del prodotto (cumulativo)") }}</div>
+        {{ sparkline_cost_per_g|safe }}
+      </div>
+      {% endif %}
+      {% if sparkline_yield %}
+      <div class="col-md-6">
+        <div class="text-muted small mb-2">{{ _("Resa") }} %</div>
+        {{ sparkline_yield|safe }}
+      </div>
+      {% endif %}
+      {% if sparkline_cost_eur %}
+      <div class="col-md-6">
+        <div class="text-muted small mb-2">{{ _("Costo totale per run") }} ({{ currency_glyph() }})</div>
+        {{ sparkline_cost_eur|safe }}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{# ─── Per-run table ─────────────────────────────────────────────── #}
+<div class="card">
+  <div class="card-header">
+    <strong>{{ _("Tutti i run") }}</strong>
+    <span class="text-muted small ms-2">
+      ({{ _("ordine cronologico") }})
+    </span>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0 small">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>{{ _("Codice") }}</th>
+          <th>{{ _("Data") }}</th>
+          <th>{{ _("Operatore") }}</th>
+          <th class="text-end">{{ _("Resa") }}</th>
+          <th class="text-end">{{ _("Costo") }} ({{ currency_glyph() }})</th>
+          <th class="text-end">{{ currency_glyph() }}/g</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in stats.points %}
+        <tr>
+          <td class="text-muted">{{ loop.index }}</td>
+          <td>
+            <a href="{{ url_for('runs.detail', run_id=p.run_id) }}"
+               class="text-decoration-none font-monospace">{{ p.run_code }}</a>
+          </td>
+          <td class="small">
+            {% if p.completed_at %}{{ p.completed_at.strftime('%Y-%m-%d') }}{% else %}—{% endif %}
+          </td>
+          <td class="small">{{ p.operator_name or "—" }}</td>
+          <td class="text-end font-monospace">
+            {% if p.yield_g is not none %}
+              {{ "%.3f"|format(p.yield_g) }} g
+              {% if p.yield_percent is not none %}
+                <span class="text-muted small">({{ "%.1f"|format(p.yield_percent) }}%)</span>
+              {% endif %}
+            {% else %}—{% endif %}
+          </td>
+          <td class="text-end font-monospace">
+            {% if p.cost_eur > 0 %}{{ p.cost_eur|currency }}{% else %}—{% endif %}
+          </td>
+          <td class="text-end font-monospace">
+            {% if p.cost_per_g is not none %}{{ p.cost_per_g|currency }}{% else %}—{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endif %}
+<script>if (window.lucide) lucide.createIcons();</script>
+{% endblock %}

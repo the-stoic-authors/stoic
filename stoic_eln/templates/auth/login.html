@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% from "_macros/logo.html" import logo_lockup %}
+{% block title %}{{ _("Accedi") }}{% endblock %}
+
+{% block auth_content %}
+<div class="login-card">
+  <div class="login-card-header">
+    {{ logo_lockup(class="login-lockup") }}
+    <p class="login-tagline">Lab notebook, refactored.</p>
+  </div>
+
+  <form method="post" novalidate>
+    {{ form.hidden_tag() }}
+
+    <div class="mb-3">
+      {{ form.username.label(class="form-label") }}
+      {{ form.username(class="form-control form-control-lg" + (" is-invalid" if form.username.errors else ""), autofocus=true, autocomplete="username") }}
+      {% for error in form.username.errors %}
+        <div class="invalid-feedback">{{ error }}</div>
+      {% endfor %}
+    </div>
+
+    <div class="mb-3">
+      {{ form.password.label(class="form-label") }}
+      {{ form.password(class="form-control form-control-lg" + (" is-invalid" if form.password.errors else ""), autocomplete="current-password") }}
+      {% for error in form.password.errors %}
+        <div class="invalid-feedback">{{ error }}</div>
+      {% endfor %}
+    </div>
+
+    <div class="mb-3 form-check">
+      {{ form.remember_me(class="form-check-input") }}
+      {{ form.remember_me.label(class="form-check-label") }}
+    </div>
+
+    {{ form.submit(class="btn btn-primary btn-lg w-100") }}
+  </form>
+</div>
+{% endblock %}

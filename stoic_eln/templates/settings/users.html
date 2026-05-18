@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Utenti") }} — {{ _("Impostazioni") }}{% endblock %}
+
+{% block content %}
+
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb small mb-3">
+    <li class="breadcrumb-item">
+      <a href="{{ url_for('settings.index') }}">{{ _("Impostazioni") }}</a>
+    </li>
+    <li class="breadcrumb-item active">{{ _("Utenti") }}</li>
+  </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2 class="mb-0">{{ _("Utenti") }}</h2>
+  <a href="{{ url_for('settings.new_user') }}" class="btn btn-primary">
+    <i data-lucide="user-plus" style="width:14px;height:14px"></i>
+    {{ _("Nuovo utente") }}
+  </a>
+</div>
+
+<div class="alert alert-light border small">
+  <strong>{{ _("Ruoli") }}:</strong>
+  <ul class="mb-0 mt-2">
+    <li><strong>{{ _("Utente") }}</strong> — {{ _("può vedere le reazioni ed eseguire run, ma non modifica i template.") }}</li>
+    <li><strong>{{ _("Supervisore") }}</strong> — {{ _("può creare, modificare ed eliminare reazioni e sostanze. Non può gestire utenti, impostazioni o audit log.") }}</li>
+    <li><strong>{{ _("Amministratore") }}</strong> — {{ _("permessi completi: utenti, impostazioni di laboratorio, audit log.") }}</li>
+  </ul>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <thead>
+        <tr>
+          <th>{{ _("Username") }}</th>
+          <th>{{ _("Nome") }}</th>
+          <th>{{ _("Codice op.") }}</th>
+          <th>{{ _("Ruolo") }}</th>
+          <th>{{ _("Stato") }}</th>
+          <th>{{ _("Ultimo accesso") }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+        <tr {% if not u.is_active %}class="text-muted"{% endif %}>
+          <td><code>{{ u.username }}</code></td>
+          <td>{{ u.full_name }}</td>
+          <td>{% if u.operator_code %}<code>{{ u.operator_code }}</code>{% else %}—{% endif %}</td>
+          <td>
+            <form method="post"
+                  action="{{ url_for('settings.update_user_role', user_id=u.id) }}"
+                  class="d-flex align-items-center gap-2">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <select name="role" class="form-select form-select-sm" style="max-width: 9rem"
+                      {% if u.id == current_user.id %}disabled{% endif %}>
+                <option value="user"       {% if u.role == 'user'       %}selected{% endif %}>{{ _("Utente") }}</option>
+                <option value="supervisor" {% if u.role == 'supervisor' %}selected{% endif %}>{{ _("Supervisore") }}</option>
+                <option value="admin"      {% if u.role == 'admin'      %}selected{% endif %}>{{ _("Amministratore") }}</option>
+              </select>
+              {% if u.id != current_user.id %}
+              <button type="submit" class="btn btn-sm btn-outline-primary"
+                      title="{{ _('Aggiorna ruolo') }}">
+                <i data-lucide="check" style="width:14px;height:14px"></i>
+              </button>
+              {% endif %}
+            </form>
+          </td>
+          <td>
+            {% if u.is_active %}
+              <span class="badge text-bg-success">{{ _("attivo") }}</span>
+            {% else %}
+              <span class="badge text-bg-secondary">{{ _("disattivato") }}</span>
+            {% endif %}
+          </td>
+          <td class="small text-muted">
+            {% if u.last_login_at %}
+              {{ u.last_login_at.strftime('%Y-%m-%d %H:%M') }}
+            {% else %}
+              —
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<p class="small text-muted mt-3">
+  {{ _("Non puoi cambiare il tuo ruolo. Per creare un nuovo utente, usa il bottone "
+       "in alto a destra.") }}
+</p>
+
+<script>if (window.lucide) lucide.createIcons();</script>
+{% endblock %}

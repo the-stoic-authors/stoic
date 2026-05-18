@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Spese") }} — Stoic{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <nav aria-label="breadcrumb" class="small mb-2">
+    <ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item">
+        <a href="{{ url_for('reports.index') }}">{{ _("Report") }}</a>
+      </li>
+      <li class="breadcrumb-item active">{{ _("Spese") }}</li>
+    </ol>
+  </nav>
+
+  <h1 class="mb-4">{{ _("Report spese") }}</h1>
+
+  {# ── Filters ───────────────────────────────────────────── #}
+  <form method="get" class="card mb-4">
+    <div class="card-body">
+      <div class="row g-3 align-items-end">
+        <div class="col-md-3">
+          <label class="form-label small text-muted">
+            {{ _("Raggruppa per") }}
+          </label>
+          <select name="bucket" class="form-select form-select-sm">
+            <option value="week"    {% if bucket == 'week' %}selected{% endif %}>{{ _("Settimana") }}</option>
+            <option value="month"   {% if bucket == 'month' %}selected{% endif %}>{{ _("Mese") }}</option>
+            <option value="quarter" {% if bucket == 'quarter' %}selected{% endif %}>{{ _("Trimestre") }}</option>
+            <option value="year"    {% if bucket == 'year' %}selected{% endif %}>{{ _("Anno") }}</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small text-muted">{{ _("Dal") }}</label>
+          <input type="date" name="from"
+                 value="{{ date_from.isoformat() if date_from else '' }}"
+                 class="form-control form-control-sm">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small text-muted">{{ _("Al") }}</label>
+          <input type="date" name="to"
+                 value="{{ date_to.isoformat() if date_to else '' }}"
+                 class="form-control form-control-sm">
+        </div>
+        <div class="col-md-3 text-end">
+          <button type="submit" class="btn btn-primary btn-sm">
+            {{ _("Aggiorna") }}
+          </button>
+          <a href="{{ url_for('reports.spending') }}"
+             class="btn btn-link btn-sm">
+            {{ _("Reset") }}
+          </a>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  {# ── Summary ───────────────────────────────────────────── #}
+  <div class="row g-3 mb-4">
+    <div class="col-md-6">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="small text-muted">{{ _("Totale spese nel periodo") }}</div>
+          <div class="display-6">
+            € {{ "%.2f"|format(report.grand_total_eur) }}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="small text-muted">{{ _("Lotti acquistati") }}</div>
+          <div class="display-6">{{ report.grand_purchase_count }}</div>
+          {% if report.missing_cost_count > 0 %}
+          <div class="small text-warning mt-1">
+            <i data-lucide="alert-triangle" style="width:14px;height:14px;"></i>
+            {{ ngettext(
+                "%(n)d lotto senza costo registrato (non incluso nel totale)",
+                "%(n)d lotti senza costo registrato (non inclusi nel totale)",
+                report.missing_cost_count,
+                n=report.missing_cost_count
+            ) }}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── Bucket rows ───────────────────────────────────────── #}
+  {% if report.rows %}
+  <div class="card">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th>{{ _("Periodo") }}</th>
+            <th class="text-end">{{ _("Lotti") }}</th>
+            <th class="text-end">{{ _("Spesa") }}</th>
+            <th class="text-end" style="width:30%;">{{ _("Distribuzione") }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {# Find the max for the bar-chart relative scaling #}
+          {% set max_total = (report.rows | map(attribute='total_eur') | max) or 1 %}
+          {% for row in report.rows %}
+          <tr>
+            <td>{{ row.label }}</td>
+            <td class="text-end">{{ row.purchase_count }}</td>
+            <td class="text-end">
+              <code>€ {{ "%.2f"|format(row.total_eur) }}</code>
+            </td>
+            <td>
+              <div class="progress" style="height: 18px;">
+                <div class="progress-bar bg-primary"
+                     role="progressbar"
+                     style="width: {{ (row.total_eur / max_total * 100) }}%;"
+                     aria-valuenow="{{ row.total_eur }}"
+                     aria-valuemin="0"
+                     aria-valuemax="{{ max_total }}">
+                </div>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% else %}
+  <div class="alert alert-info">
+    {{ _("Nessun acquisto registrato nel periodo selezionato.") }}
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

@@ -1,0 +1,381 @@
+{# A single ReactionStep card.
+   PDF-faithful internal order:
+     1. Header: title + tipo + reference picker + reorder/delete buttons
+     2. Componenti dello step
+     3. Check list dello step
+     4. Procedimento (textarea)
+
+   Expects:
+     step      — ReactionStep
+     reaction  — parent Reaction
+#}
+
+{% set kind_color = {
+  'workup': 'primary',
+  'extraction': 'info',
+  'purification': 'success',
+  'analysis': 'warning',
+  'other': 'secondary',
+}[step.kind] %}
+
+<div class="card step-card step-{{ step.kind }} mb-3" id="step-card-{{ step.id }}">
+
+  {# ─── Header: title editable + kind + reference + actions ────────── #}
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <div class="d-flex align-items-center gap-2 flex-grow-1">
+      <span class="badge text-bg-{{ kind_color }}">{{ step.kind_label_it }}</span>
+      {% if is_draft %}
+      <input type="text"
+             class="form-control form-control-sm step-title-edit fw-semibold border-0 bg-transparent"
+             value="{{ step.title }}"
+             name="value"
+             hx-post="{{ url_for('reactions.edit_step', step_id=step.id) }}"
+             hx-trigger="blur changed, keydown[key=='Enter'] changed"
+             hx-target="#step-card-{{ step.id }}"
+             hx-vals='{"field": "title"}'
+             hx-include="this"
+             onkeydown="if(event.key==='Enter')event.preventDefault();">
+      {% else %}
+      <span class="fw-semibold">{{ step.title }}</span>
+      {% endif %}
+      <span class="text-muted small">#{{ step.position + 1 }}</span>
+    </div>
+    {% if is_draft %}
+    <div class="d-flex gap-1">
+      <form method="post"
+            action="{{ url_for('reactions.move_step', step_id=step.id, direction='up') }}"
+            class="d-inline">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-sm btn-link text-muted p-0 px-1" title="{{ _('Sposta su') }}">
+          <i data-lucide="chevron-up"></i>
+        </button>
+      </form>
+      <form method="post"
+            action="{{ url_for('reactions.move_step', step_id=step.id, direction='down') }}"
+            class="d-inline">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-sm btn-link text-muted p-0 px-1" title="{{ _('Sposta giù') }}">
+          <i data-lucide="chevron-down"></i>
+        </button>
+      </form>
+      <form method="post"
+            action="{{ url_for('reactions.delete_step', step_id=step.id) }}"
+            onsubmit="return confirm('{{ _('Eliminare questo passo e tutti i suoi componenti?') }}');"
+            class="d-inline">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-sm btn-link text-danger p-0 px-1" title="{{ _('Elimina passo') }}">
+          <i data-lucide="trash-2"></i>
+        </button>
+      </form>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="card-body">
+
+    {# ─── Type + reference picker (compact row) ─────────────────────── #}
+    <div class="row g-2 mb-3 small">
+      <div class="col-md-4">
+        <label class="form-label small text-muted mb-1">{{ _("Tipo") }}</label>
+        {% if is_draft %}
+        <select class="form-select form-select-sm" name="value"
+                hx-post="{{ url_for('reactions.edit_step', step_id=step.id) }}"
+                hx-trigger="change"
+                hx-target="#step-card-{{ step.id }}"
+                hx-vals='{"field": "kind"}' hx-include="this">
+          {% for k in ('workup', 'extraction', 'purification', 'analysis', 'other') %}
+          <option value="{{ k }}" {% if step.kind == k %}selected{% endif %}>
+            {{ {'workup':_('Workup'),'extraction':_('Estrazione'),'purification':_('Purificazione'),'analysis':_('Analisi'),'other':_('Altro')}[k] }}
+          </option>
+          {% endfor %}
+        </select>
+        {% else %}
+        <div>{{ {'workup':_('Workup'),'extraction':_('Estrazione'),'purification':_('Purificazione'),'analysis':_('Analisi'),'other':_('Altro')}[step.kind] }}</div>
+        {% endif %}
+      </div>
+      <div class="col-md-8">
+        <label class="form-label small text-muted mb-1">{{ _("Riferimento per i ratio") }}</label>
+        {% if is_draft %}
+        <select class="form-select form-select-sm" name="value"
+                hx-post="{{ url_for('reactions.edit_step', step_id=step.id) }}"
+                hx-trigger="change"
+                hx-target="#step-card-{{ step.id }}"
+                hx-vals='{"field": "reference_component_id"}' hx-include="this">
+          <option value="limiting" {% if not step.reference_component_id %}selected{% endif %}>
+            {{ _("Reagente limitante") }}{% if reaction.limiting_component %} ({{ reaction.limiting_component.substance.name }}){% endif %}
+          </option>
+          {% for c in reaction.components %}
+          <option value="{{ c.id }}" {% if step.reference_component_id == c.id %}selected{% endif %}>
+            {{ c.substance.name }} ({{ c.role_label_it }})
+          </option>
+          {% endfor %}
+        </select>
+        {% else %}
+        <div>
+          {% if step.reference_component_id %}
+            {% set ref = step.reference_component %}
+            {% if ref %}{{ ref.substance.name }} ({{ ref.role_label_it }}){% else %}—{% endif %}
+          {% else %}
+            {{ _("Reagente limitante") }}{% if reaction.limiting_component %} ({{ reaction.limiting_component.substance.name }}){% endif %}
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    {# ─── 1. Componenti dello step ───────────────────────────────────── #}
+    <div class="mb-3">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <strong class="small">{{ _("Componenti") }}</strong>
+        {% if is_draft %}
+        <button class="btn btn-sm btn-outline-primary"
+                data-bs-toggle="modal"
+                data-bs-target="#addStepCompModal-{{ step.id }}">
+          <i data-lucide="plus"></i> {{ _("Aggiungi componente") }}
+        </button>
+        {% endif %}
+      </div>
+
+      {% if step.components %}
+      <div class="table-responsive">
+        <table class="table table-sm {% if is_draft %}table-hover{% endif %} align-middle mb-0 step-components">
+          <thead>
+            <tr>
+              <th>{{ _("Sostanza") }}</th>
+              <th>{{ _("Ruolo") }}</th>
+              <th class="text-end" style="width: 7rem;">{{ _("Ratio") }}</th>
+              <th style="width: 6.5rem;">{{ _("Unità") }}</th>
+              {% if is_draft %}<th></th>{% endif %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for sc in step.components %}
+              <tr>
+                <td>
+                  {% if sc.mixture %}
+                  <a href="{{ url_for('mixtures.detail', mixture_id=sc.mixture.id) }}"
+                     class="text-decoration-none fw-semibold">
+                    {{ sc.mixture.display_label }}
+                  </a>
+                  <span class="badge text-bg-light ms-1" style="font-size:0.65rem">{{ _("miscela") }}</span>
+                  {% elif sc.substance %}
+                  <a href="{{ url_for('substances.detail', substance_id=sc.substance.id) }}"
+                     class="text-decoration-none fw-semibold">
+                    {{ sc.substance.name }}
+                  </a>
+                  {% if sc.substance.cas_number %}
+                    <div class="small text-muted"><code>{{ sc.substance.cas_number }}</code></div>
+                  {% endif %}
+                  {% else %}
+                  <em class="text-muted">{{ _("(componente rimosso)") }}</em>
+                  {% endif %}
+                </td>
+                <td><span class="badge text-bg-light">{{ sc.role_label_it }}</span></td>
+                <td class="text-end">
+                  {% if sc.ratio_kind == "free" %}
+                    <span class="text-muted small">{{ _("ad lib.") }}</span>
+                  {% elif is_draft %}
+                  <input type="number" step="0.001" min="0"
+                         class="form-control form-control-sm text-end"
+                         value="{{ '%g'|format(sc.ratio_value) if sc.ratio_value is not none else '' }}"
+                         name="value"
+                         hx-post="{{ url_for('reactions.edit_step_component', scid=sc.id) }}"
+                         hx-trigger="change delay:200ms"
+                         hx-target="#step-card-{{ step.id }}"
+                         hx-vals='{"field": "ratio_value"}'
+                         hx-include="this">
+                  {% else %}
+                  <span class="font-monospace">{{ '%g'|format(sc.ratio_value) if sc.ratio_value is not none else '—' }}</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if is_draft %}
+                  <select class="form-select form-select-sm" name="value"
+                          hx-post="{{ url_for('reactions.edit_step_component', scid=sc.id) }}"
+                          hx-trigger="change"
+                          hx-target="#step-card-{{ step.id }}"
+                          hx-vals='{"field": "ratio_kind"}' hx-include="this">
+                    {% for k, lbl in [
+                        ('eq', 'eq'),
+                        ('mL_per_g', 'mL/g'),
+                        ('mL_per_mmol', 'mL/mmol'),
+                        ('percent_vv', '% v/v'),
+                        ('absolute_mL', _('mL fissi')),
+                        ('absolute_g', _('g fissi')),
+                        ('free', _('quanto basta'))
+                    ] %}
+                    <option value="{{ k }}" {% if sc.ratio_kind == k %}selected{% endif %}>{{ lbl }}</option>
+                    {% endfor %}
+                  </select>
+                  {% else %}
+                  <span class="small text-muted">
+                    {{ {'eq':'eq','mL_per_g':'mL/g','mL_per_mmol':'mL/mmol','percent_vv':'% v/v'}.get(sc.ratio_kind, sc.ratio_kind) }}
+                  </span>
+                  {% endif %}
+                </td>
+                {% if is_draft %}
+                <td class="text-end">
+                  <form method="post"
+                        action="{{ url_for('reactions.delete_step_component', scid=sc.id) }}"
+                        hx-post="{{ url_for('reactions.delete_step_component', scid=sc.id) }}"
+                        hx-target="#step-card-{{ step.id }}"
+                        hx-confirm="{{ _('Rimuovere?') }}"
+                        class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button class="btn btn-sm btn-link text-danger">
+                      <i data-lucide="x" style="width:14px;height:14px"></i>
+                    </button>
+                  </form>
+                </td>
+                {% endif %}
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="text-muted small mb-0 text-center py-2">
+        {{ _("Nessun componente in questo passo.") }}
+      </p>
+      {% endif %}
+    </div>
+
+    {# ─── 2. Check list dello step ─────────────────────────────────── #}
+    <div class="mb-3">
+      <strong class="small d-block mb-2">{{ _("Check list") }}</strong>
+      {% with items=step.checklist_items, parent_kind="step", parent_id=step.id, can_edit=is_draft %}
+        {% include "reactions/_checklist.html" %}
+      {% endwith %}
+    </div>
+
+    {# ─── 3. Procedimento (textarea) ────────────────────────────────── #}
+    <div class="mb-2">
+      <strong class="small d-block mb-1">{{ _("Procedimento") }}</strong>
+      {% if is_draft %}
+      <textarea class="form-control form-control-sm step-procedure-field"
+                rows="3"
+                placeholder="{{ _('es. Spegnere con NH4Cl saturo, separare le fasi, estrarre la fase acquosa con EtOAc x 3, riunire le fasi organiche, lavare con brine, anidrificare su Na2SO4 e concentrare a secco.') }}"
+                data-save-url="{{ url_for('reactions.edit_step', step_id=step.id) }}"
+                data-field-name="description">{{ step.description or '' }}</textarea>
+      {% elif step.description %}
+      <p class="mb-0" style="white-space: pre-wrap">{{ step.description }}</p>
+      {% else %}
+      <p class="text-muted mb-0">—</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{# ─── Modal: aggiungi componente allo step (semplificato) ────────── #}
+<div class="modal fade" id="addStepCompModal-{{ step.id }}" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post"
+            action="{{ url_for('reactions.add_step_component', step_id=step.id) }}"
+            hx-post="{{ url_for('reactions.add_step_component', step_id=step.id) }}"
+            hx-target="#step-card-{{ step.id }}"
+            hx-swap="outerHTML"
+            hx-on::after-request="if(event.detail.successful){bootstrap.Modal.getInstance(this.closest('.modal')).hide();this.reset();}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="modal-header">
+          <h5 class="modal-title">{{ _("Aggiungi componente al passo") }}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">{{ _("Tipo di componente") }}</label>
+            <div class="btn-group w-100" role="group">
+              <input type="radio" class="btn-check"
+                     name="step_kind_{{ step.id }}" id="step-kind-sub-{{ step.id }}"
+                     value="substance" checked
+                     onchange="document.getElementById('step-sub-wrap-{{ step.id }}').style.display='';document.getElementById('step-mix-wrap-{{ step.id }}').style.display='none';">
+              <label class="btn btn-outline-primary" for="step-kind-sub-{{ step.id }}">
+                <i data-lucide="flask-conical" style="width:14px;height:14px"></i>
+                {{ _("Sostanza pura") }}
+              </label>
+              <input type="radio" class="btn-check"
+                     name="step_kind_{{ step.id }}" id="step-kind-mix-{{ step.id }}"
+                     value="mixture"
+                     onchange="document.getElementById('step-sub-wrap-{{ step.id }}').style.display='none';document.getElementById('step-mix-wrap-{{ step.id }}').style.display='';">
+              <label class="btn btn-outline-primary" for="step-kind-mix-{{ step.id }}">
+                <i data-lucide="beaker" style="width:14px;height:14px"></i>
+                {{ _("Miscela") }}
+              </label>
+            </div>
+            <small class="text-muted">
+              {{ _("Per cromatografie usa una miscela (es. EtOAc/PE 5:2) e seleziona 'quanto basta' come quantità.") }}
+            </small>
+          </div>
+
+          <div class="mb-3" id="step-sub-wrap-{{ step.id }}">
+            <label class="form-label">{{ _("Sostanza") }}</label>
+            <select name="substance_id" class="form-select">
+              <option value="">{{ _("Seleziona…") }}</option>
+              {% for sub in substances_for_picker() %}
+              <option value="{{ sub.id }}">
+                {{ sub.name }}{% if sub.cas_number %} ({{ sub.cas_number }}){% endif %}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3" id="step-mix-wrap-{{ step.id }}" style="display:none">
+            <label class="form-label">{{ _("Miscela") }}</label>
+            <select name="mixture_id" class="form-select">
+              <option value="">{{ _("Seleziona…") }}</option>
+              {% for m in mixtures_for_picker() %}
+              <option value="{{ m.id }}">{{ m.display_label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">{{ _("Ruolo") }}</label>
+              <select name="role" class="form-select">
+                <option value="solvent" selected>{{ _("Solvente") }}</option>
+                <option value="reagent">{{ _("Reagente") }}</option>
+                <option value="acid">{{ _("Acido") }}</option>
+                <option value="base">{{ _("Base") }}</option>
+                <option value="oxidant">{{ _("Ossidante") }}</option>
+                <option value="reductant">{{ _("Riducente") }}</option>
+                <option value="additive">{{ _("Additivo") }}</option>
+                <option value="internal_standard">{{ _("Standard interno") }}</option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">{{ _("Quantità") }}</label>
+              <input type="number" name="ratio_value" class="form-control"
+                     step="0.001" min="0"
+                     id="step-ratio-val-{{ step.id }}">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">{{ _("Unità") }}</label>
+              <select name="ratio_kind" class="form-select"
+                      onchange="
+                        var v = document.getElementById('step-ratio-val-{{ step.id }}');
+                        if (this.value === 'free') { v.value=''; v.disabled=true; }
+                        else { v.disabled=false; }
+                      ">
+                <option value="mL_per_g">mL/g</option>
+                <option value="mL_per_mmol">mL/mmol</option>
+                <option value="eq">eq</option>
+                <option value="percent_vv">% v/v</option>
+                <option value="absolute_mL">mL fissi</option>
+                <option value="absolute_g">g fissi</option>
+                <option value="free">{{ _("quanto basta") }}</option>
+              </select>
+            </div>
+          </div>
+          <small class="text-muted d-block mt-2">
+            {{ _("'quanto basta' (free): la quantità non è specificata nel template — la registri al Run. Tipico per eluenti di cromatografia.") }}
+          </small>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-link" data-bs-dismiss="modal">{{ _("Annulla") }}</button>
+          <button type="submit" class="btn btn-primary">{{ _("Aggiungi") }}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>if (window.lucide) lucide.createIcons();</script>

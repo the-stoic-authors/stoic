@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+{% block title %}{{ prep.code }}{% endblock %}
+
+{% block content %}
+<div class="page-header mb-3">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb small mb-1">
+      <li class="breadcrumb-item">
+        <a href="{{ url_for('preps.list_view') }}">{{ _("Preparazioni") }}</a>
+      </li>
+      <li class="breadcrumb-item active">{{ prep.code }}</li>
+    </ol>
+  </nav>
+  <h1 class="font-monospace">{{ prep.code }}</h1>
+  <p class="text-muted mb-0">
+    {{ _("Preparazione di") }}
+    <a href="{{ url_for('mixtures.detail', mixture_id=prep.mixture_id) }}"
+       class="text-decoration-none">
+      <strong>{{ prep.mixture.name if prep.mixture else "—" }}</strong>
+    </a>
+  </p>
+</div>
+
+<div class="row g-3">
+  <!-- ── Header card ────────────────────────────────────────── -->
+  <div class="col-12 col-lg-6">
+    <div class="card h-100">
+      <div class="card-header"><strong>{{ _("Sommario") }}</strong></div>
+      <div class="card-body">
+        <dl class="row mb-0 small">
+          <dt class="col-sm-5">{{ _("Quantità target") }}</dt>
+          <dd class="col-sm-7">
+            <code>{{ "%g"|format(prep.target_quantity) }} {{ prep.target_quantity_unit }}</code>
+          </dd>
+
+          <dt class="col-sm-5">{{ _("Quando") }}</dt>
+          <dd class="col-sm-7">
+            {{ prep.prepared_at.strftime("%Y-%m-%d %H:%M") if prep.prepared_at else "—" }}
+          </dd>
+
+          <dt class="col-sm-5">{{ _("Operatore") }}</dt>
+          <dd class="col-sm-7">
+            {% if prep.prepared_by %}
+              {{ prep.prepared_by.full_name or prep.prepared_by.username }}
+            {% else %}
+              <span class="text-muted">—</span>
+            {% endif %}
+          </dd>
+
+          <dt class="col-sm-5">{{ _("Anno (per sequenza)") }}</dt>
+          <dd class="col-sm-7">{{ prep.year }}</dd>
+
+          <dt class="col-sm-5">{{ _("Numero sequenza") }}</dt>
+          <dd class="col-sm-7">{{ prep.sequence }}</dd>
+
+          {% if prep.notes %}
+          <dt class="col-sm-5">{{ _("Note") }}</dt>
+          <dd class="col-sm-7">{{ prep.notes }}</dd>
+          {% endif %}
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Output lot card ────────────────────────────────────── -->
+  <div class="col-12 col-lg-6">
+    <div class="card h-100">
+      <div class="card-header"><strong>{{ _("Lotto prodotto") }}</strong></div>
+      <div class="card-body">
+        {% if prep.output_lot %}
+          {% set lot = prep.output_lot %}
+          <dl class="row mb-0 small">
+            <dt class="col-sm-5">{{ _("Codice") }}</dt>
+            <dd class="col-sm-7 font-monospace">{{ lot.batch_code or "—" }}</dd>
+
+            <dt class="col-sm-5">{{ _("Quantità residua") }}</dt>
+            <dd class="col-sm-7">
+              {% if lot.quantity_g %}{{ "%g"|format(lot.quantity_g) }} g
+              {% elif lot.quantity_mL %}{{ "%g"|format(lot.quantity_mL) }} mL
+              {% else %}—{% endif %}
+              {% if lot.initial_quantity_g %}
+                <span class="text-muted">/ {{ "%g"|format(lot.initial_quantity_g) }} g</span>
+              {% elif lot.initial_quantity_mL %}
+                <span class="text-muted">/ {{ "%g"|format(lot.initial_quantity_mL) }} mL</span>
+              {% endif %}
+            </dd>
+
+            <dt class="col-sm-5">{{ _("Posizione") }}</dt>
+            <dd class="col-sm-7">{{ lot.location or "—" }}</dd>
+
+            <dt class="col-sm-5">{{ _("Scadenza") }}</dt>
+            <dd class="col-sm-7">
+              {{ lot.expiry_date.isoformat() if lot.expiry_date else "—" }}
+            </dd>
+
+            <dt class="col-sm-5">{{ _("Stato") }}</dt>
+            <dd class="col-sm-7">
+              {% if lot.is_active %}
+                <span class="badge text-bg-success">{{ _("attivo") }}</span>
+              {% else %}
+                <span class="badge text-bg-secondary">{{ _("disattivato") }}</span>
+              {% endif %}
+            </dd>
+          </dl>
+          <div class="mt-3">
+            <a href="{{ url_for('inventory.edit', item_id=lot.id) }}"
+               class="btn btn-sm btn-outline-primary">
+              <i data-lucide="edit"></i> {{ _("Apri lotto") }}
+            </a>
+            <a href="{{ url_for('inventory.label_form', item_id=lot.id) }}"
+               class="btn btn-sm btn-outline-secondary">
+              <i data-lucide="printer"></i> {{ _("Stampa etichetta") }}
+            </a>
+            <a href="{{ url_for('inventory.report_pdf', item_id=lot.id) }}"
+               target="_blank"
+               class="btn btn-sm btn-outline-secondary">
+              <i data-lucide="file-text"></i> {{ _("Scheda lotto (PDF)") }}
+            </a>
+          </div>
+        {% else %}
+        <p class="text-muted small mb-0">
+          {{ _("Lotto non trovato (è stato cancellato dall'inventario?).") }}
+        </p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Consumptions card ──────────────────────────────────── -->
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header"><strong>{{ _("Lotti consumati") }}</strong></div>
+      <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+          <thead>
+            <tr class="small text-muted">
+              <th>{{ _("Lotto consumato") }}</th>
+              <th>{{ _("Sostanza / Miscela") }}</th>
+              <th>{{ _("Quantità prelevata") }}</th>
+              <th class="text-end">{{ _("Costo imputato") }}</th>
+              <th>{{ _("Note") }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in prep.consumptions %}
+            <tr>
+              <td>
+                {% if c.inventory_item %}
+                <a href="{{ url_for('inventory.edit', item_id=c.inventory_item.id) }}"
+                   class="font-monospace text-decoration-none">
+                  {{ c.inventory_item.batch_code or "#" ~ c.inventory_item.id }}
+                </a>
+                {% else %}
+                <span class="text-muted">{{ _("(lotto eliminato)") }}</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if c.inventory_item and c.inventory_item.mixture %}
+                  <a href="{{ url_for('mixtures.detail', mixture_id=c.inventory_item.mixture.id) }}"
+                     class="text-decoration-none">
+                    {{ c.inventory_item.mixture.name }}
+                  </a>
+                  <span class="badge text-bg-light ms-1" style="font-size:0.65rem">{{ _("miscela") }}</span>
+                {% elif c.inventory_item and c.inventory_item.substance %}
+                  <a href="{{ url_for('substances.detail', substance_id=c.inventory_item.substance.id) }}"
+                     class="text-decoration-none">
+                    {{ c.inventory_item.substance.name }}
+                  </a>
+                {% else %}
+                  —
+                {% endif %}
+              </td>
+              <td>
+                <code>{{ "%g"|format(c.quantity_consumed) }} {{ c.quantity_unit }}</code>
+              </td>
+              <td class="text-end">
+                {% if c.imputed_cost_eur is not none %}
+                  <code>€ {{ "%.2f"|format(c.imputed_cost_eur) }}</code>
+                {% else %}
+                  <span class="text-muted">—</span>
+                {% endif %}
+              </td>
+              <td class="small text-muted">{{ c.notes or "" }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+          {# Cost summary row when at least one consumption has cost data. #}
+          {% if prep.total_cost_eur is not none %}
+          <tfoot class="table-light">
+            <tr>
+              <td colspan="3" class="text-end small text-muted">
+                <strong>{{ _("Costo totale preparazione") }}</strong>
+              </td>
+              <td class="text-end">
+                <strong><code>€ {{ "%.2f"|format(prep.total_cost_eur) }}</code></strong>
+                {% if prep.cost_per_unit is not none %}
+                  <div class="small text-muted">
+                    {{ prep.cost_per_unit_display }}
+                  </div>
+                {% endif %}
+              </td>
+              <td></td>
+            </tr>
+          </tfoot>
+          {% endif %}
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Allegati ────────────────────────────────────────────── -->
+<div class="card mt-3">
+  <div class="card-header">
+    <strong>{{ _("Allegati") }}</strong>
+    {% if attachments_for_entity %}
+    <span class="badge text-bg-secondary ms-2">{{ attachments_for_entity|length }}</span>
+    {% endif %}
+    <small class="text-muted ms-2">{{ _("CoA del lotto, foto della preparazione, calibrazioni") }}</small>
+  </div>
+  <div class="card-body">
+    {% with attachments=attachments_for_entity, entity_type='mixture_prep', entity_id=prep.id %}
+      {% include "attachments/_list.html" %}
+    {% endwith %}
+  </div>
+</div>
+
+<script>if (window.lucide) lucide.createIcons();</script>
+{% endblock %}

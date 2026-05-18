@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Ordine") }} #{{ order.id }} — {{ order.substance.name }}{% endblock %}
+
+{% block content %}
+{% set status_label, status_color = order.status_label_color %}
+
+<div class="page-header d-flex justify-content-between align-items-start mb-3">
+  <div>
+    <h1 class="d-flex align-items-center gap-2">
+      <a href="{{ url_for('substances.detail', substance_id=order.substance.id) }}"
+         class="text-decoration-none">{{ order.substance.name }}</a>
+      <span class="badge text-bg-{{ status_color }}">{{ _(status_label) }}</span>
+    </h1>
+    <p class="text-muted mb-0">
+      {{ _("Ordine #%(id)d", id=order.id) }}
+      {% if order.created_by %}· {{ _("creato da %(u)s", u=order.created_by.full_name) }}{% endif %}
+      · {{ order.created_at.strftime('%Y-%m-%d %H:%M') }}
+    </p>
+  </div>
+  <div class="d-flex gap-2">
+    {% if order.is_open %}
+    <a href="{{ url_for('orders.edit', order_id=order.id) }}"
+       class="btn btn-outline-secondary">
+      <i data-lucide="edit-2"></i> {{ _("Modifica") }}
+    </a>
+    {% endif %}
+    <a href="{{ url_for('orders.list_view') }}"
+       class="btn btn-outline-secondary">
+      <i data-lucide="arrow-left"></i> {{ _("Lista ordini") }}
+    </a>
+  </div>
+</div>
+
+<div class="row g-3">
+
+  {# ── Order details ── #}
+  <div class="col-lg-7">
+    <div class="card">
+      <div class="card-header"><strong>{{ _("Dettagli ordine") }}</strong></div>
+      <div class="card-body">
+        <dl class="row mb-0">
+          <dt class="col-sm-4">{{ _("Sostanza") }}</dt>
+          <dd class="col-sm-8">
+            <a href="{{ url_for('substances.detail', substance_id=order.substance.id) }}">
+              {{ order.substance.name }}
+            </a>
+            {% if order.substance.cas_number %}
+              <span class="text-muted ms-2">{{ order.substance.cas_number }}</span>
+            {% endif %}
+          </dd>
+          <dt class="col-sm-4">{{ _("Fornitore") }}</dt>
+          <dd class="col-sm-8">
+            {{ order.supplier or "—" }}
+            {% if order.catalogue_number %}<code class="ms-2">{{ order.catalogue_number }}</code>{% endif %}
+          </dd>
+          <dt class="col-sm-4">{{ _("Quantità ordinata") }}</dt>
+          <dd class="col-sm-8 font-monospace">{{ order.ordered_quantity_display }}</dd>
+          <dt class="col-sm-4">{{ _("Costo totale") }}</dt>
+          <dd class="col-sm-8 font-monospace">
+            {% if order.ordered_total_eur is not none %}
+              {{ order.ordered_total_eur|currency }}
+              {% if order.cost_per_unit is not none %}
+                <span class="text-muted">
+                  ({{ order.cost_per_unit|currency(decimals=4) }}{% if order.ordered_quantity_g %}/g{% else %}/mL{% endif %})
+                </span>
+              {% endif %}
+            {% else %}—{% endif %}
+          </dd>
+          <dt class="col-sm-4">{{ _("Riferimento interno") }}</dt>
+          <dd class="col-sm-8">{{ order.internal_order_ref or "—" }}</dd>
+          <dt class="col-sm-4">{{ _("Gruppo") }}</dt>
+          <dd class="col-sm-8">{{ order.group.name }}</dd>
+        </dl>
+      </div>
+    </div>
+
+    {% if order.notes %}
+    <div class="card mt-3">
+      <div class="card-header"><strong>{{ _("Note") }}</strong></div>
+      <div class="card-body">
+        <p class="mb-0" style="white-space: pre-wrap">{{ order.notes }}</p>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if order.is_received and order.inventory_item %}
+    <div class="card mt-3 border-success">
+      <div class="card-header bg-success-subtle">
+        <strong class="text-success-emphasis">
+          <i data-lucide="package" style="width:16px;height:16px"></i>
+          {{ _("Lotto creato") }}
+        </strong>
+      </div>
+      <div class="card-body">
+        <dl class="row mb-0">
+          <dt class="col-sm-4">{{ _("Quantità ricevuta") }}</dt>
+          <dd class="col-sm-8 font-monospace">{{ order.received_quantity_display }}</dd>
+          <dt class="col-sm-4">{{ _("Ricevuto il") }}</dt>
+          <dd class="col-sm-8">{{ order.received_at.isoformat() if order.received_at else "—" }}</dd>
+          <dt class="col-sm-4">{{ _("Costo effettivo") }}</dt>
+          <dd class="col-sm-8 font-monospace">
+            {% if order.received_total_eur is not none %}{{ order.received_total_eur|currency }}
+            {% else %}—{% endif %}
+          </dd>
+          <dt class="col-sm-4">{{ _("Lotto") }}</dt>
+          <dd class="col-sm-8">
+            <a href="{{ url_for('inventory.edit', item_id=order.inventory_item.id) }}">
+              <code>{{ order.inventory_item.batch_code or _('senza codice') }}</code>
+            </a>
+          </dd>
+        </dl>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  {# ── Action panel ── #}
+  <div class="col-lg-5">
+    <div class="card">
+      <div class="card-header"><strong>{{ _("Stato e azioni") }}</strong></div>
+      <div class="card-body">
+        <p class="mb-3">
+          {{ _("Stato corrente:") }}
+          <span class="badge text-bg-{{ status_color }} ms-1">{{ _(status_label) }}</span>
+        </p>
+
+        {% if order.expected_delivery_date %}
+          <p class="small mb-3">
+            {{ _("Consegna prevista:") }}
+            <strong>{{ order.expected_delivery_date.isoformat() }}</strong>
+            {% if order.is_overdue %}
+              <span class="text-danger ms-2">
+                {{ _("in ritardo di %(d)d gg", d=-order.days_until_delivery) }}
+              </span>
+            {% elif order.days_until_delivery is not none and order.days_until_delivery >= 0 %}
+              <span class="text-muted ms-2">
+                ({{ _("entro %(d)d gg", d=order.days_until_delivery) }})
+              </span>
+            {% endif %}
+          </p>
+        {% endif %}
+
+        {% if order.status == 'planned' %}
+        {# planned → ordered #}
+        <form method="post" action="{{ url_for('orders.mark_ordered', order_id=order.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <h6 class="text-uppercase text-muted small mt-3">{{ _("Segna come ordinato") }}</h6>
+          <div class="row g-2">
+            <div class="col-md-6">
+              <label class="form-label small">{{ _("Ordinato il") }}</label>
+              <input type="date" class="form-control form-control-sm"
+                     name="ordered_at" value="{{ today.isoformat() }}">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small">{{ _("Consegna prevista") }}</label>
+              <input type="date" class="form-control form-control-sm"
+                     name="expected_delivery_date"
+                     value="{{ order.expected_delivery_date.isoformat() if order.expected_delivery_date else '' }}">
+            </div>
+            <div class="col-12">
+              <label class="form-label small">{{ _("Riferimento interno") }}</label>
+              <input type="text" class="form-control form-control-sm"
+                     name="internal_order_ref"
+                     value="{{ order.internal_order_ref or '' }}"
+                     placeholder="{{ _('PO, richiesta, …') }}">
+            </div>
+            <div class="col-12 mt-3">
+              <button type="submit" class="btn btn-primary w-100">
+                <i data-lucide="check-circle"></i> {{ _("Segna come ordinato") }}
+              </button>
+            </div>
+          </div>
+        </form>
+        {% endif %}
+
+        {% if order.is_open %}
+        <hr class="my-3">
+        <a href="{{ url_for('orders.receive', order_id=order.id) }}"
+           class="btn btn-success w-100">
+          <i data-lucide="package-check"></i> {{ _("Ricevi ordine") }}
+        </a>
+
+        <hr class="my-3">
+        <form method="post" action="{{ url_for('orders.cancel', order_id=order.id) }}"
+              onsubmit="return confirm('{{ _('Annullare definitivamente questo ordine?') }}')">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <details>
+            <summary class="text-danger small mb-2" style="cursor: pointer">
+              {{ _("Annulla ordine…") }}
+            </summary>
+            <input type="text" class="form-control form-control-sm mb-2"
+                   name="reason" placeholder="{{ _('Motivo (opzionale)') }}">
+            <button type="submit" class="btn btn-outline-danger btn-sm w-100">
+              <i data-lucide="x-circle"></i> {{ _("Conferma annullamento") }}
+            </button>
+          </details>
+        </form>
+        {% endif %}
+
+      </div>
+    </div>
+  </div>
+
+</div>
+<script>if (window.lucide) lucide.createIcons();</script>
+{% endblock %}

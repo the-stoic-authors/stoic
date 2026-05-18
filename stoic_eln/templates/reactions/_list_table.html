@@ -1,0 +1,127 @@
+{% if reactions %}
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead>
+        <tr>
+          <th style="width: 11rem">{{ _("Codice") }}</th>
+          <th style="width: 18rem">{{ _("Titolo") }}</th>
+          <th>{{ _("Schema") }}</th>
+          <th style="width: 8rem">{{ _("Creata") }}</th>
+          <th style="width: 11rem"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for rxn in reactions %}
+        {% set scheme = rxn.derive_scheme() %}
+        <tr class="reaction-row {% if not rxn.is_active %}text-muted{% endif %}"
+            data-href="{{ url_for('reactions.detail', reaction_id=rxn.id) }}"
+            style="cursor: pointer">
+          <td>
+            <code class="fw-semibold">{{ rxn.display_code }}</code>
+            {% if rxn.is_draft %}
+              <span class="badge text-bg-warning ms-1">{{ _("BOZZA") }}</span>
+            {% endif %}
+            {% if not rxn.is_active %}
+              <span class="badge text-bg-secondary ms-1">{{ _("disattivata") }}</span>
+            {% endif %}
+          </td>
+          <td>
+            <span class="fw-semibold">{{ rxn.title }}</span>
+            {% if rxn.description %}
+            <div class="small text-muted">{{ rxn.description[:60] }}{% if rxn.description|length > 60 %}…{% endif %}</div>
+            {% endif %}
+          </td>
+          <td class="reaction-list-scheme">
+            {% if scheme and scheme.canvas_safe and scheme.smiles %}
+              <div class="reaction-scheme-mini-wrapper">
+                <svg id="rxlist-scheme-{{ rxn.id }}"
+                     data-smiles="{{ scheme.smiles }}"
+                     data-above-arrow-label="{{ scheme.above_arrow_label }}"
+                     class="reaction-scheme-mini"
+                     xmlns="http://www.w3.org/2000/svg"></svg>
+              </div>
+            {% else %}
+              <span class="text-muted small">—</span>
+            {% endif %}
+          </td>
+          <td class="small">
+            {{ rxn.created_at.strftime('%Y-%m-%d') }}
+            {% if rxn.created_by %}
+            <div class="text-muted">{{ rxn.created_by.operator_code }}</div>
+            {% endif %}
+          </td>
+          <td class="text-end" onclick="event.stopPropagation()">
+            {# "Esegui run" — only on published reactions (drafts can't be run) #}
+            {% if not rxn.is_draft %}
+            <form method="post" action="{{ url_for('runs.create_from_template', reaction_id=rxn.id) }}"
+                  class="d-inline">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-sm btn-success me-1"
+                      title="{{ _('Esegui run') }}">
+                <i data-lucide="play" style="width:14px;height:14px"></i>
+                <span class="d-none d-lg-inline">{{ _("Esegui") }}</span>
+              </button>
+            </form>
+            {% endif %}
+            {% if current_user.can_edit_reactions %}
+              {# "Modifica" — supervisor + admin only #}
+              <form method="post"
+                    action="{{ url_for('reactions.edit', reaction_id=rxn.id) }}"
+                    class="d-inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-sm btn-outline-primary"
+                        title="{{ _('Modifica') }}">
+                  <i data-lucide="pencil" style="width:14px;height:14px"></i>
+                </button>
+              </form>
+              {# "Elimina" (deactivate) — supervisor + admin only #}
+              {% if rxn.is_active %}
+              <form method="post"
+                    action="{{ url_for('reactions.deactivate', reaction_id=rxn.id) }}"
+                    class="d-inline"
+                    onsubmit="return confirm('{{ _('Disattivare questa reazione?') }}')">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-sm btn-outline-danger"
+                        title="{{ _('Disattiva') }}">
+                  <i data-lucide="trash-2" style="width:14px;height:14px"></i>
+                </button>
+              </form>
+              {% endif %}
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<script>
+  // Make rows clickable (except clicks on the action buttons cell)
+  document.querySelectorAll('.reaction-row').forEach(function (tr) {
+    tr.addEventListener('click', function () {
+      window.location = tr.dataset.href;
+    });
+  });
+  if (window.lucide) lucide.createIcons();
+</script>
+{% else %}
+<div class="card">
+  <div class="card-body text-center py-5">
+    <i data-lucide="arrow-left-right" class="text-muted mb-3" style="width: 48px; height: 48px;"></i>
+    <p class="text-muted mb-3">
+      {% if q %}{{ _("Nessuna reazione corrisponde a '%(q)s'.", q=q) }}
+      {% else %}{{ _("Nessuna reazione nel database.") }}{% endif %}
+    </p>
+    {% if not q and current_user.can_edit_reactions %}
+    <form method="post" action="{{ url_for('reactions.create') }}" class="d-inline">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="btn btn-primary">
+        <i data-lucide="plus"></i> {{ _("Crea la prima reazione") }}
+      </button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+<script>if (window.lucide) lucide.createIcons();</script>
+{% endif %}

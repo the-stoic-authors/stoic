@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Documentazione") }}{% endblock %}
+
+{% block content %}
+<div class="page-header mb-3">
+  <h1 class="mb-1">{{ _("Documentazione") }}</h1>
+  <p class="text-muted mb-0">
+    {{ _("Guide e manuali di Stoic.") }}
+    {{ _("Disponibile in italiano e inglese.") }}
+  </p>
+</div>
+
+<div class="row g-3">
+  {% for slug, title, blurb in manuals %}
+  <div class="col-md-6 col-lg-4">
+    <a href="{{ url_for('docs.' + (slug + '_manual')) }}"
+       class="card text-decoration-none text-body h-100">
+      <div class="card-body">
+        <div class="d-flex align-items-center gap-3 mb-2">
+          {% if slug == "user" %}
+            <i data-lucide="book-open" style="width:24px;height:24px"></i>
+          {% elif slug == "admin" %}
+            <i data-lucide="settings-2" style="width:24px;height:24px"></i>
+          {% elif slug == "developer" %}
+            <i data-lucide="code-2" style="width:24px;height:24px"></i>
+          {% endif %}
+          <strong>{{ title }}</strong>
+        </div>
+        <p class="text-muted small mb-0">{{ blurb }}</p>
+      </div>
+    </a>
+  </div>
+  {% endfor %}
+</div>
+
+<script>if (window.lucide) lucide.createIcons();</script>
+{% endblock %}

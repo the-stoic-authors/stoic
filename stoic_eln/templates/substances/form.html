@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% block title %}{% if substance %}{{ _("Modifica sostanza") }}{% else %}{{ _("Nuova sostanza") }}{% endif %}{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-12 col-lg-10 col-xl-8 mx-auto">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb small">
+        <li class="breadcrumb-item">
+          <a href="{{ url_for('substances.list_view') }}">{{ _("Sostanze") }}</a>
+        </li>
+        {% if substance %}
+        <li class="breadcrumb-item">
+          <a href="{{ url_for('substances.detail', substance_id=substance.id) }}">{{ substance.name }}</a>
+        </li>
+        <li class="breadcrumb-item active">{{ _("Modifica") }}</li>
+        {% else %}
+        <li class="breadcrumb-item active">{{ _("Nuova sostanza") }}</li>
+        {% endif %}
+      </ol>
+    </nav>
+
+    <div class="card">
+      <div class="card-body">
+        <h2 class="mb-4">
+          {% if substance %}{{ _("Modifica") }} <em>{{ substance.name }}</em>
+          {% else %}{{ _("Nuova sostanza") }}
+          {% endif %}
+        </h2>
+
+        <form method="post" novalidate>
+          {{ form.hidden_tag() }}
+
+          <h5 class="mt-2">{{ _("Identificazione") }}</h5>
+          <div class="row g-3">
+            <div class="col-md-6">
+              {{ form.name.label(class="form-label") }}
+              {{ form.name(class="form-control" + (" is-invalid" if form.name.errors else "")) }}
+              {% for e in form.name.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-md-6">
+              {{ form.cas_number.label(class="form-label") }}
+              {{ form.cas_number(class="form-control") }}
+            </div>
+            <div class="col-12">
+              {{ form.iupac_name.label(class="form-label") }}
+              {{ form.iupac_name(class="form-control") }}
+            </div>
+            <div class="col-md-6">
+              {{ form.molecular_formula.label(class="form-label") }}
+              {{ form.molecular_formula(class="form-control") }}
+            </div>
+            <div class="col-md-6">
+              {{ form.molecular_weight.label(class="form-label") }}
+              {{ form.molecular_weight(class="form-control", step="0.001") }}
+            </div>
+            <div class="col-12">
+              {{ form.smiles.label(class="form-label") }}
+              {{ form.smiles(class="form-control font-monospace") }}
+            </div>
+            <div class="col-12">
+              {{ form.inchi.label(class="form-label") }}
+              {{ form.inchi(class="form-control font-monospace") }}
+            </div>
+            <div class="col-md-6">
+              {{ form.inchi_key.label(class="form-label") }}
+              {{ form.inchi_key(class="form-control font-monospace text-uppercase") }}
+              <div class="form-text">{{ _("Usato per detect duplicati. 27 caratteri tipo ABCDEFGHIJKLMN-OPQRSTUVWX-Y.") }}</div>
+            </div>
+          </div>
+
+          <hr class="my-4">
+
+          <h5>{{ _("Proprietà fisiche") }}</h5>
+          <div class="row g-3">
+            <div class="col-md-4">
+              {{ form.state.label(class="form-label") }}
+              {{ form.state(class="form-select") }}
+            </div>
+            <div class="col-md-4">
+              {{ form.density.label(class="form-label") }}
+              {{ form.density(class="form-control", step="0.001") }}
+            </div>
+            <div class="col-md-4 pt-4">
+              <div class="form-check mt-2">
+                {{ form.is_solvent(class="form-check-input") }}
+                {{ form.is_solvent.label(class="form-check-label") }}
+              </div>
+            </div>
+            <div class="col-md-6">
+              {{ form.melting_point_c.label(class="form-label") }}
+              {{ form.melting_point_c(class="form-control", step="0.1") }}
+            </div>
+            <div class="col-md-6">
+              {{ form.boiling_point_c.label(class="form-label") }}
+              {{ form.boiling_point_c(class="form-control", step="0.1") }}
+            </div>
+          </div>
+
+          <hr class="my-4">
+
+          <h5>{{ _("Sicurezza (GHS)") }}</h5>
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label">{{ _("Pittogrammi GHS") }}</label>
+              <div class="ghs-picker">
+                {% for value, label in form.ghs_pictograms.choices %}
+                <div class="form-check ghs-check">
+                  <input class="form-check-input"
+                         type="checkbox"
+                         name="ghs_pictograms"
+                         value="{{ value }}"
+                         id="ghs_{{ value }}"
+                         {% if value in (form.ghs_pictograms.data or []) %}checked{% endif %}>
+                  <label class="form-check-label d-flex align-items-center gap-2" for="ghs_{{ value }}">
+                    <img src="{{ url_for('static', filename='img/ghs/' + value + '.svg') }}"
+                         data-ghs-code="{{ value }}"
+                         alt="{{ value }}" class="ghs-icon-sm">
+                    <span class="small">{{ label }}</span>
+                  </label>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              {{ form.h_phrases_text.label(class="form-label") }}
+              {{ form.h_phrases_text(class="form-control") }}
+              <div class="form-text">{{ _("Codici separati da virgola.") }}</div>
+            </div>
+            <div class="col-md-6">
+              {{ form.p_phrases_text.label(class="form-label") }}
+              {{ form.p_phrases_text(class="form-control") }}
+              <div class="form-text">{{ _("Codici separati da virgola.") }}</div>
+            </div>
+          </div>
+
+          <hr class="my-4">
+
+          <div class="row g-3">
+            <div class="col-12">
+              {{ form.notes.label(class="form-label") }}
+              {{ form.notes(class="form-control", rows=3) }}
+            </div>
+          </div>
+
+          <div class="d-flex gap-2 justify-content-end mt-4">
+            <a href="{% if substance %}{{ url_for('substances.detail', substance_id=substance.id) }}{% else %}{{ url_for('substances.list_view') }}{% endif %}" class="btn btn-link">
+              {{ _("Annulla") }}
+            </a>
+            {{ form.submit(class="btn btn-primary") }}
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,28 @@
+{# Inline edit form, replacing a note item via HTMX.
+   Inputs: note (Note instance) #}
+<form class="note-item border-start border-2 ps-3 py-2 mb-2 bg-body-tertiary"
+      id="note-{{ note.id }}"
+      hx-post="{{ url_for('notes.edit', note_id=note.id) }}"
+      hx-target="#notes-thread-{{ note.entity_type }}-{{ note.entity_id }}"
+      hx-swap="outerHTML">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="text-muted small mb-2">
+    {{ _("Modifica del commento") }}
+  </div>
+  <textarea name="body" class="form-control mb-2"
+            rows="3" maxlength="10000"
+            required>{{ note.body }}</textarea>
+  <div class="d-flex justify-content-end gap-2">
+    <button type="button" class="btn btn-sm btn-outline-secondary"
+            hx-get="{{ url_for('notes.view', note_id=note.id) }}"
+            hx-target="#note-{{ note.id }}"
+            hx-swap="outerHTML">
+      {{ _("Annulla") }}
+    </button>
+    <button type="submit" class="btn btn-sm btn-primary">
+      <i data-lucide="check" style="width:13px;height:13px"></i>
+      {{ _("Salva") }}
+    </button>
+  </div>
+</form>
+<script>if (window.lucide) lucide.createIcons();</script>

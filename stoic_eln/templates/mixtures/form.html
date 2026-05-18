@@ -1,0 +1,359 @@
+{% extends "base.html" %}
+{% block title %}
+  {% if mixture %}{{ _("Modifica miscela") }}{% else %}{{ _("Nuova miscela") }}{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="page-header mb-3">
+  <h1>
+    {% if mixture %}
+      {{ _("Modifica") }}: <span class="text-primary">{{ mixture.name }}</span>
+    {% else %}
+      {{ _("Nuova miscela") }}
+    {% endif %}
+  </h1>
+  <p class="text-muted small">
+    {{ _("Una miscela rappresenta una preparazione fisica (soluzione, eluente, tampone) con uno o più componenti. Per la sostanza pura usa invece il catalogo Sostanze.") }}
+  </p>
+</div>
+
+<form method="post" class="mixture-form">
+  {{ form.hidden_tag() }}
+
+  <div class="row">
+    <div class="col-lg-8">
+      <!-- Top fields card -->
+      <div class="card mb-3">
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-7">
+              <label for="name" class="form-label">{{ form.name.label.text }}*</label>
+              {{ form.name(class="form-control", required=True) }}
+            </div>
+            <div class="col-md-5">
+              <label for="kind" class="form-label">{{ form.kind.label.text }}</label>
+              {{ form.kind(class="form-select") }}
+            </div>
+
+            <div class="col-md-4">
+              <label for="primary_concentration" class="form-label">{{ form.primary_concentration.label.text }}</label>
+              {{ form.primary_concentration(class="form-control") }}
+              <div class="form-text small">{{ _("es. 1.0 per HCl 1N") }}</div>
+            </div>
+            <div class="col-md-3">
+              <label for="primary_concentration_unit" class="form-label">{{ form.primary_concentration_unit.label.text }}</label>
+              {{ form.primary_concentration_unit(class="form-select") }}
+            </div>
+            <div class="col-md-5">
+              <label for="primary_solvent_id_picker" class="form-label">{{ form.primary_solvent_id.label.text }}</label>
+              <input type="text"
+                     id="primary_solvent_id_picker"
+                     class="form-control substance-autocomplete"
+                     data-target-id="primary_solvent_id"
+                     data-target-display="primary_solvent_id_display"
+                     value="{{ primary_solvent_display or '' }}"
+                     placeholder="{{ _('Acqua, MeOH, …') }}"
+                     autocomplete="off">
+              {{ form.primary_solvent_id(type="hidden", id="primary_solvent_id") }}
+              <div class="form-text small">{{ _("Opzionale, mostrato sull'etichetta come '(aq)' ecc.") }}</div>
+            </div>
+
+            <div class="col-12">
+              <label for="description" class="form-label">{{ form.description.label.text }}</label>
+              {{ form.description(class="form-control") }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Components card -->
+      <div class="card mb-3">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0">{{ _("Composizione") }}</h5>
+            <button type="button" class="btn btn-sm btn-outline-primary" id="add-component-btn">
+              <i data-lucide="plus"></i> {{ _("Aggiungi componente") }}
+            </button>
+          </div>
+          <p class="text-muted small">
+            {{ _("Lascia vuoto per un'etichetta veloce (es. HCl 1N senza tracciare la composizione esatta).") }}
+          </p>
+
+          <div id="component-rows">
+            {% if mixture and mixture.components %}
+              {% for c in mixture.components %}
+                {% include "mixtures/_component_row.html" with context %}
+              {% endfor %}
+            {% endif %}
+          </div>
+
+          <!-- Hidden template row for JS to clone -->
+          <template id="component-row-template">
+            {% set c = none %}
+            {% include "mixtures/_component_row.html" %}
+          </template>
+        </div>
+      </div>
+
+      <!-- GHS card -->
+      <div class="card mb-3">
+        <div class="card-body">
+          <h5 class="mb-3">{{ _("Sicurezza GHS") }}</h5>
+          <div class="form-check mb-3">
+            {{ form.use_ghs_override(class="form-check-input") }}
+            <label class="form-check-label" for="use_ghs_override">
+              {{ form.use_ghs_override.label.text }}
+            </label>
+            <div class="form-text small">
+              {{ _("Se non spuntato, la sicurezza è derivata automaticamente dai componenti.") }}
+              {{ _("Spunta per definire pittogrammi e frasi specifici per questa miscela (es. soluzione molto diluita).") }}
+            </div>
+          </div>
+
+          <div id="ghs-override-fields"
+               style="{% if not form.use_ghs_override.data %}display:none;{% endif %}">
+            <label class="form-label">{{ form.ghs_pictograms.label.text }}</label>
+            <div class="ghs-grid mb-3">
+              {% for value, label in form.ghs_pictograms.choices %}
+              <div class="form-check ghs-check">
+                <input class="form-check-input"
+                       type="checkbox"
+                       name="ghs_pictograms"
+                       value="{{ value }}"
+                       id="ghs_{{ value }}"
+                       {% if value in (form.ghs_pictograms.data or []) %}checked{% endif %}>
+                <label class="form-check-label d-flex align-items-center gap-2" for="ghs_{{ value }}">
+                  <img src="{{ url_for('static', filename='img/ghs/' + value + '.svg') }}"
+                       data-ghs-code="{{ value }}"
+                       alt="{{ value }}" class="ghs-icon-sm">
+                  <span class="small">{{ label }}</span>
+                </label>
+              </div>
+              {% endfor %}
+            </div>
+
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="h_phrases_text" class="form-label">{{ form.h_phrases_text.label.text }}</label>
+                {{ form.h_phrases_text(class="form-control") }}
+              </div>
+              <div class="col-md-6">
+                <label for="p_phrases_text" class="form-label">{{ form.p_phrases_text.label.text }}</label>
+                {{ form.p_phrases_text(class="form-control") }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notes card -->
+      <div class="card mb-3">
+        <div class="card-body">
+          <label for="notes" class="form-label">{{ form.notes.label.text }}</label>
+          {{ form.notes(class="form-control", rows=3) }}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="card mb-3 sticky-top" style="top: 1rem;">
+        <div class="card-body">
+          {{ form.submit(class="btn btn-primary w-100 mb-2") }}
+          <a href="{% if mixture %}{{ url_for('mixtures.detail', mixture_id=mixture.id) }}{% else %}{{ url_for('mixtures.list_view') }}{% endif %}"
+             class="btn btn-link w-100">
+            {{ _("Annulla") }}
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
+
+<script>
+// Component row management — adds/removes rows dynamically.
+// Each row has parallel-array name="component_kind[]" and
+// name="component_ref_id[]" (substance id OR mixture id);
+// the route's _parse_component_rows zips them back together.
+(function() {
+  const container = document.getElementById("component-rows");
+  const tplEl = document.getElementById("component-row-template");
+  const addBtn = document.getElementById("add-component-btn");
+
+  // Pass the current mixture id (if editing) so the mixture
+  // autocomplete can exclude it from results — prevents the
+  // user from picking a mixture as one of its own components.
+  const currentMixtureId = {{ (mixture.id|tojson) if mixture else 'null' }};
+
+  function freshRow() {
+    const html = tplEl.innerHTML;
+    const wrap = document.createElement("div");
+    wrap.innerHTML = html.trim();
+    return wrap.firstElementChild;
+  }
+
+  addBtn.addEventListener("click", () => {
+    const row = freshRow();
+    container.appendChild(row);
+    if (window.lucide) lucide.createIcons();
+    bindRow(row);
+  });
+
+  function bindRow(row) {
+    const removeBtn = row.querySelector(".remove-component");
+    if (removeBtn) {
+      removeBtn.addEventListener("click", () => row.remove());
+    }
+    const kindSelect = row.querySelector(".component-kind-select");
+    const acInput = row.querySelector(".component-autocomplete");
+    const refIdField = row.querySelector(".component-ref-id");
+    const refLabel = row.querySelector(".component-ref-label");
+    if (acInput) {
+      bindComponentAutocomplete(acInput, refIdField, kindSelect, refLabel);
+    }
+    if (kindSelect && refLabel && refIdField && acInput) {
+      kindSelect.addEventListener("change", () => {
+        // Reset picker state when switching between Substance and
+        // Mixture: the id and display text are no longer valid
+        // since they pointed at a different entity type.
+        acInput.value = "";
+        refIdField.value = "";
+        refLabel.textContent =
+          kindSelect.value === "mixture" ? "{{ _('Miscela') }}" : "{{ _('Sostanza') }}";
+      });
+    }
+  }
+
+  // Initial bind for any pre-rendered rows
+  container.querySelectorAll(":scope > .component-row").forEach(bindRow);
+
+  // Also bind primary-solvent autocomplete (always substance)
+  document.querySelectorAll(".substance-autocomplete:not([data-bound])").forEach(bindAutocomplete);
+
+  // Kind-aware autocomplete: queries either substance_picker or
+  // mixture_picker depending on the row's kind select.
+  function bindComponentAutocomplete(input, hiddenField, kindSelect, refLabel) {
+    if (input.dataset.bound === "1") return;
+    input.dataset.bound = "1";
+    let dropdown = null;
+    let timer = null;
+
+    input.addEventListener("input", () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => fetchAndShow(input.value), 250);
+    });
+    input.addEventListener("blur", () => {
+      setTimeout(() => { if (dropdown) dropdown.remove(); dropdown = null; }, 200);
+    });
+
+    async function fetchAndShow(q) {
+      const kind = kindSelect ? kindSelect.value : "substance";
+      let url;
+      if (kind === "mixture") {
+        url = "{{ url_for('mixtures.mixture_picker') }}"
+              + "?q=" + encodeURIComponent(q);
+        if (currentMixtureId !== null) {
+          url += "&exclude_id=" + currentMixtureId;
+        }
+      } else {
+        url = "{{ url_for('mixtures.substance_picker') }}"
+              + "?q=" + encodeURIComponent(q);
+      }
+      try {
+        const resp = await fetch(url);
+        if (!resp.ok) return;
+        const data = await resp.json();
+        showDropdown(data.results || [], kind);
+      } catch (e) { /* network error */ }
+    }
+    function showDropdown(results, kind) {
+      if (dropdown) dropdown.remove();
+      if (!results.length) return;
+      dropdown = document.createElement("div");
+      dropdown.className = "autocomplete-dropdown list-group position-absolute shadow-sm bg-body";
+      dropdown.style.zIndex = "1050";
+      dropdown.style.width = input.offsetWidth + "px";
+      results.forEach(r => {
+        const item = document.createElement("button");
+        item.type = "button";
+        item.className = "list-group-item list-group-item-action small";
+        if (kind === "mixture") {
+          item.innerHTML = `<strong>${r.name}</strong>` +
+            (r.kind ? ` <span class="text-muted">(${r.kind})</span>` : "");
+        } else {
+          item.innerHTML = `<strong>${r.name}</strong>` +
+            (r.formula ? ` <span class="text-muted">${r.formula}</span>` : "") +
+            (r.cas ? ` <span class="text-muted">· CAS ${r.cas}</span>` : "");
+        }
+        item.addEventListener("mousedown", (e) => {
+          e.preventDefault();
+          input.value = r.name;
+          hiddenField.value = r.id;
+          dropdown.remove(); dropdown = null;
+        });
+        dropdown.appendChild(item);
+      });
+      input.parentElement.style.position = "relative";
+      input.parentElement.appendChild(dropdown);
+    }
+  }
+})();
+
+// Substance-only autocomplete (used for primary solvent picker).
+// Kept for backward compat with any code that imports it.
+function bindAutocomplete(input) {
+  if (input.dataset.bound === "1") return;
+  input.dataset.bound = "1";
+  const targetIdField = document.getElementById(input.dataset.targetId)
+                        || input.parentElement.querySelector("input[type=hidden]");
+  let dropdown = null;
+  let timer = null;
+
+  input.addEventListener("input", () => {
+    clearTimeout(timer);
+    timer = setTimeout(() => fetchAndShow(input.value), 250);
+  });
+  input.addEventListener("blur", () => {
+    setTimeout(() => { if (dropdown) dropdown.remove(); dropdown = null; }, 200);
+  });
+
+  async function fetchAndShow(q) {
+    const url = "{{ url_for('mixtures.substance_picker') }}" + "?q=" + encodeURIComponent(q);
+    try {
+      const resp = await fetch(url);
+      if (!resp.ok) return;
+      const data = await resp.json();
+      showDropdown(data.results || []);
+    } catch (e) { /* network error */ }
+  }
+  function showDropdown(results) {
+    if (dropdown) dropdown.remove();
+    if (!results.length) return;
+    dropdown = document.createElement("div");
+    dropdown.className = "autocomplete-dropdown list-group position-absolute shadow-sm bg-body";
+    dropdown.style.zIndex = "1050";
+    dropdown.style.width = input.offsetWidth + "px";
+    results.forEach(r => {
+      const item = document.createElement("button");
+      item.type = "button";
+      item.className = "list-group-item list-group-item-action small";
+      item.innerHTML = `<strong>${r.name}</strong> <span class="text-muted">${r.formula}${r.cas ? " · CAS " + r.cas : ""}</span>`;
+      item.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+        input.value = r.name;
+        if (targetIdField) targetIdField.value = r.id;
+        dropdown.remove(); dropdown = null;
+      });
+      dropdown.appendChild(item);
+    });
+    input.parentElement.style.position = "relative";
+    input.parentElement.appendChild(dropdown);
+  }
+}
+
+// GHS override toggle
+document.getElementById("use_ghs_override").addEventListener("change", (e) => {
+  document.getElementById("ghs-override-fields").style.display =
+    e.target.checked ? "" : "none";
+});
+</script>
+{% endblock %}

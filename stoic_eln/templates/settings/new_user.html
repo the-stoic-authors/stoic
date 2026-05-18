@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Nuovo utente") }} — {{ _("Impostazioni") }}{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb small mb-3">
+    <li class="breadcrumb-item">
+      <a href="{{ url_for('settings.index') }}">{{ _("Impostazioni") }}</a>
+    </li>
+    <li class="breadcrumb-item">
+      <a href="{{ url_for('settings.users') }}">{{ _("Utenti") }}</a>
+    </li>
+    <li class="breadcrumb-item active">{{ _("Nuovo utente") }}</li>
+  </ol>
+</nav>
+
+<h2 class="mb-3">{{ _("Crea nuovo utente") }}</h2>
+
+<div class="alert alert-light border small">
+  {{ _("Stoic non ha self-signup: gli utenti vengono creati qui da un amministratore. "
+       "Comunica username e password all'utente, che potrà cambiarla dopo il primo accesso "
+       "in Profilo → Cambia password.") }}
+</div>
+
+<form method="post" class="card">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="card-body">
+    <div class="row g-3">
+
+      <div class="col-md-6">
+        <label class="form-label">{{ _("Username") }} <span class="text-danger">*</span></label>
+        <input type="text" name="username" class="form-control" required
+               minlength="2" maxlength="64"
+               value="{{ form_data.username or '' }}"
+               placeholder="es. mrossi">
+        <div class="form-text">{{ _("Identificativo per il login. Lettere/cifre, niente spazi.") }}</div>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">{{ _("Nome completo") }} <span class="text-danger">*</span></label>
+        <input type="text" name="full_name" class="form-control" required
+               maxlength="120"
+               value="{{ form_data.full_name or '' }}"
+               placeholder="es. Mario Rossi">
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label">{{ _("Codice operatore") }}</label>
+        <input type="text" name="operator_code" class="form-control"
+               maxlength="10"
+               value="{{ form_data.operator_code or '' }}"
+               placeholder="MR">
+        <div class="form-text">{{ _("Sigla 1-10 caratteri usata nel codice dei run (es. MR-SUZ.1-2026-001).") }}</div>
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label">{{ _("Email") }}</label>
+        <input type="email" name="email" class="form-control"
+               maxlength="120"
+               value="{{ form_data.email or '' }}"
+               placeholder="mrossi@example.com">
+        <div class="form-text">{{ _("Opzionale.") }}</div>
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label">{{ _("Lingua") }}</label>
+        <select name="locale" class="form-select">
+          <option value="it" {% if (form_data.locale or 'it') == 'it' %}selected{% endif %}>Italiano</option>
+          <option value="en" {% if form_data.locale == 'en' %}selected{% endif %}>English</option>
+        </select>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">{{ _("Ruolo") }} <span class="text-danger">*</span></label>
+        <select name="role" class="form-select" required>
+          <option value="user"       {% if (form_data.role or 'user') == 'user' %}selected{% endif %}>{{ _("Utente") }}</option>
+          <option value="supervisor" {% if form_data.role == 'supervisor' %}selected{% endif %}>{{ _("Supervisore") }}</option>
+          <option value="admin"      {% if form_data.role == 'admin' %}selected{% endif %}>{{ _("Amministratore") }}</option>
+        </select>
+        <div class="form-text">
+          {{ _("Utente: esegue run, non modifica template. Supervisore: crea/modifica reazioni e sostanze. Amministratore: tutto.") }}
+        </div>
+      </div>
+
+      {% if groups %}
+      <div class="col-md-6">
+        <label class="form-label">{{ _("Gruppo predefinito") }}</label>
+        <select name="default_group_id" class="form-select">
+          <option value="">— {{ _("nessuno (usa il default del lab)") }} —</option>
+          {% for g in groups %}
+          <option value="{{ g.id }}" {% if form_data.default_group_id|string == g.id|string %}selected{% endif %}>
+            {{ g.name }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      {% endif %}
+
+      <div class="col-md-6">
+        <label class="form-label">{{ _("Password temporanea") }} <span class="text-danger">*</span></label>
+        <input type="password" name="password" class="form-control" required
+               minlength="6">
+        <div class="form-text">{{ _("Minimo 6 caratteri. L'utente la cambierà al primo accesso.") }}</div>
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">{{ _("Conferma password") }} <span class="text-danger">*</span></label>
+        <input type="password" name="password_confirm" class="form-control" required
+               minlength="6">
+      </div>
+
+    </div>
+  </div>
+
+  <div class="card-footer d-flex gap-2 justify-content-end">
+    <a href="{{ url_for('settings.users') }}" class="btn btn-outline-secondary">
+      {{ _("Annulla") }}
+    </a>
+    <button type="submit" class="btn btn-primary">
+      <i data-lucide="user-plus" style="width:14px;height:14px"></i>
+      {{ _("Crea utente") }}
+    </button>
+  </div>
+</form>
+
+<script>if (window.lucide) lucide.createIcons();</script>
+{% endblock %}

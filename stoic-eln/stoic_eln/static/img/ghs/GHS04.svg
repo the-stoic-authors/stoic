@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="ghs-pictogram" aria-label="GHS04">
+  <rect x="14" y="14" width="72" height="72" transform="rotate(45 50 50)"
+        fill="white" stroke="#e21d26" stroke-width="6"/>
+  <rect x="42" y="35" width="16" height="38" rx="3" fill="black"/><rect x="44" y="30" width="12" height="6" fill="black"/><rect x="46" y="25" width="8" height="6" fill="black"/>
+</svg>

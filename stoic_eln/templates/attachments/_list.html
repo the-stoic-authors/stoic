@@ -1,0 +1,108 @@
+{# Attachments list partial — rendered both in the entity detail page
+   (initial render) and as response to HTMX upload/delete operations.
+
+   Inputs:
+     attachments — list[Attachment] (oldest first)
+     entity_type — 'run' | 'reaction' | 'substance' | 'inventory_item'
+     entity_id — int
+#}
+<div id="attachments-list-{{ entity_type }}-{{ entity_id }}"
+     class="attachments-list">
+
+  {% if attachments %}
+    <ul class="list-unstyled mb-3">
+      {% for a in attachments %}
+        <li class="d-flex align-items-start gap-2 py-2 border-bottom">
+          <div class="flex-shrink-0 pt-1">
+            {% if a.is_image %}
+              <i data-lucide="image" style="width:18px;height:18px"></i>
+            {% elif a.is_pdf %}
+              <i data-lucide="file-text" style="width:18px;height:18px"></i>
+            {% elif a.extension in ('zip', 'tar', 'gz', 'tgz', '7z') %}
+              <i data-lucide="archive" style="width:18px;height:18px"></i>
+            {% elif a.extension in ('csv', 'tsv', 'xls', 'xlsx', 'ods') %}
+              <i data-lucide="table" style="width:18px;height:18px"></i>
+            {% else %}
+              <i data-lucide="file" style="width:18px;height:18px"></i>
+            {% endif %}
+          </div>
+          <div class="flex-grow-1 min-w-0">
+            <div class="d-flex flex-wrap align-items-baseline gap-2">
+              {% if a.is_image or a.is_pdf %}
+                <a href="{{ url_for('attachments.preview', attachment_id=a.id) }}"
+                   target="_blank" rel="noopener"
+                   class="text-decoration-none text-break">
+                  {{ a.filename }}
+                </a>
+              {% else %}
+                <span class="text-break">{{ a.filename }}</span>
+              {% endif %}
+              <small class="text-muted">{{ a.size_human }}</small>
+            </div>
+            {% if a.caption %}
+              <div class="small text-muted">{{ a.caption }}</div>
+            {% endif %}
+            <div class="small text-muted">
+              {% if a.uploaded_by %}
+                {{ _("caricato da") }}
+                <strong>{{ a.uploaded_by.full_name }}</strong>
+              {% else %}
+                <em>{{ _("(utente eliminato)") }}</em>
+              {% endif %}
+              · {{ a.created_at.strftime('%Y-%m-%d %H:%M') }}
+            </div>
+          </div>
+          <div class="flex-shrink-0 d-flex gap-1">
+            <a class="btn btn-sm btn-link text-muted p-0 px-1"
+               href="{{ url_for('attachments.download', attachment_id=a.id) }}"
+               title="{{ _('Scarica') }}">
+              <i data-lucide="download" style="width:14px;height:14px"></i>
+            </a>
+            {% if a.uploaded_by_id == current_user.id or current_user.is_admin %}
+            <button class="btn btn-sm btn-link text-danger p-0 px-1"
+                    hx-post="{{ url_for('attachments.delete', attachment_id=a.id) }}"
+                    hx-target="#attachments-list-{{ entity_type }}-{{ entity_id }}"
+                    hx-swap="outerHTML"
+                    hx-confirm="{{ _('Eliminare definitivamente \"%(f)s\"?', f=a.filename) }}"
+                    hx-vals='{"csrf_token": "{{ csrf_token() }}"}'
+                    title="{{ _('Elimina') }}">
+              <i data-lucide="trash-2" style="width:14px;height:14px"></i>
+            </button>
+            {% endif %}
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="text-muted small text-center py-3 mb-0">
+      {{ _("Nessun allegato. Carica il primo qui sotto.") }}
+    </p>
+  {% endif %}
+
+  {# ── Upload form ── #}
+  <form class="mt-2"
+        hx-post="{{ url_for('attachments.upload',
+                              entity_type=entity_type, entity_id=entity_id) }}"
+        hx-target="#attachments-list-{{ entity_type }}-{{ entity_id }}"
+        hx-swap="outerHTML"
+        hx-encoding="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="d-flex flex-column gap-2">
+      <input type="file" name="file" class="form-control form-control-sm"
+             required>
+      <input type="text" name="caption" class="form-control form-control-sm"
+             maxlength="500"
+             placeholder="{{ _('Didascalia opzionale (es. NMR purificato)') }}">
+      <div class="d-flex justify-content-between align-items-center gap-2">
+        <small class="text-muted">
+          {{ _("Massimo 100 MB. Tipi accettati: PDF, immagini, dati di laboratorio (csv, xlsx, jdx, mol, raw, mzML…), archivi (.zip).") }}
+        </small>
+        <button type="submit" class="btn btn-primary btn-sm flex-shrink-0">
+          <i data-lucide="upload" style="width:14px;height:14px"></i>
+          {{ _("Carica") }}
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+<script>if (window.lucide) lucide.createIcons();</script>

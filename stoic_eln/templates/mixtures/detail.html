@@ -1,0 +1,326 @@
+{% extends "base.html" %}
+{% block title %}{{ mixture.name }}{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-start mb-4">
+  <div>
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb small mb-1">
+        <li class="breadcrumb-item">
+          <a href="{{ url_for('mixtures.list_view') }}" class="text-decoration-none">
+            {{ _("Miscele") }}
+          </a>
+        </li>
+        <li class="breadcrumb-item active">{{ mixture.name }}</li>
+      </ol>
+    </nav>
+    <h1>{{ mixture.name }}</h1>
+    {% if mixture.primary_concentration is not none and mixture.primary_concentration_unit %}
+      <p class="text-muted mb-0">
+        <code class="fs-6">{{ "%g"|format(mixture.primary_concentration) }} {{ mixture.primary_concentration_unit }}</code>
+        {% if mixture.primary_solvent %}
+          {% if mixture.primary_solvent.name|lower in ('water', 'h2o', 'acqua') %}
+            <span class="text-muted">{{ _("(aq)") }}</span>
+          {% else %}
+            <span class="text-muted">({{ _("in") }} {{ mixture.primary_solvent.name }})</span>
+          {% endif %}
+        {% endif %}
+      </p>
+    {% endif %}
+  </div>
+  <div class="d-flex gap-2">
+    {% if mixture.is_active %}
+    <a href="{{ url_for('mixtures.prepare_form', mixture_id=mixture.id) }}" class="btn btn-success">
+      <i data-lucide="beaker"></i> {{ _("Prepara nuovo lotto") }}
+    </a>
+    {% endif %}
+    <a href="{{ url_for('mixtures.edit', mixture_id=mixture.id) }}" class="btn btn-primary">
+      <i data-lucide="edit"></i> {{ _("Modifica") }}
+    </a>
+  </div>
+</div>
+
+{% if not mixture.is_active %}
+<div class="alert alert-warning">
+  <i data-lucide="archive"></i>
+  {{ _("Questa miscela è disattivata.") }}
+</div>
+{% endif %}
+
+<div class="row g-3">
+  <!-- ─── Identification card ──────────────────────────────────── -->
+  <div class="col-12 col-lg-6">
+    <div class="card h-100">
+      <div class="card-header"><strong>{{ _("Identificazione") }}</strong></div>
+      <div class="card-body">
+        <dl class="row mb-0 small">
+          <dt class="col-sm-4">{{ _("Tipo") }}</dt>
+          <dd class="col-sm-8">
+            {% set kind_labels = {
+              "solution": _("Soluzione"),
+              "eluent": _("Eluente"),
+              "buffer": _("Tampone"),
+              "reagent_mix": _("Miscela reagenti"),
+              "other": _("Altro"),
+            } %}
+            <span class="badge text-bg-light">{{ kind_labels.get(mixture.kind, mixture.kind) }}</span>
+          </dd>
+
+          <dt class="col-sm-4">{{ _("Concentrazione") }}</dt>
+          <dd class="col-sm-8">
+            {% if mixture.primary_concentration is not none and mixture.primary_concentration_unit %}
+              <code>{{ "%g"|format(mixture.primary_concentration) }} {{ mixture.primary_concentration_unit }}</code>
+            {% else %}
+              <span class="text-muted">—</span>
+            {% endif %}
+          </dd>
+
+          <dt class="col-sm-4">{{ _("Solvente principale") }}</dt>
+          <dd class="col-sm-8">
+            {% if mixture.primary_solvent %}
+              <a href="{{ url_for('substances.detail', substance_id=mixture.primary_solvent.id) }}">{{ mixture.primary_solvent.name }}</a>
+            {% else %}
+              <span class="text-muted">—</span>
+            {% endif %}
+          </dd>
+
+          {% if mixture.description %}
+          <dt class="col-sm-4">{{ _("Descrizione") }}</dt>
+          <dd class="col-sm-8">{{ mixture.description }}</dd>
+          {% endif %}
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Components card ────────────────────────────────────── -->
+  <div class="col-12 col-lg-6">
+    <div class="card h-100">
+      <div class="card-header"><strong>{{ _("Composizione") }}</strong></div>
+      <div class="card-body">
+        {% if mixture.components %}
+          <table class="table table-sm mb-0 align-middle">
+            <thead>
+              <tr class="small text-muted">
+                <th>{{ _("Componente") }}</th>
+                <th>{{ _("Ruolo") }}</th>
+                <th class="text-end">{{ _("Concentrazione") }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for c in mixture.components %}
+              <tr>
+                <td>
+                  {% if c.child_mixture %}
+                    {# Mixture-as-component: link to its detail page #}
+                    <a href="{{ url_for('mixtures.detail', mixture_id=c.child_mixture.id) }}"
+                       class="text-decoration-none">
+                      {{ c.child_mixture.display_label }}
+                    </a>
+                    <span class="badge text-bg-secondary small ms-1">{{ _("miscela") }}</span>
+                  {% elif c.substance %}
+                    <a href="{{ url_for('substances.detail', substance_id=c.substance.id) }}"
+                       class="text-decoration-none">
+                      {{ c.substance.name }}
+                    </a>
+                    {% if c.substance.molecular_formula %}
+                      <code class="small text-muted ms-1">{{ c.substance.molecular_formula }}</code>
+                    {% endif %}
+                  {% else %}
+                    <span class="text-muted">—</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% set role_labels = {
+                    "solute": _("solute"),
+                    "solvent": _("solvente"),
+                    "cosolvent": _("cosolvente"),
+                    "additive": _("additivo"),
+                  } %}
+                  <span class="badge text-bg-light small">{{ role_labels.get(c.role, c.role) }}</span>
+                </td>
+                <td class="text-end">
+                  {% if c.concentration is not none %}
+                    <code>{{ "%g"|format(c.concentration) }} {{ c.concentration_unit or "" }}</code>
+                  {% else %}
+                    <span class="text-muted">—</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <p class="text-muted small mb-0">
+            <i data-lucide="info"></i>
+            {{ _("Nessun componente strutturato. Solo etichetta veloce.") }}
+          </p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── GHS card ───────────────────────────────────────────── -->
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <strong>{{ _("Sicurezza GHS") }}</strong>
+        {% set has_override = mixture.ghs_pictograms_override is not none
+                              or mixture.h_phrases_override is not none
+                              or mixture.p_phrases_override is not none %}
+        {% if has_override %}
+          <span class="badge text-bg-info">{{ _("Override manuale") }}</span>
+        {% else %}
+          <span class="badge text-bg-secondary">{{ _("Derivata dai componenti") }}</span>
+        {% endif %}
+      </div>
+      <div class="card-body">
+        <div class="mb-3">
+          {% if mixture.effective_pictograms %}
+            <div class="ghs-row">
+              {% for code in mixture.effective_pictograms %}
+                <img src="{{ url_for('static', filename='img/ghs/' + code + '.svg') }}"
+                     data-ghs-code="{{ code }}"
+                     alt="{{ code }}" title="{{ code }}" class="ghs-icon">
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="text-muted small mb-0">{{ _("Nessun pittogramma assegnato.") }}</p>
+          {% endif %}
+        </div>
+
+        {% if h_phrases or p_phrases %}
+        <div class="row">
+          {% if h_phrases %}
+          <div class="col-md-6">
+            <h6 class="small text-muted">{{ _("FRASI H") }}</h6>
+            <ul class="list-unstyled small">
+              {% for ph in h_phrases %}
+                <li><code>{{ ph.code }}</code> {{ ph.text }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+          {% endif %}
+          {% if p_phrases %}
+          <div class="col-md-6">
+            <h6 class="small text-muted">{{ _("FRASI P") }}</h6>
+            <ul class="list-unstyled small">
+              {% for ph in p_phrases %}
+                <li><code>{{ ph.code }}</code> {{ ph.text }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Inventory items (lots) ─────────────────────────────── -->
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <strong>{{ _("Lotti") }}</strong>
+        <div class="d-flex gap-2">
+          {% if mixture.is_active %}
+          <a href="{{ url_for('mixtures.prepare_form', mixture_id=mixture.id) }}"
+             class="btn btn-sm btn-outline-success">
+            <i data-lucide="beaker"></i> {{ _("Prepara nuovo lotto") }}
+          </a>
+          {% endif %}
+          <a href="{{ url_for('inventory.create', mixture_id=mixture.id) }}"
+             class="btn btn-sm btn-outline-secondary">
+            <i data-lucide="plus"></i> {{ _("Lotto manuale") }}
+          </a>
+        </div>
+      </div>
+      {% set active_lots = mixture.inventory_items|selectattr('is_active')|list %}
+      {% if active_lots %}
+      <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+          <thead>
+            <tr class="small text-muted">
+              <th>{{ _("Lotto") }}</th>
+              <th>{{ _("Quantità") }}</th>
+              <th>{{ _("Posizione") }}</th>
+              <th>{{ _("Scadenza") }}</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for it in active_lots %}
+            <tr>
+              <td><code>{{ it.batch_code or "—" }}</code></td>
+              <td>
+                {% if it.quantity_g %}{{ "%.1f"|format(it.quantity_g) }} g
+                {% elif it.quantity_mL %}{{ "%.1f"|format(it.quantity_mL) }} mL
+                {% else %}—{% endif %}
+              </td>
+              <td class="small">{{ it.location or "—" }}</td>
+              <td class="small">{{ it.expiry_date.isoformat() if it.expiry_date else "—" }}</td>
+              <td class="text-end">
+                <a href="{{ url_for('inventory.edit', item_id=it.id) }}" class="btn btn-sm btn-link">
+                  <i data-lucide="arrow-right"></i>
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="card-body text-muted small">
+        {{ _("Nessun lotto attivo.") }}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- ─── Notes & Attachments ────────────────────────────────── -->
+  {# Allegati: sempre mostrati (anche se vuoti) così l'utente può
+     caricarne uno. Le note restano condizionate alla presenza. #}
+  {% if notes_for_entity %}
+  <div class="col-12 col-lg-6">
+    <div class="card h-100">
+      <div class="card-header"><strong>{{ _("Note") }}</strong></div>
+      <div class="card-body">
+        {% for n in notes_for_entity %}
+          <div class="mb-2 small">{{ n.body }}</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+  <div class="col-12 {% if notes_for_entity %}col-lg-6{% endif %}">
+    <div class="card h-100">
+      <div class="card-header">
+        <strong>{{ _("Allegati") }}</strong>
+        {% if attachments_for_entity %}
+        <span class="badge text-bg-secondary ms-2">{{ attachments_for_entity|length }}</span>
+        {% endif %}
+        <small class="text-muted ms-2">{{ _("foto, CoA, schede") }}</small>
+      </div>
+      <div class="card-body">
+        {% with attachments=attachments_for_entity, entity_type='mixture', entity_id=mixture.id %}
+          {% include "attachments/_list.html" %}
+        {% endwith %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if mixture.is_active %}
+<div class="mt-4">
+  <form method="post" action="{{ url_for('mixtures.delete', mixture_id=mixture.id) }}"
+        onsubmit="return confirm('{{ _('Disattivare questa miscela?') }}');">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="btn btn-sm btn-outline-danger">
+      <i data-lucide="archive"></i> {{ _("Disattiva miscela") }}
+    </button>
+  </form>
+</div>
+{% endif %}
+
+<script>if (window.lucide) lucide.createIcons();</script>
+{% endblock %}

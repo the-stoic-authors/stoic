@@ -1,0 +1,101 @@
+{% if substances %}
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead>
+        <tr>
+          <th>{{ _("Nome") }}</th>
+          <th class="substance-list-struct">{{ _("Struttura") }}</th>
+          <th>{{ _("CAS") }}</th>
+          <th>{{ _("Formula") }}</th>
+          <th class="text-end">{{ _("MW") }}</th>
+          <th>{{ _("Stato") }}</th>
+          <th>{{ _("GHS") }}</th>
+          <th class="text-end">{{ _("Lotti") }}</th>
+          <th class="text-end">{{ _("Quantità") }}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for sub in substances %}
+        <tr {% if not sub.is_active %}class="text-muted"{% endif %}>
+          <td>
+            <a href="{{ url_for('substances.detail', substance_id=sub.id) }}" class="fw-semibold text-decoration-none">
+              {{ sub.name }}
+            </a>
+            {% if not sub.is_active %}
+              <span class="badge text-bg-secondary ms-1">{{ _("disattivata") }}</span>
+            {% endif %}
+            {% if sub.is_solvent %}
+              <span class="badge text-bg-info ms-1">{{ _("solvente") }}</span>
+            {% endif %}
+          </td>
+          <td class="substance-list-struct">
+            {% if sub.smiles %}
+              <div class="substance-struct-mini-wrapper">
+                <svg id="sublist-struct-{{ sub.id }}"
+                     data-smiles="{{ sub.smiles }}"
+                     class="substance-struct-mini"
+                     xmlns="http://www.w3.org/2000/svg"></svg>
+              </div>
+            {% else %}
+              <span class="text-muted small">—</span>
+            {% endif %}
+          </td>
+          <td><code>{{ sub.cas_number or "—" }}</code></td>
+          <td><code>{{ sub.molecular_formula or "—" }}</code></td>
+          <td class="text-end">{{ "%.2f"|format(sub.molecular_weight) if sub.molecular_weight else "—" }}</td>
+          <td>
+            {% if sub.state == "solid" %}<i data-lucide="square"></i> {{ _("solido") }}
+            {% elif sub.state == "liquid" %}<i data-lucide="droplet"></i> {{ _("liquido") }}
+            {% elif sub.state == "gas" %}<i data-lucide="wind"></i> {{ _("gas") }}
+            {% else %}—
+            {% endif %}
+          </td>
+          <td>
+            <div class="ghs-row">
+            {% for code in sub.ghs_pictograms or [] %}
+              <img src="{{ url_for('static', filename='img/ghs/' + code + '.svg') }}"
+                   data-ghs-code="{{ code }}"
+                   alt="{{ code }}" title="{{ code }}" class="ghs-icon-sm">
+            {% endfor %}
+            </div>
+          </td>
+          <td class="text-end">{{ sub.active_inventory_count }}</td>
+          <td class="text-end small">
+            {% if sub.total_quantity_g %}{{ "%.1f"|format(sub.total_quantity_g) }} g{% endif %}
+            {% if sub.total_quantity_mL %}{{ "%.1f"|format(sub.total_quantity_mL) }} mL{% endif %}
+            {% if not sub.total_quantity_g and not sub.total_quantity_mL %}—{% endif %}
+          </td>
+          <td class="text-end">
+            <a href="{{ url_for('substances.detail', substance_id=sub.id) }}"
+               class="btn btn-sm btn-link">
+              <i data-lucide="arrow-right"></i>
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="card">
+  <div class="card-body text-center py-5">
+    <i data-lucide="flask-conical" class="text-muted mb-3" style="width: 48px; height: 48px;"></i>
+    <p class="text-muted mb-3">
+      {% if q %}
+        {{ _("Nessuna sostanza corrisponde a '%(q)s'.", q=q) }}
+      {% else %}
+        {{ _("Nessuna sostanza nel catalogo.") }}
+      {% endif %}
+    </p>
+    {% if not q %}
+    <a href="{{ url_for('substances.import_pubchem') }}" class="btn btn-primary">
+      <i data-lucide="download-cloud"></i> {{ _("Importa la prima da PubChem") }}
+    </a>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+<script>if (window.lucide) lucide.createIcons();</script>

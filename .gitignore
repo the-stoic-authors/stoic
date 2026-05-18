@@ -1,0 +1,61 @@
+# ─── Stoic ELN ─────────────────────────────────────────────────────────────────
+.env
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+backups/
+uploads/
+data/
+
+# Flask instance folder — contains the live database, encryption
+# keys (instance/backup.key), uploaded attachments, automatic
+# backups, and the passphrase-source marker. NEVER commit this
+# folder: doing so would publish encryption keys and lab data to
+# the public repository.
+instance/
+
+# ReportLab / WeasyPrint cache (generated PDF intermediates)
+*.pdf.cache
+
+# Patch staging directories (used during local patch development)
+patch*-stage/
+/tmp-stage/
+
+# ─── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+*.egg
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.tox/
+
+# ─── Virtual environments ──────────────────────────────────────────────────────
+.venv/
+venv/
+ENV/
+env/
+
+# ─── IDEs ──────────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# ─── Babel ─────────────────────────────────────────────────────────────────────
+*.mo
+messages.pot
+
+# ─── OS ────────────────────────────────────────────────────────────────────────
+Thumbs.db

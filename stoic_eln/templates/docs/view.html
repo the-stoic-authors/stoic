@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} — {{ _("Documentazione") }}{% endblock %}
+
+{% block head_extra %}
+<style>
+  .docs-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 280px;
+    gap: 2rem;
+    align-items: start;
+  }
+  @media (max-width: 991px) {
+    .docs-layout { grid-template-columns: 1fr; }
+    .docs-toc-wrapper { order: -1; }
+  }
+
+  .docs-toc-wrapper {
+    position: sticky;
+    top: 1rem;
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+    border-left: 2px solid var(--bs-border-color);
+    padding-left: 1rem;
+  }
+  .docs-toc-wrapper > .toc > ul {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+    font-size: 0.875rem;
+  }
+  .docs-toc-wrapper > .toc ul ul {
+    list-style: none;
+    padding-left: 1rem;
+    border-left: 1px solid var(--bs-border-color);
+  }
+  .docs-toc-wrapper > .toc li { margin: 0.35rem 0; }
+  .docs-toc-wrapper > .toc a {
+    text-decoration: none;
+    color: var(--bs-secondary);
+  }
+  .docs-toc-wrapper > .toc a:hover { color: var(--bs-primary); }
+
+  .docs-body { max-width: 80ch; }
+  .docs-body h1 { margin-top: 0; }
+  .docs-body h2 {
+    margin-top: 2.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--bs-border-color);
+  }
+  .docs-body h3 { margin-top: 1.5rem; }
+  .docs-body table {
+    width: auto;
+    border-collapse: collapse;
+    margin: 1rem 0;
+  }
+  .docs-body table th,
+  .docs-body table td {
+    border: 1px solid var(--bs-border-color);
+    padding: 0.4rem 0.75rem;
+  }
+  .docs-body table th {
+    background: var(--bs-tertiary-bg);
+    text-align: left;
+    font-weight: 600;
+  }
+  .docs-body pre {
+    background: var(--bs-tertiary-bg);
+    padding: 0.75rem 1rem;
+    border-radius: 0.375rem;
+    overflow-x: auto;
+  }
+  .docs-body code {
+    background: var(--bs-tertiary-bg);
+    padding: 0.1rem 0.35rem;
+    border-radius: 0.2rem;
+    font-size: 0.85em;
+  }
+  .docs-body pre code {
+    background: transparent;
+    padding: 0;
+  }
+  .docs-body blockquote {
+    border-left: 4px solid var(--bs-border-color);
+    padding-left: 1rem;
+    color: var(--bs-secondary);
+    margin: 1rem 0;
+  }
+  .docs-toolbar {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--bs-border-color);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="docs-toolbar">
+  <a href="{{ url_for('docs.index') }}" class="btn btn-sm btn-outline-secondary">
+    <i data-lucide="arrow-left" style="width:14px;height:14px"></i>
+    {{ _("Manuali") }}
+  </a>
+
+  <div class="vr"></div>
+
+  {# Quick nav between available manuals #}
+  <a href="{{ url_for('docs.user_manual', lang=lang) }}"
+     class="btn btn-sm {% if slug == 'user' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+    {{ _("Manuale utente") }}
+  </a>
+  {% if is_admin %}
+  <a href="{{ url_for('docs.admin_manual', lang=lang) }}"
+     class="btn btn-sm {% if slug == 'admin' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+    {{ _("Manuale amministratore") }}
+  </a>
+  <a href="{{ url_for('docs.developer_manual', lang=lang) }}"
+     class="btn btn-sm {% if slug == 'developer' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+    {{ _("Manuale sviluppatore") }}
+  </a>
+  {% endif %}
+
+  <div class="ms-auto">
+    {# Language toggle: IT ↔ EN. Carries the same slug. #}
+    <a href="{{ url_for('docs.' + (slug + '_manual'), lang=other_lang) }}"
+       class="btn btn-sm btn-outline-secondary"
+       title="{{ _('Cambia lingua') }}">
+      <i data-lucide="languages" style="width:14px;height:14px"></i>
+      {% if other_lang == 'en' %}English{% else %}Italiano{% endif %}
+    </a>
+  </div>
+</div>
+
+<div class="docs-layout">
+  <article class="docs-body">
+    {{ body_html|safe }}
+  </article>
+
+  <aside class="docs-toc-wrapper">
+    <h6 class="text-uppercase text-muted small mb-2">
+      {{ _("In questa pagina") }}
+    </h6>
+    {{ toc_html|safe }}
+  </aside>
+</div>
+
+<script>if (window.lucide) lucide.createIcons();</script>
+{% endblock %}

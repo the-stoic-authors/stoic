@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Esegui run") }} — {{ reaction.display_code }}{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb small mb-3">
+    <li class="breadcrumb-item">
+      <a href="{{ url_for('reactions.list_view') }}">{{ _("Reazioni") }}</a>
+    </li>
+    <li class="breadcrumb-item">
+      <a href="{{ url_for('reactions.detail', reaction_id=reaction.id) }}">
+        {{ reaction.display_code }}
+      </a>
+    </li>
+    <li class="breadcrumb-item active">{{ _("Esegui run") }}</li>
+  </ol>
+</nav>
+
+<div class="card">
+  <div class="card-body text-center py-5">
+    <i data-lucide="play-circle" class="text-primary mb-3"
+       style="width: 64px; height: 64px;"></i>
+    <h4 class="mb-2">{{ _("Esecuzione di un Run") }}</h4>
+    <p class="text-muted mb-4">
+      {{ _("Template:") }}
+      <code>{{ reaction.display_code }}</code> —
+      <strong>{{ reaction.title }}</strong>
+    </p>
+
+    <div class="alert alert-info d-inline-block text-start" style="max-width: 600px">
+      <strong>{{ _("In arrivo nella Settimana 4") }}</strong>
+      <p class="mb-0 mt-2 small">
+        {{ _("Questa funzionalità è ancora in sviluppo. Permetterà di:") }}
+      </p>
+      <ul class="small mb-0 mt-2">
+        <li>{{ _("Scegliere la scala (mmol del limitante)") }}</li>
+        <li>{{ _("Selezionare i lotti specifici dall'inventario") }}</li>
+        <li>{{ _("Calcolare automaticamente le quantità reali") }}</li>
+        <li>{{ _("Registrare il run e dedurre l'inventario") }}</li>
+        <li>{{ _("Inserire la resa e generare il codice del run") }}</li>
+      </ul>
+    </div>
+
+    <div class="mt-4">
+      <a href="{{ url_for('reactions.detail', reaction_id=reaction.id) }}"
+         class="btn btn-outline-secondary">
+        <i data-lucide="arrow-left"></i> {{ _("Torna alla reazione") }}
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>if (window.lucide) lucide.createIcons();</script>
+{% endblock %}

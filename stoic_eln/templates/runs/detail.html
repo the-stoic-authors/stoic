@@ -1,0 +1,897 @@
+{% extends "base.html" %}
+{% block title %}{{ run.code }} — {{ _("Run") }} — Stoic{% endblock %}
+
+{% block content %}
+
+{% set is_setup = run.is_draft %}
+{% set is_running = run.is_in_progress %}
+{% set is_done = run.is_completed %}
+
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb small mb-2">
+    <li class="breadcrumb-item">
+      <a href="{{ url_for('reactions.list_view') }}">{{ _("Reazioni") }}</a>
+    </li>
+    <li class="breadcrumb-item">
+      <a href="{{ url_for('reactions.detail', reaction_id=run.reaction_id) }}">
+        {{ run.template_code_snapshot or "Template" }}
+      </a>
+    </li>
+    <li class="breadcrumb-item active">
+      <code class="text-body">{{ run.code }}</code>
+      <span class="badge text-bg-{{ run.status_color }} ms-1">{{ run.status_label_it }}</span>
+    </li>
+  </ol>
+</nav>
+
+<!-- ─── Status banner ──────────────────────────────────────────────── -->
+{% if is_setup %}
+<div class="alert alert-secondary d-flex align-items-center gap-2">
+  <i data-lucide="clipboard-list"></i>
+  <div>
+    <strong>{{ _("Run in preparazione.") }}</strong>
+    {{ _("Imposta scala, scegli i lotti, inserisci i pesi reali, poi premi 'Avvia esecuzione'.") }}
+  </div>
+</div>
+{% elif is_running %}
+<div class="alert alert-primary d-flex align-items-center gap-2">
+  <i data-lucide="flask-conical"></i>
+  <div>
+    <strong>{{ _("Run in esecuzione.") }}</strong>
+    {{ _("Inventario aggiornato. Spunta le voci della check list e completa al termine.") }}
+  </div>
+</div>
+{% else %}
+<div class="alert alert-success d-flex align-items-center gap-2">
+  <i data-lucide="check-circle-2"></i>
+  <div>
+    <strong>{{ _("Run completato il %(d)s.", d=run.completed_at.strftime('%Y-%m-%d %H:%M') if run.completed_at else '—') }}</strong>
+    {% if run.yield_g is not none %}
+      {{ _("Resa:") }}
+      <strong>{{ '%.3f'|format(run.yield_g) }} g</strong>
+      {% if run.yield_percent is not none %}
+        ({{ '%.1f'|format(run.yield_percent) }}%)
+      {% endif %}
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+<!-- ─── Header summary ─────────────────────────────────────────────── -->
+<div class="card mb-3">
+  <div class="card-body">
+    <div class="row g-3">
+      <div class="col-md-4">
+        <label class="form-label small text-muted mb-1">{{ _("Template") }}</label>
+        <div class="font-monospace fs-5">{{ run.template_code_snapshot or "—" }}</div>
+        <div class="small text-muted">{{ run.template_title_snapshot }}</div>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label small text-muted mb-1">{{ _("Operatore") }}</label>
+        <div>
+          {% if run.operator %}
+            {{ run.operator.full_name }}
+            <code class="ms-2">{{ run.operator.operator_code or '—' }}</code>
+          {% else %}—{% endif %}
+        </div>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label small text-muted mb-1">{{ _("Scala del limitante") }}</label>
+        {% if is_setup %}
+          {# Default to whatever the operator entered last; fallback to mmol. #}
+          {% set scale_value = run.scale_input_value if run.scale_input_value is not none else run.scale_mmol %}
+          {% set scale_unit = run.scale_input_unit or 'mmol' %}
+          <form method="post" action="{{ url_for('runs.update_scale', run_id=run.id) }}"
+                class="d-flex gap-1 align-items-center">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="number" step="0.001" min="0" name="scale_amount"
+                   class="form-control form-control-sm" style="max-width: 7rem"
+                   value="{{ '%g'|format(scale_value) if scale_value is not none else '' }}"
+                   placeholder="{{ _('es. 5') }}">
+            <select name="scale_unit" class="form-select form-select-sm" style="max-width: 6rem">
+              {% for u in ['mmol', 'mol', 'mg', 'g', 'mL', 'L'] %}
+              <option value="{{ u }}" {% if scale_unit == u %}selected{% endif %}>{{ u }}</option>
+              {% endfor %}
+            </select>
+            <button class="btn btn-sm btn-primary">{{ _("Aggiorna") }}</button>
+          </form>
+          {% if run.scale_mmol is not none and scale_unit != 'mmol' %}
+          <small class="text-muted">{{ _("Equivale a") }}
+            <span class="font-monospace">{{ '%.3f'|format(run.scale_mmol) }} mmol</span>
+            {{ _("del limitante") }}
+          </small>
+          {% endif %}
+        {% else %}
+          <div class="font-monospace">
+            {% if run.scale_input_value is not none and run.scale_input_unit %}
+              {{ '%g'|format(run.scale_input_value) }} {{ run.scale_input_unit }}
+              <small class="text-muted">({{ '%.3f'|format(run.scale_mmol) }} mmol)</small>
+            {% else %}
+              {{ '%.3f'|format(run.scale_mmol) if run.scale_mmol is not none else '—' }} mmol
+            {% endif %}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Cost summary (Settimana 6 patch 5) ─────────────────────── -->
+{% if cost_breakdown and cost_breakdown.has_data %}
+<div class="card mb-3">
+  <div class="card-header">
+    <strong>
+      <i data-lucide="banknote" style="width:16px;height:16px"></i>
+      {{ _("Costo materiali") }}
+    </strong>
+  </div>
+  <div class="card-body">
+    <div class="row g-3">
+      {# Direct: only freshly purchased materials (lots not from previous runs) #}
+      <div class="col-md-6">
+        <div class="border rounded p-3 h-100">
+          <div class="text-muted small mb-1">
+            {{ _("Costo diretto") }}
+            <i data-lucide="info" style="width:12px;height:12px"
+               title="{{ _('Materiali acquistati esternamente, consumati in questo run') }}"></i>
+          </div>
+          <div class="fs-4 font-monospace">
+            {{ cost_breakdown.direct_total_eur|currency }}
+          </div>
+          <div class="text-muted small mb-2">
+            {{ _("solo materie prime acquistate") }}
+          </div>
+          {% if metrics_direct and metrics_direct.basis_eur > 0 %}
+          <div class="small font-monospace">
+            {% if metrics_direct.per_g is not none %}
+              <span class="me-2">{{ metrics_direct.per_g|currency }}/g</span>
+            {% endif %}
+            {% if metrics_direct.per_mL is not none %}
+              <span class="me-2">{{ metrics_direct.per_mL|currency }}/mL</span>
+            {% endif %}
+            {% if metrics_direct.per_mol is not none %}
+              <span class="me-2">{{ metrics_direct.per_mol|currency(decimals=0) }}/mol</span>
+            {% endif %}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {# Cumulative: includes the value of intermediate lots consumed #}
+      <div class="col-md-6">
+        <div class="border rounded p-3 h-100 {% if cost_breakdown.intermediates_total_eur > 0 %}border-primary bg-primary-subtle{% endif %}">
+          <div class="text-muted small mb-1">
+            {{ _("Costo cumulativo") }}
+            <i data-lucide="info" style="width:12px;height:12px"
+               title="{{ _('Costo totale per arrivare al prodotto, inclusi gli intermedi sintetizzati internamente') }}"></i>
+          </div>
+          <div class="fs-4 font-monospace">
+            {{ cost_breakdown.total_eur|currency }}
+          </div>
+          <div class="text-muted small mb-2">
+            {% if cost_breakdown.intermediates_total_eur > 0 %}
+              {{ _("di cui %(c)s di intermedi", c=cost_breakdown.intermediates_total_eur|currency) }}
+            {% else %}
+              {{ _("nessun intermedio interno consumato") }}
+            {% endif %}
+          </div>
+          {% if metrics_cumulative and metrics_cumulative.basis_eur > 0 %}
+          <div class="small font-monospace fw-semibold">
+            {% if metrics_cumulative.per_g is not none %}
+              <span class="me-2">{{ metrics_cumulative.per_g|currency }}/g</span>
+            {% endif %}
+            {% if metrics_cumulative.per_mL is not none %}
+              <span class="me-2">{{ metrics_cumulative.per_mL|currency }}/mL</span>
+            {% endif %}
+            {% if metrics_cumulative.per_mol is not none %}
+              <span class="me-2">{{ metrics_cumulative.per_mol|currency(decimals=0) }}/mol</span>
+            {% endif %}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <details>
+    <summary class="px-3 py-2 small text-muted border-top" style="cursor: pointer;">
+      {{ _("Dettaglio %(n)d voci", n=cost_breakdown.lines|length) }}
+      {% if cost_breakdown.incomplete_count > 0 %}
+        ·
+        <span class="text-warning-emphasis">
+          {{ _("%(n)d senza prezzo", n=cost_breakdown.incomplete_count) }}
+        </span>
+      {% endif %}
+    </summary>
+
+    <div class="table-responsive">
+      <table class="table table-sm mb-0 small">
+        <thead>
+          <tr>
+            <th>{{ _("Sostanza") }}</th>
+            <th>{{ _("Ruolo") }}</th>
+            <th class="text-end">{{ _("Quantità") }}</th>
+            <th class="text-end">{{ _("Costo") }}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for l in cost_breakdown.lines %}
+          <tr>
+            <td>
+              {% if l.source == 'step' %}
+              <span class="text-muted small">[{{ l.step_title }}]</span>
+              {% endif %}
+              {{ l.substance_name }}
+              {% if l.is_from_internal_lot %}
+              <span class="badge text-bg-info ms-1"
+                    title="{{ _('Lotto sintetizzato in un run precedente') }}">
+                {{ _("intermedio") }}
+              </span>
+              {% endif %}
+            </td>
+            <td>
+              <span class="text-muted small">{{ l.role }}</span>
+            </td>
+            <td class="text-end font-monospace">{{ l.actual_quantity_display }}</td>
+            <td class="text-end font-monospace">
+              {% if l.cost_eur is not none %}
+                {{ l.cost_eur|currency(decimals=4) }}
+              {% else %}
+                <span class="text-muted">—</span>
+              {% endif %}
+            </td>
+            <td class="text-end">
+              {% if not l.has_lot %}
+                <span class="badge text-bg-secondary"
+                      title="{{ _('Lotto non assegnato a questo componente') }}">
+                  {{ _("no lotto") }}
+                </span>
+              {% elif not l.has_cost_data %}
+                <span class="badge text-bg-warning"
+                      title="{{ _('Lotto senza prezzo registrato') }}">
+                  {{ _("no prezzo") }}
+                </span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot class="border-top">
+          <tr>
+            <td colspan="3" class="text-end fw-semibold">
+              {{ _("Totale reazione principale:") }}
+            </td>
+            <td class="text-end font-monospace fw-semibold">
+              {{ cost_breakdown.main_total_eur|currency(decimals=4) }}
+            </td>
+            <td></td>
+          </tr>
+          {% if cost_breakdown.steps_total_eur > 0 %}
+          <tr>
+            <td colspan="3" class="text-end fw-semibold">
+              {{ _("Totale workup/passi:") }}
+            </td>
+            <td class="text-end font-monospace fw-semibold">
+              {{ cost_breakdown.steps_total_eur|currency(decimals=4) }}
+            </td>
+            <td></td>
+          </tr>
+          {% endif %}
+        </tfoot>
+      </table>
+    </div>
+  </details>
+</div>
+{% elif cost_breakdown %}
+<div class="card mb-3">
+  <div class="card-body py-2 small text-muted">
+    <i data-lucide="banknote" style="width:14px;height:14px"></i>
+    {{ _("Costo materiali non disponibile: nessun lotto assegnato ai componenti, oppure i lotti non hanno prezzo registrato.") }}
+  </div>
+</div>
+{% endif %}
+
+<!-- ─── Components: lots + targets + actuals ───────────────────────── -->
+<div class="card mb-3">
+  <div class="card-header"><strong>{{ _("Componenti") }}</strong></div>
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <thead>
+        <tr>
+          <th style="width: 1px;"></th>
+          <th>{{ _("Sostanza") }}</th>
+          <th>{{ _("Lotto") }}</th>
+          <th class="text-end">{{ _("Calcolato") }}</th>
+          <th class="text-end">{{ _("Reale") }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in run.components %}
+        {% set sub = c.substance %}
+        {% set mix = c.mixture %}
+        {% set badge = ("Limitante", "warning") if c.is_limiting else ({
+          "starting_material": ("SM", "primary"),
+          "reactant":          ("Reattivo", "primary"),
+          "reagent":           ("Reagente", "primary"),
+          "catalyst":          ("Catalizzatore", "warning"),
+          "ligand":            ("Legante", "warning"),
+          "base":              ("Base", "info"),
+          "acid":              ("Acido", "info"),
+          "oxidant":           ("Ossidante", "danger"),
+          "reductant":         ("Riducente", "danger"),
+          "solvent":           ("Solvente", "info"),
+          "additive":          ("Additivo", "secondary"),
+          "internal_standard": ("Std interno", "secondary"),
+          "product":           ("Prodotto", "success"),
+          "byproduct":         ("Sottoprodotto", "secondary"),
+        })[c.role] %}
+        <tr {% if c.is_product %}data-product-row="1"{% endif %}>
+          <td><span class="badge text-bg-{{ badge[1] }}">{{ _(badge[0]) }}</span></td>
+          <td>
+            {% if mix %}
+              <span class="fw-semibold">{{ mix.display_label }}</span>
+              <span class="badge text-bg-light ms-1" style="font-size:0.65rem">{{ _("miscela") }}</span>
+              {% set solute = c.effective_substance %}
+              {% if solute and solute.molecular_weight %}
+              <small class="text-muted ms-2">MW {{ '%.2f'|format(solute.molecular_weight) }}</small>
+              {% endif %}
+            {% else %}
+              <span class="fw-semibold">{{ sub.name if sub else '—' }}</span>
+              {% if sub and sub.molecular_weight %}
+              <small class="text-muted ms-2">MW {{ '%.2f'|format(sub.molecular_weight) }}</small>
+              {% endif %}
+              {% if sub %}
+                {% with substance=sub, panel_id="run-comp-card-" ~ c.id %}
+                  {% include "runs/_substance_card.html" %}
+                {% endwith %}
+              {% endif %}
+            {% endif %}
+          </td>
+
+          <!-- Lot -->
+          <td>
+            {% if c.is_product %}
+              <span class="text-muted small">—</span>
+            {% elif is_setup %}
+              {# For mixture-backed components, draw lots from the
+                 mixture's inventory_items. For substance-backed,
+                 from the substance's. Pre-13.5 behaviour is preserved
+                 because mix is None for substance components. #}
+              {% set lots = mix.inventory_items if mix else (sub.inventory_items if sub else []) %}
+              <form method="post"
+                    action="{{ url_for('runs.set_lot', run_id=run.id, cid=c.id) }}"
+                    hx-post="{{ url_for('runs.set_lot', run_id=run.id, cid=c.id) }}"
+                    hx-swap="none"
+                    class="d-flex gap-1 align-items-center">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <select name="lot_id" class="form-select form-select-sm"
+                        onchange="this.form.requestSubmit()">
+                  <option value="">{{ _("— scegli lotto —") }}</option>
+                  {% for lot in lots if lot.is_active %}
+                  <option value="{{ lot.id }}"
+                          {% if c.inventory_item_id == lot.id %}selected{% endif %}>
+                    {{ lot.batch_code or '#' ~ lot.id }}
+                    ({{ lot.quantity_display }})
+                  </option>
+                  {% endfor %}
+                </select>
+              </form>
+            {% else %}
+              {% if c.inventory_item %}
+                <code>{{ c.inventory_item.batch_code or '#' ~ c.inventory_item.id }}</code>
+              {% else %}—{% endif %}
+            {% endif %}
+          </td>
+
+          <!-- Target (calculated) -->
+          {% set tgt_mass = best_fit_mass(c.target_mass_g) %}
+          {% set tgt_vol = best_fit_volume(c.target_volume_mL) %}
+          {% set target_display = tgt_mass or tgt_vol %}
+          <td class="text-end font-monospace">
+            {% if target_display %}
+              {{ target_display.formatted }}
+              <span class="small text-muted">{{ target_display.unit }}</span>
+            {% else %}
+              <span class="text-muted small">—</span>
+            {% endif %}
+          </td>
+
+          <!-- Actual -->
+          <td class="text-end">
+            {# Decide whether the input is editable for this row+state.
+               - Setup phase   : everyone except products
+               - In-progress   : ONLY products (so operator can record yield)
+               - Completed     : nothing #}
+            {% set can_edit_actual = (is_setup and not c.is_product)
+                                  or (is_running and c.is_product) %}
+
+            {% if can_edit_actual %}
+              {# Choose the unit family + symbol matching the calculated target.
+                 Default to mg if no target yet (most common for solids). #}
+              {% if tgt_mass %}
+                {% set actual_unit = tgt_mass.unit %}
+                {% set actual_value = best_fit_mass(c.actual_mass_g) %}
+              {% elif tgt_vol %}
+                {% set actual_unit = tgt_vol.unit %}
+                {% set actual_value = best_fit_volume(c.actual_volume_mL) %}
+              {% else %}
+                {# Product before its target is computed: assume mass in mg #}
+                {% set actual_unit = 'mg' %}
+                {% set actual_value = best_fit_mass(c.actual_mass_g) %}
+              {% endif %}
+              <form method="post"
+                    action="{{ url_for('runs.set_actual', run_id=run.id, cid=c.id) }}"
+                    hx-post="{{ url_for('runs.set_actual', run_id=run.id, cid=c.id) }}"
+                    hx-swap="none"
+                    class="d-flex gap-1 align-items-center justify-content-end run-actual-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="unit" value="{{ actual_unit }}">
+                <input type="number" step="0.001" min="0" name="actual"
+                       class="form-control form-control-sm text-end" style="width: 7rem"
+                       value="{{ actual_value.formatted if actual_value else '' }}"
+                       placeholder="{{ target_display.formatted if target_display else '' }}"
+                       onchange="this.form.requestSubmit()"
+                       onkeydown="if(event.key==='Enter'){event.preventDefault();this.form.requestSubmit();}">
+                <span class="small text-muted">{{ actual_unit }}</span>
+              </form>
+            {% elif is_setup and c.is_product %}
+              {# Product during setup: no input yet, will be enabled when running #}
+              <span class="text-muted small">{{ _("dopo l'avvio") }}</span>
+            {% else %}
+              {# View-only: show actual in best-fit units #}
+              {% if c.actual_mass_g is not none %}
+                {% set actual_value = best_fit_mass(c.actual_mass_g) %}
+                <span class="font-monospace">{{ actual_value.formatted }}</span>
+                <span class="small text-muted">{{ actual_value.unit }}</span>
+              {% elif c.actual_volume_mL is not none %}
+                {% set actual_value = best_fit_volume(c.actual_volume_mL) %}
+                <span class="font-monospace">{{ actual_value.formatted }}</span>
+                <span class="small text-muted">{{ actual_value.unit }}</span>
+              {% else %}
+                <span class="text-muted small">—</span>
+              {% endif %}
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ─── Reazione principale: condizioni + procedimento + checklist ──── -->
+{% set rxn = run.reaction %}
+{% if rxn %}
+<div class="card mb-3">
+  <div class="card-header d-flex align-items-center gap-2">
+    <span class="badge text-bg-primary">{{ _("Reazione principale") }}</span>
+    <strong>{{ run.template_title_snapshot or rxn.title }}</strong>
+  </div>
+  <div class="card-body">
+
+    {# Condizioni (T, h, atm, P) — accumulati in un namespace mutabile #}
+    {% set ns = namespace(parts=[]) %}
+    {% if rxn.temperature_c is not none %}
+      {% set ns.parts = ns.parts + ['%g °C'|format(rxn.temperature_c)] %}
+    {% endif %}
+    {% if rxn.duration_hours is not none %}
+      {% set ns.parts = ns.parts + ['%g h'|format(rxn.duration_hours)] %}
+    {% endif %}
+    {% if rxn.atmosphere %}
+      {% set atm_label = {'air': _('aria'), 'N2': 'N₂', 'Ar': 'Ar',
+                          'vacuum': _('vuoto'), 'H2': 'H₂', 'O2': 'O₂'}.get(rxn.atmosphere, rxn.atmosphere) %}
+      {% set ns.parts = ns.parts + [atm_label] %}
+    {% endif %}
+    {% if rxn.pressure_bar is not none %}
+      {% set ns.parts = ns.parts + ['%g bar'|format(rxn.pressure_bar)] %}
+    {% endif %}
+    {% if ns.parts %}
+    <p class="small mb-3">
+      <strong>{{ _("Condizioni:") }}</strong>
+      <span class="font-monospace">{{ ns.parts | join(' · ') }}</span>
+    </p>
+    {% endif %}
+
+    {# Descrizione #}
+    {% if rxn.description %}
+    <p class="small text-muted mb-3" style="white-space: pre-wrap">{{ rxn.description }}</p>
+    {% endif %}
+
+    {# Procedimento principale (testo del template) #}
+    {% if rxn.procedure %}
+    <strong class="small d-block mb-1">{{ _("Procedimento") }}</strong>
+    <p class="mb-3" style="white-space: pre-wrap">{{ rxn.procedure }}</p>
+    {% endif %}
+
+    {# Checklist run-level (preparazione: vetreria asciutta, Ar collegato, …) #}
+    {% if run.checklist_items %}
+    <strong class="small d-block mb-2">{{ _("Check list") }}</strong>
+    <ul class="list-unstyled mb-0">
+      {% for item in run.checklist_items|sort(attribute='position') %}
+        {% include "runs/_checklist_item.html" %}
+      {% endfor %}
+    </ul>
+    {% endif %}
+
+    {% if not rxn.procedure and not run.checklist_items and not ns.parts and not rxn.description %}
+    <p class="text-muted mb-0 small">{{ _("Nessun dato di procedimento nel template.") }}</p>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+<!-- ─── Steps ─────────────────────────────────────────────────────── -->
+{% if run.steps %}
+{% for step in run.steps %}
+{% set kind_label = {'workup': _('Workup'), 'extraction': _('Estrazione'),
+                     'purification': _('Purificazione'), 'analysis': _('Analisi'),
+                     'other': _('Altro')}.get(step.kind, step.kind) %}
+{% set kind_color = {'workup': 'info', 'extraction': 'success',
+                     'purification': 'warning', 'analysis': 'secondary',
+                     'other': 'light'}.get(step.kind, 'light') %}
+<div class="card mb-3">
+  <div class="card-header d-flex align-items-center gap-2">
+    <span class="badge text-bg-{{ kind_color }}">{{ kind_label }}</span>
+    <strong>{{ step.title }}</strong>
+    <span class="text-muted small">#{{ step.position + 1 }}</span>
+  </div>
+  <div class="card-body">
+
+    {# Step components with absolute quantities resolved at run scale #}
+    {% if step.components %}
+    <strong class="small d-block mb-2">{{ _("Componenti") }}</strong>
+    <div class="table-responsive mb-3">
+      <table class="table table-sm align-middle mb-0">
+        <thead>
+          <tr>
+            <th>{{ _("Sostanza") }}</th>
+            <th>{{ _("Ruolo") }}</th>
+            <th style="min-width: 12rem">{{ _("Lotto") }}</th>
+            <th class="text-end" style="width: 10rem;">{{ _("Suggerito") }}</th>
+            <th class="text-end" style="width: 11rem;">{{ _("Reale") }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for sc in step.components %}
+          {% set sub_sc = sc.substance %}
+          {% set mix_sc = sc.mixture %}
+          {% set q = compute_run_step_component(sc, run) %}
+          <tr>
+            <td>
+              {% if mix_sc %}
+                <a href="{{ url_for('mixtures.detail', mixture_id=mix_sc.id) }}"
+                   class="text-decoration-none fw-semibold">
+                  {{ mix_sc.display_label }}
+                </a>
+                <span class="badge text-bg-light ms-1" style="font-size:0.65rem">{{ _("miscela") }}</span>
+              {% else %}
+                <span class="fw-semibold">{{ sub_sc.name if sub_sc else '—' }}</span>
+                {% if sub_sc %}
+                  {% with substance=sub_sc, panel_id="run-step-card-" ~ sc.id %}
+                    {% include "runs/_substance_card.html" %}
+                  {% endwith %}
+                {% endif %}
+              {% endif %}
+            </td>
+            <td><span class="badge text-bg-light">{{ sc.role }}</span></td>
+            <td>
+              {# Lot dropdown. For mixture-backed step components, draw
+                 from the mixture's inventory_items (mixture lots).
+                 For substance-backed, from the substance's. #}
+              {% if not run.is_completed and (sub_sc or mix_sc) %}
+              {% set sc_lots = mix_sc.inventory_items if mix_sc else sub_sc.inventory_items %}
+              <select class="form-select form-select-sm"
+                      hx-post="{{ url_for('runs.set_step_lot', run_id=run.id, scid=sc.id) }}"
+                      hx-trigger="change"
+                      hx-swap="none"
+                      name="lot_id">
+                <option value="">— {{ _("scegli lotto…") }} —</option>
+                {% for lot in sc_lots %}
+                  {% if lot.is_active %}
+                  <option value="{{ lot.id }}"
+                          {% if sc.inventory_item_id == lot.id %}selected{% endif %}>
+                    {{ lot.batch_code or '#' ~ lot.id }}
+                    {% if lot.quantity_g %} · {{ '%g'|format(lot.quantity_g) }} g{% endif %}
+                    {% if lot.quantity_mL %} · {{ '%g'|format(lot.quantity_mL) }} mL{% endif %}
+                  </option>
+                  {% endif %}
+                {% endfor %}
+              </select>
+              {% elif sc.inventory_item %}
+                <code>{{ sc.inventory_item.batch_code or '#' ~ sc.inventory_item.id }}</code>
+              {% else %}
+                <span class="text-muted small">—</span>
+              {% endif %}
+            </td>
+            <td class="text-end">
+              {# Suggested quantity from template ratio. Free-volume
+                 step components (chromatography eluents etc.) have
+                 no template suggestion — operator records the actual
+                 used. #}
+              {% if sc.ratio_kind == "free" %}
+                <span class="text-muted small fst-italic">{{ _("ad lib.") }}</span>
+              {% elif q.mL is not none %}
+                {% set fa = best_fit_volume(q.mL) %}
+                <span class="font-monospace text-muted">{{ fa.formatted }}</span>
+                <span class="small text-muted">{{ fa.unit }}</span>
+              {% elif q.g is not none %}
+                {% set fa = best_fit_mass(q.g) %}
+                <span class="font-monospace text-muted">{{ fa.formatted }}</span>
+                <span class="small text-muted">{{ fa.unit }}</span>
+              {% else %}
+                <span class="text-muted small">{{ _("libera") }}</span>
+              {% endif %}
+            </td>
+            <td class="text-end">
+              {# Free-text actual quantity input. For mixture lots
+                 (and free-volume kinds) the input defaults to mL. #}
+              {% if not run.is_completed %}
+                {% if sc.actual_mass_g is not none %}
+                  {% set cur_val = sc.actual_mass_g %}
+                  {% set cur_unit = 'g' %}
+                {% elif sc.actual_volume_mL is not none %}
+                  {% set cur_val = sc.actual_volume_mL %}
+                  {% set cur_unit = 'mL' %}
+                {% else %}
+                  {% set cur_val = '' %}
+                  {% if mix_sc or sc.ratio_kind in ("free", "absolute_mL") %}
+                    {% set cur_unit = 'mL' %}
+                  {% else %}
+                    {% set cur_unit = 'mL' if (sub_sc and sub_sc.state == 'liquid') else 'g' %}
+                  {% endif %}
+                {% endif %}
+                <div class="d-flex gap-1 justify-content-end"
+                     hx-post="{{ url_for('runs.set_step_actual', run_id=run.id, scid=sc.id) }}"
+                     hx-trigger="change delay:400ms from:find input, change delay:0ms from:find select"
+                     hx-include="this"
+                     hx-swap="none">
+                  <input type="number" step="any" min="0" name="actual"
+                         class="form-control form-control-sm font-monospace text-end"
+                         style="max-width: 5.5rem"
+                         value="{{ '%g'|format(cur_val) if cur_val != '' else '' }}"
+                         placeholder="{% if sc.ratio_kind == 'free' %}{{ _('inserisci') }}{% else %}—{% endif %}">
+                  <select name="unit" class="form-select form-select-sm"
+                          style="max-width: 4.5rem">
+                    {% for u in ['mg','g','mL','L'] %}
+                    <option value="{{ u }}"
+                            {% if cur_unit == u %}selected{% endif %}>{{ u }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              {% else %}
+                {% if sc.actual_mass_g is not none %}
+                  {% set fa = best_fit_mass(sc.actual_mass_g) %}
+                  <span class="font-monospace">{{ fa.formatted }}</span>
+                  <span class="small text-muted">{{ fa.unit }}</span>
+                {% elif sc.actual_volume_mL is not none %}
+                  {% set fa = best_fit_volume(sc.actual_volume_mL) %}
+                  <span class="font-monospace">{{ fa.formatted }}</span>
+                  <span class="small text-muted">{{ fa.unit }}</span>
+                {% else %}
+                  <span class="text-muted small">—</span>
+                {% endif %}
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+
+    {# Procedure / description #}
+    {% if step.description %}
+    <strong class="small d-block mb-1">{{ _("Procedimento") }}</strong>
+    <p class="mb-3" style="white-space: pre-wrap">{{ step.description }}</p>
+    {% endif %}
+
+    {# Step-level checklist (toggleable in any non-completed run) #}
+    {% if step.checklist_items %}
+    <strong class="small d-block mb-2">{{ _("Check list") }}</strong>
+    <ul class="list-unstyled mb-0">
+      {% for item in step.checklist_items|sort(attribute='position') %}
+        {% include "runs/_checklist_item.html" %}
+      {% endfor %}
+    </ul>
+    {% endif %}
+  </div>
+</div>
+{% endfor %}
+{% endif %}
+
+<!-- ─── Notes (during execution) ─────────────────────────────────── -->
+{% if not is_setup %}
+<div class="card mb-3">
+  <div class="card-header"><strong>{{ _("Note di esecuzione") }}</strong></div>
+  <div class="card-body">
+    {% if run.notes %}
+      <p class="mb-0" style="white-space: pre-wrap">{{ run.notes }}</p>
+    {% else %}
+      <p class="text-muted mb-0">—</p>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+<!-- ─── Post-completion notes (always editable on completed runs) ── -->
+{% if is_done %}
+<div class="card mb-3">
+  <div class="card-header"><strong>{{ _("Note post-mortem") }}</strong> <small class="text-muted">— {{ _("link NMR, lessons learned, ecc.") }}</small></div>
+  <div class="card-body">
+    <form method="post" action="{{ url_for('runs.append_post_notes', run_id=run.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <textarea name="text" class="form-control mb-2" rows="3">{{ run.post_completion_notes or '' }}</textarea>
+      <button class="btn btn-sm btn-primary">
+        <i data-lucide="save" style="width:14px;height:14px"></i> {{ _("Salva note") }}
+      </button>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+<!-- ─── Commenti / thread (Settimana 6 patch 9) ──────────────────── -->
+<div class="card mb-3">
+  <div class="card-header">
+    <strong>
+      <i data-lucide="message-circle" style="width:16px;height:16px"></i>
+      {{ _("Commenti") }}
+      {% if notes_for_entity %}
+      <span class="badge text-bg-secondary ms-2">{{ notes_for_entity|length }}</span>
+      {% endif %}
+    </strong>
+  </div>
+  <div class="card-body">
+    {% with notes=notes_for_entity, entity_type='run', entity_id=run.id %}
+      {% include "notes/_thread.html" %}
+    {% endwith %}
+  </div>
+</div>
+
+<!-- ─── Allegati (Settimana 6 patch 10) ──────────────────────────── -->
+<div class="card mb-3">
+  <div class="card-header">
+    <strong>
+      <i data-lucide="paperclip" style="width:16px;height:16px"></i>
+      {{ _("Allegati") }}
+      {% if attachments_for_entity %}
+      <span class="badge text-bg-secondary ms-2">{{ attachments_for_entity|length }}</span>
+      {% endif %}
+    </strong>
+    <small class="text-muted ms-2">{{ _("NMR, HPLC, foto, dati strumentali") }}</small>
+  </div>
+  <div class="card-body">
+    {% with attachments=attachments_for_entity, entity_type='run', entity_id=run.id %}
+      {% include "attachments/_list.html" %}
+    {% endwith %}
+  </div>
+</div>
+
+<!-- ─── Action bar ────────────────────────────────────────────────── -->
+<div class="d-flex justify-content-between align-items-center mb-4 mt-4 gap-2">
+  <div class="small text-muted">
+    {{ _("Creato:") }} {{ run.created_at.strftime('%Y-%m-%d %H:%M') }}
+    {% if run.started_at %}&nbsp;·&nbsp;{{ _("Avviato:") }} {{ run.started_at.strftime('%Y-%m-%d %H:%M') }}{% endif %}
+  </div>
+  <div class="d-flex gap-2">
+    {# PDF report buttons — always available #}
+    <a href="{{ url_for('runs.pdf', run_id=run.id, type='summary') }}"
+       class="btn btn-outline-secondary" target="_blank"
+       title="{{ _('Apri PDF sintetico in una nuova scheda') }}">
+      <i data-lucide="file-text"></i> {{ _("PDF sintesi") }}
+    </a>
+    <a href="{{ url_for('runs.pdf', run_id=run.id, type='full') }}"
+       class="btn btn-outline-secondary" target="_blank"
+       title="{{ _('Apri PDF completo (protocollo) in una nuova scheda') }}">
+      <i data-lucide="file-stack"></i> {{ _("PDF completo") }}
+    </a>
+
+    {% if is_setup %}
+      <form method="post" action="{{ url_for('runs.cancel', run_id=run.id) }}"
+            class="d-inline"
+            onsubmit="return confirm('{{ _('Eliminare questa bozza di run?') }}')">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-outline-danger">
+          <i data-lucide="trash-2"></i> {{ _("Elimina bozza") }}
+        </button>
+      </form>
+      <form method="post" action="{{ url_for('runs.start', run_id=run.id) }}"
+            class="d-inline">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-primary">
+          <i data-lucide="play"></i> {{ _("Avvia esecuzione") }}
+        </button>
+      </form>
+    {% elif is_running %}
+      <form method="post" action="{{ url_for('runs.complete', run_id=run.id) }}"
+            class="d-inline"
+            id="complete-run-form"
+            onsubmit="return confirmComplete(event);">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="confirm_failed" id="confirm_failed_field" value="">
+        <button class="btn btn-success" type="submit">
+          <i data-lucide="check"></i> {{ _("Completa run") }}
+        </button>
+      </form>
+    {% endif %}
+  </div>
+</div>
+
+{# Modal: confirm failed run when no product weights were entered #}
+<div class="modal fade" id="confirmFailedModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">{{ _("Confermare run fallito?") }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>{{ _("Non hai inserito il peso di nessun prodotto.") }}</p>
+        <p>{{ _("Se procedi, il run sarà registrato come <strong>fallito</strong> (resa zero) e nessun prodotto verrà aggiunto all'inventario.")|safe }}</p>
+        <p class="mb-0">{{ _("Vuoi continuare oppure tornare indietro a inserire i pesi dei prodotti?") }}</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <i data-lucide="arrow-left"></i> {{ _("Torna a inserire i pesi") }}
+        </button>
+        <button type="button" class="btn btn-danger" id="confirmFailedBtn">
+          <i data-lucide="x-octagon"></i> {{ _("Sì, registra come fallito") }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>if (window.lucide) lucide.createIcons();</script>
+
+{# Visual feedback when an HTMX auto-save completes #}
+<script>
+(function() {
+  document.body.addEventListener('htmx:afterRequest', function (evt) {
+    const form = evt.target.closest('.run-actual-form, [hx-post*="/component/"][hx-post$="/lot"]');
+    if (!form) return;
+    const ctl = form.querySelector('input[type="number"], select');
+    if (!ctl) return;
+    ctl.classList.add('htmx-just-saved');
+    setTimeout(() => ctl.classList.remove('htmx-just-saved'), 600);
+  });
+})();
+
+// "Completa run" guard: if no product weight is currently entered in any
+// product input, show the confirm-failed modal. We read the LIVE state
+// of the DOM (not a server-rendered data attribute) because HTMX
+// auto-saves don't trigger a re-render of the button.
+function confirmComplete(event) {
+  const form = document.getElementById('complete-run-form');
+  if (!form) return true;
+  const confirmField = document.getElementById('confirm_failed_field');
+  if (confirmField && confirmField.value === '1') {
+    // User already confirmed via the modal.
+    return true;
+  }
+  // Look for any product-row input with a non-empty, non-zero value.
+  // Product rows are marked with data-product-row="1" on their <tr>.
+  const productInputs = document.querySelectorAll(
+    'tr[data-product-row="1"] input[name="actual"]'
+  );
+  let hasYield = false;
+  productInputs.forEach(function (inp) {
+    const v = parseFloat((inp.value || '').replace(',', '.'));
+    if (!isNaN(v) && v > 0) hasYield = true;
+  });
+  if (hasYield) {
+    return true;
+  }
+  // Block submission and show the modal
+  event.preventDefault();
+  const modal = new bootstrap.Modal(document.getElementById('confirmFailedModal'));
+  modal.show();
+  // Wire up "Yes, mark as failed" button
+  document.getElementById('confirmFailedBtn').onclick = function () {
+    confirmField.value = '1';
+    modal.hide();
+    form.submit();
+  };
+  return false;
+}
+</script>
+{% endblock %}

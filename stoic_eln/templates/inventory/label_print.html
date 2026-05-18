@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Stampa etichetta") }} — {{ item.batch_code or item.id }}{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-12 col-lg-8 col-xl-6 mx-auto">
+
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb small">
+        <li class="breadcrumb-item">
+          <a href="{{ url_for('substances.list_view') }}">{{ _("Sostanze") }}</a>
+        </li>
+        <li class="breadcrumb-item">
+          <a href="{{ url_for('substances.detail', substance_id=item.substance.id) }}">
+            {{ item.substance.name }}
+          </a>
+        </li>
+        <li class="breadcrumb-item">
+          <a href="{{ url_for('inventory.edit', item_id=item.id) }}">
+            {{ item.batch_code or _("Lotto #%(id)d", id=item.id) }}
+          </a>
+        </li>
+        <li class="breadcrumb-item active">{{ _("Stampa etichetta") }}</li>
+      </ol>
+    </nav>
+
+    <div class="card">
+      <div class="card-body">
+        <h2 class="mb-1">{{ _("Stampa etichetta") }}</h2>
+        <p class="text-muted small mb-4">
+          {{ item.substance.name }}
+          {% if item.batch_code %} · <code>{{ item.batch_code }}</code>{% endif %}
+          {% if item.expiry_date %} · {{ _("Scad") }} {{ item.expiry_date.isoformat() }}{% endif %}
+        </p>
+
+        <form method="post" action="{{ url_for('inventory.label_pdf', item_id=item.id) }}"
+              target="_blank">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">{{ _("Formato") }}</label>
+            <div class="d-flex flex-column gap-2">
+              {% for key, fmt in formats.items() %}
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="format"
+                       id="fmt-{{ key }}" value="{{ key }}"
+                       {% if key == default_format_key %}checked{% endif %}
+                       data-is-sheet="{{ '1' if fmt.is_sheet else '0' }}"
+                       data-per-sheet="{{ fmt.per_sheet }}">
+                <label class="form-check-label" for="fmt-{{ key }}">
+                  {{ fmt.label }}
+                </label>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label" for="copies">{{ _("Copie") }}</label>
+              <input type="number" class="form-control" id="copies" name="copies"
+                     min="1" max="100" value="1">
+              <div class="form-text">
+                {{ _("Numero di etichette identiche da stampare per questo lotto.") }}
+              </div>
+            </div>
+            <div class="col-md-8" id="start-position-wrap">
+              <label class="form-label" for="start_position">
+                {{ _("Posizione di partenza sul foglio") }}
+              </label>
+              <input type="number" class="form-control" id="start_position"
+                     name="start_position" min="0" value="0">
+              <div class="form-text">
+                {{ _("0 = primo slot in alto a sinistra. Utile per riusare un foglio Avery già parzialmente stampato — conta le celle già usate (sinistra→destra, riga per riga) e mettile qui.") }}
+              </div>
+            </div>
+          </div>
+
+          <div class="alert alert-info small mt-4 mb-3">
+            <i data-lucide="info" style="width:14px;height:14px"></i>
+            {{ _("Il QR contiene: lotto_id, batch, sostanza e scadenza in formato JSON. Sull'etichetta vengono stampati nome sostanza, batch, scadenza, CAS, formula, MW, densità, pittogrammi GHS e codici delle frasi H/P quando disponibili.") }}
+          </div>
+
+          <div class="d-flex justify-content-between mt-4">
+            <a href="{{ url_for('inventory.edit', item_id=item.id) }}" class="btn btn-link">
+              {{ _("Annulla") }}
+            </a>
+            <button type="submit" class="btn btn-primary">
+              <i data-lucide="printer"></i>
+              {{ _("Genera PDF") }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function () {
+  // Hide "start position" when a non-sheet (thermal) format is selected.
+  function update() {
+    var checked = document.querySelector('input[name="format"]:checked');
+    if (!checked) return;
+    var isSheet = checked.getAttribute('data-is-sheet') === '1';
+    var perSheet = parseInt(checked.getAttribute('data-per-sheet') || '1', 10);
+    var wrap = document.getElementById('start-position-wrap');
+    var input = document.getElementById('start_position');
+    if (isSheet) {
+      wrap.style.display = '';
+      input.max = perSheet - 1;
+    } else {
+      wrap.style.display = 'none';
+      input.value = 0;
+    }
+  }
+  document.querySelectorAll('input[name="format"]').forEach(function (r) {
+    r.addEventListener('change', update);
+  });
+  update();
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Statistiche") }} — {{ _("Tutti i template") }}{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-start mb-3">
+  <div>
+    <h1>
+      <i data-lucide="bar-chart-3"></i>
+      {{ _("Statistiche template") }}
+    </h1>
+    <p class="text-muted mb-0">
+      {{ _("Panoramica costi e rese su tutti i template del laboratorio.") }}
+    </p>
+  </div>
+  <a href="{{ url_for('runs.list_view') }}" class="btn btn-outline-secondary">
+    <i data-lucide="arrow-left"></i> {{ _("Storico run") }}
+  </a>
+</div>
+
+{% if all_stats %}
+
+{# Top KPIs #}
+<div class="row g-3 mb-3">
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <div class="text-muted small mb-1">{{ _("Template attivi") }}</div>
+        <div class="fs-3 font-monospace">{{ all_stats|length }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <div class="text-muted small mb-1">{{ _("Run completati totali") }}</div>
+        <div class="fs-3 font-monospace">{{ total_runs }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <div class="text-muted small mb-1">{{ _("Costo totale stimato") }}</div>
+        <div class="fs-3 font-monospace">
+          {% if total_cost > 0 %}{{ total_cost|currency(decimals=0) }}{% else %}—{% endif %}
+        </div>
+        <div class="text-muted small">
+          {{ _("media costo × n. run, per ogni template") }}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header"><strong>{{ _("Confronto template") }}</strong></div>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0 small">
+      <thead>
+        <tr>
+          <th>{{ _("Template") }}</th>
+          <th class="text-end">{{ _("Run") }}</th>
+          <th class="text-end">{{ currency_glyph() }} {{ _("medio per run") }}</th>
+          <th class="text-end">{{ currency_glyph() }}/g {{ _("medio") }}</th>
+          <th class="text-end">{{ _("Resa media") }}</th>
+          <th>{{ _("Ultimo run") }}</th>
+          <th class="text-end">{{ currency_glyph() }}/g {{ _("ultimo") }}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in all_stats %}
+        <tr>
+          <td>
+            <code class="fw-semibold">{{ s.template_code_base }}.*</code>
+            <div class="text-muted small">{{ s.template_title or "" }}</div>
+          </td>
+          <td class="text-end font-monospace">{{ s.n_runs }}</td>
+          <td class="text-end font-monospace">
+            {% if s.avg_cost_eur is not none %}{{ s.avg_cost_eur|currency }}{% else %}—{% endif %}
+          </td>
+          <td class="text-end font-monospace">
+            {% if s.avg_cost_per_g is not none %}{{ s.avg_cost_per_g|currency }}{% else %}—{% endif %}
+          </td>
+          <td class="text-end font-monospace">
+            {% if s.avg_yield_percent is not none %}{{ "%.1f"|format(s.avg_yield_percent) }}%{% else %}—{% endif %}
+          </td>
+          <td class="small">
+            {% if s.last_run %}
+              <a href="{{ url_for('runs.detail', run_id=s.last_run.run_id) }}"
+                 class="text-decoration-none font-monospace">
+                {{ s.last_run.run_code }}
+              </a>
+              {% if s.last_run.completed_at %}
+                <div class="text-muted">{{ s.last_run.completed_at.strftime('%Y-%m-%d') }}</div>
+              {% endif %}
+            {% else %}—{% endif %}
+          </td>
+          <td class="text-end font-monospace">
+            {% if s.last_run and s.last_run.cost_per_g is not none %}
+              {{ s.last_run.cost_per_g|currency }}
+              {# delta vs avg #}
+              {% if s.avg_cost_per_g and s.last_run.cost_per_g %}
+                {% set delta = ((s.last_run.cost_per_g - s.avg_cost_per_g) / s.avg_cost_per_g) * 100 %}
+                <div class="small {% if delta > 5 %}text-danger{% elif delta < -5 %}text-success{% else %}text-muted{% endif %}">
+                  {% if delta > 0 %}+{% endif %}{{ "%.0f"|format(delta) }}% vs media
+                </div>
+              {% endif %}
+            {% else %}—{% endif %}
+          </td>
+          <td class="text-end">
+            {% if s.last_run %}
+            {# Link via the latest run's reaction_id; we don't have direct
+               access here, but we can route via the run detail. #}
+            <a href="{{ url_for('runs.detail', run_id=s.last_run.run_id) }}"
+               class="btn btn-sm btn-link p-0"
+               title="{{ _('Apri ultimo run') }}">
+              <i data-lucide="external-link" style="width:14px;height:14px"></i>
+            </a>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="card">
+  <div class="card-body text-center py-5">
+    <i data-lucide="info" class="text-muted mb-3" style="width: 48px; height: 48px;"></i>
+    <p class="text-muted mb-0">{{ _("Nessun run completato ancora.") }}</p>
+  </div>
+</div>
+{% endif %}
+
+<script>if (window.lucide) lucide.createIcons();</script>
+{% endblock %}

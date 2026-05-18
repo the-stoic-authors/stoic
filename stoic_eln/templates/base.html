@@ -1,0 +1,429 @@
+<!doctype html>
+{% from "_macros/logo.html" import logo_mark %}
+<html lang="{{ get_locale() }}" data-bs-theme="{{ current_theme if current_theme != 'system' else 'light' }}" data-stoic-theme="{{ current_theme }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ lab_name }}{% endblock %} — Stoic</title>
+
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/favicon.svg') }}">
+
+  <!-- Bootstrap 5 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+
+  <!-- Lucide icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <!-- HTMX for live interactions -->
+  <script src="https://unpkg.com/htmx.org@1.9.12" defer></script>
+
+  <!-- App CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+
+  {% block head_extra %}{% endblock %}
+
+  <script>
+    // Apply system theme preference at page load if needed (avoids flash)
+    (function() {
+      const stored = "{{ current_theme }}";
+      if (stored === "system") {
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-bs-theme', prefersDark ? 'dark' : 'light');
+      }
+    })();
+    // Apply collapsed sidebar state early so the layout doesn't flash
+    // expanded → collapsed on first paint. The class lands on <html>
+    // here (body doesn't exist yet); the document.body version is
+    // re-applied later for consistency.
+    (function () {
+      try {
+        if (localStorage.getItem('stoic.sidebar.collapsed') === '1') {
+          document.documentElement.classList.add('sidebar-collapsed');
+        }
+      } catch (e) { /* ignore */ }
+    })();
+  </script>
+</head>
+<body class="{% if false %}{% endif %}">
+  {% if current_user.is_authenticated %}
+  <div class="app-shell">
+
+    <!-- ─── Sidebar ─────────────────────────────────────────────────── -->
+    <aside class="app-sidebar" id="sidebar">
+      <div class="app-brand">
+        {{ logo_mark(class="brand-mark-img") }}
+        <span class="brand-text">Stoic</span>
+        <button type="button"
+                id="sidebar-toggle"
+                class="sidebar-toggle"
+                title="{{ _('Mostra/nascondi sidebar') }}"
+                aria-label="{{ _('Mostra/nascondi sidebar') }}">
+          <i data-lucide="panel-left-close" class="icon-expanded"></i>
+          <i data-lucide="panel-left-open" class="icon-collapsed"></i>
+        </button>
+      </div>
+
+      <nav class="app-nav">
+        <div class="nav-section-label">{{ _("Laboratorio") }}</div>
+        <a class="nav-item {% if request.endpoint == 'main.dashboard' %}active{% endif %}"
+           href="{{ url_for('main.dashboard') }}"
+           title="{{ _('Dashboard') }}">
+          <i data-lucide="layout-dashboard"></i>
+          <span>{{ _("Dashboard") }}</span>
+        </a>
+        <a class="nav-item {% if request.endpoint and request.endpoint.startswith('substances.') %}active{% endif %}"
+           href="{{ url_for('substances.list_view') }}"
+           title="{{ _('Sostanze') }}">
+          <i data-lucide="flask-conical"></i>
+          <span>{{ _("Sostanze") }}</span>
+        </a>
+        <a class="nav-item {% if request.endpoint and request.endpoint.startswith('reactions.') %}active{% endif %}"
+           href="{{ url_for('reactions.list_view') }}"
+           title="{{ _('Reazioni') }}">
+          <i data-lucide="arrow-left-right"></i>
+          <span>{{ _("Reazioni") }}</span>
+        </a>
+        <a class="nav-item {% if request.endpoint and request.endpoint.startswith('runs.') %}active{% endif %}"
+           href="{{ url_for('runs.list_view') }}"
+           title="{{ _('Storico run') }}">
+          <i data-lucide="history"></i>
+          <span>{{ _("Storico run") }}</span>
+        </a>
+        <a class="nav-item {% if request.endpoint and request.endpoint.startswith('mixtures.') %}active{% endif %}"
+           href="{{ url_for('mixtures.list_view') }}"
+           title="{{ _('Miscele') }}">
+          <i data-lucide="beaker"></i>
+          <span>{{ _("Miscele") }}</span>
+        </a>
+        <a class="nav-item {% if request.endpoint and request.endpoint.startswith('preps.') %}active{% endif %}"
+           href="{{ url_for('preps.list_view') }}"
+           title="{{ _('Storico preparazioni') }}">
+          <i data-lucide="folder-clock"></i>
+          <span>{{ _("Storico preparazioni") }}</span>
+        </a>
+
+        <div class="nav-section-label">{{ _("Gestione") }}</div>
+        <a class="nav-item {% if request.endpoint and request.endpoint.startswith('inventory.') %}active{% endif %}"
+           href="{{ url_for('inventory.list_view') }}"
+           title="{{ _('Inventario') }}">
+          <i data-lucide="package"></i>
+          <span>{{ _("Inventario") }}</span>
+        </a>
+        <a class="nav-item {% if request.endpoint and request.endpoint.startswith('orders.') %}active{% endif %}"
+           href="{{ url_for('orders.list_view') }}"
+           title="{{ _('Ordini') }}">
+          <i data-lucide="shopping-cart"></i>
+          <span>{{ _("Ordini") }}</span>
+        </a>
+        <a class="nav-item {% if request.endpoint and request.endpoint.startswith('reports.') %}active{% endif %}"
+           href="{{ url_for('reports.index') }}"
+           title="{{ _('Report') }}">
+          <i data-lucide="bar-chart-3"></i>
+          <span>{{ _("Report") }}</span>
+        </a>
+
+        <a class="nav-item {% if request.endpoint and request.endpoint.startswith('docs.') %}active{% endif %}"
+           href="{{ url_for('docs.index') }}"
+           title="{{ _('Documentazione') }}">
+          <i data-lucide="book-open"></i>
+          <span>{{ _("Documentazione") }}</span>
+        </a>
+
+        {% if current_user.can_manage_admin %}
+        <div class="nav-section-label">{{ _("Admin") }}</div>
+        <a class="nav-item {% if request.endpoint in ('settings.users', 'settings.update_user_role') %}active{% endif %}"
+           href="{{ url_for('settings.users') }}"
+           title="{{ _('Utenti') }}">
+          <i data-lucide="users"></i>
+          <span>{{ _("Utenti") }}</span>
+        </a>
+        <a class="nav-item {% if request.endpoint == 'settings.audit_log' %}active{% endif %}"
+           href="{{ url_for('settings.audit_log') }}"
+           title="{{ _('Audit log') }}">
+          <i data-lucide="shield-check"></i>
+          <span>{{ _("Audit log") }}</span>
+        </a>
+        <a class="nav-item {% if request.endpoint and request.endpoint.startswith('settings.') and request.endpoint not in ('settings.users', 'settings.update_user_role', 'settings.audit_log', 'settings.audit_log_export_csv', 'settings.audit_log_export_pdf') %}active{% endif %}"
+           href="{{ url_for('settings.index') }}"
+           title="{{ _('Impostazioni') }}">
+          <i data-lucide="settings"></i>
+          <span>{{ _("Impostazioni") }}</span>
+        </a>
+        {% endif %}
+      </nav>
+
+      <div class="app-sidebar-footer">
+        <small class="text-muted">v{{ app_version }}</small>
+      </div>
+    </aside>
+
+    <!-- ─── Main column ─────────────────────────────────────────────── -->
+    <div class="app-main">
+
+      <!-- Header bar -->
+      <header class="app-header">
+        <button class="btn btn-link text-light d-md-none" type="button"
+                onclick="document.getElementById('sidebar').classList.toggle('open')">
+          <i data-lucide="menu"></i>
+        </button>
+
+        <div class="app-header-title">{{ lab_name }}</div>
+
+        <div class="app-header-actions">
+          <!-- Theme switcher -->
+          <div class="dropdown">
+            <button class="btn btn-link text-light dropdown-toggle" type="button"
+                    data-bs-toggle="dropdown" aria-expanded="false"
+                    title="{{ _('Tema') }}">
+              {% if current_theme == 'dark' %}
+                <i data-lucide="moon"></i>
+              {% elif current_theme == 'light' %}
+                <i data-lucide="sun"></i>
+              {% else %}
+                <i data-lucide="monitor"></i>
+              {% endif %}
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li>
+                <a class="dropdown-item theme-switch {% if current_theme == 'system' %}active{% endif %}"
+                   href="{{ url_for('auth.set_theme', theme='system') }}"
+                   data-stoic-theme="system">
+                  <i data-lucide="monitor"></i> {{ _("Sistema") }}
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item theme-switch {% if current_theme == 'light' %}active{% endif %}"
+                   href="{{ url_for('auth.set_theme', theme='light') }}"
+                   data-stoic-theme="light">
+                  <i data-lucide="sun"></i> {{ _("Chiaro") }}
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item theme-switch {% if current_theme == 'dark' %}active{% endif %}"
+                   href="{{ url_for('auth.set_theme', theme='dark') }}"
+                   data-stoic-theme="dark">
+                  <i data-lucide="moon"></i> {{ _("Scuro") }}
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Locale switcher -->
+          <div class="dropdown">
+            <button class="btn btn-link text-light dropdown-toggle" type="button"
+                    data-bs-toggle="dropdown" aria-expanded="false">
+              {{ get_locale()|upper }}
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              {% for code, label in available_locales %}
+              <li>
+                <a class="dropdown-item {% if get_locale() == code %}active{% endif %}"
+                   href="{{ url_for('auth.set_locale', lang=code) }}">{{ label }}</a>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+
+          <!-- User menu -->
+          <div class="dropdown">
+            <button class="btn btn-link text-light dropdown-toggle" type="button"
+                    data-bs-toggle="dropdown" aria-expanded="false">
+              <i data-lucide="user-circle"></i>
+              <span class="d-none d-sm-inline">{{ current_user.full_name }}</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li>
+                <a class="dropdown-item" href="{{ url_for('auth.change_password') }}">
+                  <i data-lucide="key"></i> {{ _("Cambia password") }}
+                </a>
+              </li>
+              <li><hr class="dropdown-divider"></li>
+              <li>
+                <a class="dropdown-item" href="{{ url_for('auth.logout') }}">
+                  <i data-lucide="log-out"></i> {{ _("Logout") }}
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </header>
+
+      <!-- Flash messages -->
+      <div class="flash-area">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category if category != 'message' else 'info' }} alert-dismissible fade show">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+        {% endwith %}
+      </div>
+
+      <!-- Page content -->
+      <main class="app-content">
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+  </div>
+
+  {% else %}
+  <!-- Anonymous layout (login) -->
+  <div class="auth-shell" data-bs-theme="{{ current_theme if current_theme != 'system' else 'light' }}">
+    <!-- Top bar with theme/locale switchers, available even when not logged in -->
+    <div class="auth-topbar">
+      <a class="auth-brand" href="{{ url_for('main.index') }}">
+        {{ logo_mark(class="brand-mark-img") }}
+        <span class="brand-text">Stoic</span>
+      </a>
+      <div class="auth-topbar-actions">
+        <a class="btn btn-link" href="{{ url_for('auth.set_theme', theme='light') }}" title="{{ _('Chiaro') }}">
+          <i data-lucide="sun"></i>
+        </a>
+        <a class="btn btn-link" href="{{ url_for('auth.set_theme', theme='dark') }}" title="{{ _('Scuro') }}">
+          <i data-lucide="moon"></i>
+        </a>
+        <a class="btn btn-link" href="{{ url_for('auth.set_theme', theme='system') }}" title="{{ _('Sistema') }}">
+          <i data-lucide="monitor"></i>
+        </a>
+        <span class="auth-divider"></span>
+        {% for code, label in available_locales %}
+          <a class="btn btn-link {% if get_locale() == code %}active{% endif %}"
+             href="{{ url_for('auth.set_locale', lang=code) }}">{{ code|upper }}</a>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="flash-area auth-flash">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category if category != 'message' else 'info' }} alert-dismissible fade show">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+      {% endwith %}
+    </div>
+
+    <main class="auth-content">
+      {% block auth_content %}{% endblock %}
+    </main>
+  </div>
+  {% endif %}
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Local SmilesDrawer 2.x bundle (~190 KB; cached on first load) -->
+  <script src="{{ url_for('static', filename='lib/smiles-drawer.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/smiles-render.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/stoichiometry.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/sticky_table.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/ghs_theme.js') }}"></script>
+  <!-- Custom Lucide icon registry (reactions-history,
+       preparations-history): kept on disk but no longer loaded.
+       Sidebar now uses standard `history` and `folder-clock`
+       icons for visual consistency with the rest of the menu
+       (stroked outlines instead of filled glyphs). If you want
+       the custom filled glyphs back, uncomment the script tag
+       and switch the data-lucide attributes in the sidebar. -->
+  {# <script src="{{ url_for('static', filename='js/lucide_custom_icons.js') }}"></script> #}
+  <script>
+    // Render Lucide icons
+    if (window.lucide && window.lucide.createIcons) {
+      lucide.createIcons();
+    }
+    // Re-render after HTMX swaps content
+    document.body.addEventListener('htmx:afterSwap', () => {
+      if (window.lucide && window.lucide.createIcons) {
+        lucide.createIcons();
+      }
+    });
+
+    // ── Sidebar collapse/expand ──
+    // Persists across pages via localStorage. The CSS selector
+    // ``.sidebar-collapsed`` matches a class on either <html> or
+    // <body>, so the no-flash inline script in <head> can apply
+    // it to <html> (before <body> exists) and we mirror it on
+    // <body> here for consistency with the toggle button.
+    (function () {
+      const KEY = 'stoic.sidebar.collapsed';
+      const body = document.body;
+      const btn = document.getElementById('sidebar-toggle');
+      if (!btn) return;
+
+      // Mirror the html-level class (set in head BEFORE first
+      // paint to avoid the expanded→collapsed flash) onto body.
+      if (document.documentElement.classList.contains('sidebar-collapsed')) {
+        body.classList.add('sidebar-collapsed');
+      }
+
+      btn.addEventListener('click', function () {
+        const collapsed = body.classList.toggle('sidebar-collapsed');
+        // Keep <html> in sync too, so next page load reads the
+        // right state from localStorage AND the inline head
+        // script paints in the right state.
+        document.documentElement.classList.toggle('sidebar-collapsed', collapsed);
+        try {
+          localStorage.setItem(KEY, collapsed ? '1' : '0');
+        } catch (e) { /* ignore */ }
+      });
+    })();
+
+    // ── Theme switch (no-reload) ──
+    // Intercept clicks on .theme-switch links and apply the theme
+    // immediately via DOM mutation, persisting the cookie via a
+    // background fetch. This preserves form state and scroll
+    // position — particularly important on the PubChem preview,
+    // where a full redirect would lose the search result and
+    // force the user to re-query.
+    //
+    // Falls back to plain-link navigation if JS is disabled or
+    // the fetch fails: the href is set normally on each anchor.
+    (function () {
+      const links = document.querySelectorAll('a.theme-switch');
+      if (links.length === 0) return;
+
+      function applyTheme(themeName) {
+        // 'system' resolves to whatever prefers-color-scheme says.
+        let effective = themeName;
+        if (themeName === 'system') {
+          effective = window.matchMedia('(prefers-color-scheme: dark)').matches
+            ? 'dark' : 'light';
+        }
+        document.documentElement.setAttribute('data-bs-theme', effective);
+        document.documentElement.setAttribute('data-stoic-theme', themeName);
+      }
+
+      links.forEach(function (link) {
+        link.addEventListener('click', function (e) {
+          // Only intercept primary-button clicks. Cmd/Ctrl-click
+          // and middle-click still open in a new tab the old way.
+          if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+          e.preventDefault();
+
+          const theme = link.dataset.stoicTheme;
+          if (!theme) return;
+
+          // Apply immediately for snappy UX
+          applyTheme(theme);
+
+          // Persist the cookie (and DB pref if logged in) in the
+          // background. We don't await; if it fails the theme
+          // will revert on next page load, which is acceptable.
+          fetch(link.href, {
+            method: 'GET',
+            redirect: 'manual',
+            credentials: 'same-origin',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+          }).catch(function () { /* ignore */ });
+
+          // Update the .active class in the dropdown so visual
+          // state matches reality.
+          links.forEach(function (l) { l.classList.remove('active'); });
+          link.classList.add('active');
+        });
+      });
+    })();
+  </script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

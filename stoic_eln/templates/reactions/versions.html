@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Versioni") }} {{ current.template_code_base if current else '' }} — Stoic{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb small mb-2">
+    <li class="breadcrumb-item">
+      <a href="{{ url_for('reactions.list_view') }}">{{ _("Reazioni") }}</a>
+    </li>
+    {% if current %}
+    <li class="breadcrumb-item">
+      <a href="{{ url_for('reactions.detail', reaction_id=current.id) }}">
+        <code>{{ current.template_code }}</code>
+      </a>
+    </li>
+    {% endif %}
+    <li class="breadcrumb-item active">{{ _("Versioni precedenti") }}</li>
+  </ol>
+</nav>
+
+<h2 class="mb-3">
+  <i data-lucide="history"></i>
+  {{ _("Versioni di") }}
+  <code>{{ current.template_code_base if current else '—' }}</code>
+</h2>
+
+{% if not versions %}
+<p class="text-muted">{{ _("Nessuna versione trovata.") }}</p>
+{% else %}
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead>
+        <tr>
+          <th style="width: 1px;"></th>
+          <th>{{ _("Codice") }}</th>
+          <th>{{ _("Titolo") }}</th>
+          <th class="text-end">{{ _("Versione") }}</th>
+          <th class="text-end">{{ _("Run") }}</th>
+          <th>{{ _("Stato") }}</th>
+          <th>{{ _("Pubblicato il") }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for v in versions %}
+        <tr>
+          <td>
+            <a href="{{ url_for('reactions.detail', reaction_id=v.id) }}"
+               class="btn btn-sm btn-outline-secondary"
+               title="{{ _('Apri') }}">
+              <i data-lucide="external-link" style="width:14px;height:14px"></i>
+            </a>
+          </td>
+          <td><code class="fw-semibold">{{ v.template_code or '—' }}</code></td>
+          <td>{{ v.title }}</td>
+          <td class="text-end font-monospace">v{{ v.version_number }}</td>
+          <td class="text-end font-monospace">{{ v.runs|length }}</td>
+          <td>
+            {% if v.is_archived %}
+              <span class="badge text-bg-secondary">{{ _("archiviata") }}</span>
+            {% elif v.status == 'published' %}
+              <span class="badge text-bg-success">{{ _("corrente") }}</span>
+            {% else %}
+              <span class="badge text-bg-warning">{{ _("bozza") }}</span>
+            {% endif %}
+          </td>
+          <td class="small text-muted">
+            {{ v.created_at.strftime('%Y-%m-%d') }}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<div class="mt-3">
+  <a href="{{ url_for('reactions.list_view') }}" class="btn btn-outline-secondary">
+    <i data-lucide="arrow-left"></i> {{ _("Torna alle reazioni") }}
+  </a>
+</div>
+
+<script>if (window.lucide) lucide.createIcons();</script>
+{% endblock %}

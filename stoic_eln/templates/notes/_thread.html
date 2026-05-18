@@ -1,0 +1,43 @@
+{# Notes thread partial — render the full notes section for an entity.
+   Used both in the entity detail page (initial render) and as response
+   to HTMX add/edit/delete operations.
+   Inputs:
+     notes — list[Note] (oldest first)
+     entity_type — 'run' | 'reaction' | 'substance'
+     entity_id — int
+#}
+<div id="notes-thread-{{ entity_type }}-{{ entity_id }}"
+     class="notes-thread">
+
+  {% if notes %}
+    {% for n in notes %}
+      {% include "notes/_note.html" %}
+    {% endfor %}
+  {% else %}
+    <p class="text-muted small text-center py-3 mb-0">
+      {{ _("Nessun commento ancora. Aggiungi il primo qui sotto.") }}
+    </p>
+  {% endif %}
+
+  {# ── New note form ── #}
+  <form class="mt-3"
+        hx-post="{{ url_for('notes.create',
+                              entity_type=entity_type, entity_id=entity_id) }}"
+        hx-target="#notes-thread-{{ entity_type }}-{{ entity_id }}"
+        hx-swap="outerHTML">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="d-flex flex-column gap-2">
+      <textarea name="body" class="form-control"
+                rows="2" maxlength="10000"
+                placeholder="{{ _('Aggiungi un commento… (markdown leggero: **grassetto**, *corsivo*, `codice`, [link](url), - lista)') }}"
+                required></textarea>
+      <div class="d-flex justify-content-end">
+        <button type="submit" class="btn btn-primary btn-sm">
+          <i data-lucide="message-circle" style="width:14px;height:14px"></i>
+          {{ _("Pubblica") }}
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+<script>if (window.lucide) lucide.createIcons();</script>

@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Prepara") }} {{ mixture.name }}{% endblock %}
+
+{% block content %}
+<div class="page-header mb-3">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb small mb-1">
+      <li class="breadcrumb-item">
+        <a href="{{ url_for('mixtures.list_view') }}">{{ _("Miscele") }}</a>
+      </li>
+      <li class="breadcrumb-item">
+        <a href="{{ url_for('mixtures.detail', mixture_id=mixture.id) }}">{{ mixture.name }}</a>
+      </li>
+      <li class="breadcrumb-item active">{{ _("Prepara nuovo lotto") }}</li>
+    </ol>
+  </nav>
+  <h1>{{ _("Prepara") }} <span class="text-primary">{{ mixture.display_label }}</span></h1>
+  <p class="text-muted small">
+    {{ _("Stoic scalerà i lotti precursori e creerà un nuovo lotto della miscela target.") }}
+  </p>
+</div>
+
+{% if suggestion is none %}
+{# ── Phase 1: pick target quantity + unit ──────────────────────── #}
+<form method="get" class="card">
+  <div class="card-body">
+    <h5 class="mb-3">{{ _("Quanto ne vuoi produrre?") }}</h5>
+    <div class="row g-2 align-items-end">
+      <div class="col-md-4">
+        <label for="target_quantity" class="form-label">{{ _("Quantità target") }}</label>
+        <input type="number"
+               class="form-control"
+               name="target_quantity"
+               id="target_quantity"
+               min="0" step="any"
+               value="{{ target_quantity or '' }}"
+               placeholder="10"
+               required autofocus>
+      </div>
+      <div class="col-md-3">
+        <label for="target_unit" class="form-label">{{ _("Unità") }}</label>
+        <select name="target_unit" id="target_unit" class="form-select" required>
+          <option value="L" {% if target_unit == 'L' %}selected{% endif %}>L</option>
+          <option value="mL" {% if target_unit == 'mL' %}selected{% endif %}>mL</option>
+          <option value="g" {% if target_unit == 'g' %}selected{% endif %}>g</option>
+          <option value="kg" {% if target_unit == 'kg' %}selected{% endif %}>kg</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <button type="submit" class="btn btn-primary">
+          <i data-lucide="calculator"></i> {{ _("Calcola") }}
+        </button>
+        <a href="{{ url_for('mixtures.detail', mixture_id=mixture.id) }}"
+           class="btn btn-link">{{ _("Annulla") }}</a>
+      </div>
+    </div>
+    <div class="mt-3">
+      <p class="text-muted small mb-1">{{ _("Composizione di") }} <strong>{{ mixture.name }}</strong>:</p>
+      {% if mixture.components %}
+      <ul class="small mb-0">
+        {% for c in mixture.components %}
+        <li>
+          {{ c.substance.name }}
+          {% if c.concentration is not none %}
+            — <code>{{ "%g"|format(c.concentration) }} {{ c.concentration_unit or "" }}</code>
+          {% endif %}
+          <span class="text-muted">({{ c.role }})</span>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="text-muted small mb-0">
+        {{ _("Nessun componente strutturato — l'auto-suggest userà solo la quantità target.") }}
+      </p>
+      {% endif %}
+    </div>
+  </div>
+</form>
+
+{% else %}
+{# ── Phase 2: confirmation table ──────────────────────────────── #}
+{% if suggestion.warnings %}
+<div class="alert alert-warning">
+  <strong>{{ _("Attenzione") }}:</strong>
+  <ul class="mb-0 small">
+    {% for w in suggestion.warnings %}
+    <li>{{ w }}</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+<form method="post" action="{{ url_for('mixtures.execute_prep', mixture_id=mixture.id) }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <input type="hidden" name="target_quantity" value="{{ suggestion.target_quantity }}">
+  <input type="hidden" name="target_unit" value="{{ suggestion.target_quantity_unit }}">
+
+  <div class="card mb-3">
+    <div class="card-body">
+      <h5 class="mb-2">
+        {{ _("Target") }}:
+        <code class="fs-6">{{ suggestion.target_quantity }} {{ suggestion.target_quantity_unit }}</code>
+        {{ _("di") }} {{ mixture.display_label }}
+      </h5>
+      <a href="{{ url_for('mixtures.prepare_form', mixture_id=mixture.id) }}"
+         class="btn btn-sm btn-link">
+        <i data-lucide="rotate-ccw"></i> {{ _("Cambia target") }}
+      </a>
+    </div>
+  </div>
+
+  <div class="card mb-3">
+    <div class="card-header">
+      <strong>{{ _("Lotti precursori da consumare") }}</strong>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-sm align-middle mb-0">
+        <thead>
+          <tr class="small text-muted">
+            <th>{{ _("Componente") }}</th>
+            <th>{{ _("Lotto") }}</th>
+            <th>{{ _("Quantità") }}</th>
+            <th>{{ _("Unità") }}</th>
+            <th>{{ _("Disponibile") }}</th>
+          </tr>
+        </thead>
+        {% include "mixtures/_prep_rows.html" %}
+      </table>
+    </div>
+  </div>
+
+  <div class="card mb-3">
+    <div class="card-header"><strong>{{ _("Lotto risultante") }}</strong></div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label for="output_batch_code" class="form-label">{{ _("Codice lotto") }}</label>
+          <input type="text"
+                 name="output_batch_code"
+                 id="output_batch_code"
+                 class="form-control"
+                 value="{{ preview_code }}"
+                 placeholder="{{ _('Lascia vuoto per generare automaticamente') }}">
+          <div class="form-text small">
+            {{ _("Generato automaticamente in base alle impostazioni; modificalo se serve.") }}
+          </div>
+        </div>
+        <div class="col-md-6">
+          <label for="output_location" class="form-label">{{ _("Posizione") }}</label>
+          <input type="text"
+                 name="output_location"
+                 id="output_location"
+                 class="form-control"
+                 placeholder="{{ _('es. Scaffale B-3') }}">
+        </div>
+        <div class="col-md-6">
+          <label for="output_expiry_date" class="form-label">{{ _("Scadenza") }}</label>
+          <input type="date"
+                 name="output_expiry_date"
+                 id="output_expiry_date"
+                 value="{{ suggested_expiry.isoformat() if suggested_expiry else '' }}"
+                 class="form-control">
+          {% if suggested_expiry %}
+          <div class="form-text small">
+            {{ _("Suggerita: la scadenza più imminente tra i lotti dei componenti.") }}
+          </div>
+          {% endif %}
+        </div>
+        <div class="col-12">
+          <label for="output_notes" class="form-label">{{ _("Note") }}</label>
+          <textarea name="output_notes" id="output_notes" class="form-control" rows="2"></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex gap-2">
+    <button type="submit" class="btn btn-primary">
+      <i data-lucide="check-circle"></i> {{ _("Conferma e prepara") }}
+    </button>
+    <a href="{{ url_for('mixtures.detail', mixture_id=mixture.id) }}"
+       class="btn btn-link">{{ _("Annulla") }}</a>
+  </div>
+</form>
+{% endif %}
+
+<script>
+if (window.lucide) lucide.createIcons();
+// Re-render icons after every HTMX swap (the recompute row drops
+// fresh DOM that hasn't been processed yet).
+document.body.addEventListener("htmx:afterSwap", () => {
+  if (window.lucide) lucide.createIcons();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,48 @@
+{# Generic checklist renderer.
+   Args:
+     items       — list of ChecklistItem
+     parent_kind — "reaction" or "step"
+     parent_id   — id of the parent
+     can_edit    — bool: shows add-item form + per-row action buttons
+                   (defaults to True for back-compat with edit-mode HTMX swaps;
+                   the detail template explicitly passes can_edit=is_draft).
+#}
+{% set can_edit = can_edit if can_edit is defined else True %}
+<div class="checklist" id="checklist-{{ parent_kind }}-{{ parent_id }}">
+  {% if items %}
+  <ul class="list-unstyled mb-2">
+    {% for item in items %}
+      {% include "reactions/_checklist_row.html" %}
+    {% endfor %}
+  </ul>
+  {% elif can_edit %}
+  <p class="text-muted small mb-2">{{ _("Nessuna voce. Aggiungine una sotto.") }}</p>
+  {% else %}
+  <p class="text-muted small mb-0">{{ _("Nessuna voce.") }}</p>
+  {% endif %}
+
+  {% if can_edit %}
+    {# Add-item form #}
+    {% if parent_kind == "reaction" %}
+      {% set add_url = url_for('reactions.add_checklist_item', reaction_id=parent_id) %}
+    {% else %}
+      {% set add_url = url_for('reactions.add_step_checklist_item', step_id=parent_id) %}
+    {% endif %}
+    <form method="post"
+          action="{{ add_url }}"
+          hx-post="{{ add_url }}"
+          hx-target="#checklist-{{ parent_kind }}-{{ parent_id }}"
+          hx-on::after-request="this.reset()"
+          class="d-flex gap-2">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="text" name="text"
+             class="form-control form-control-sm"
+             placeholder="{{ _('Aggiungi una voce…') }}"
+             required>
+      <button type="submit" class="btn btn-sm btn-outline-primary">
+        <i data-lucide="plus"></i>
+      </button>
+    </form>
+  {% endif %}
+</div>
+<script>if (window.lucide) lucide.createIcons();</script>

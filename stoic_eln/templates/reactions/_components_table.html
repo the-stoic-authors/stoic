@@ -1,0 +1,191 @@
+{# Components table — TEMPLATE view.
+   Shows only what defines the recipe:
+     - badge with role (Limitante / Reagente / Catalizzatore / Solvente / Prodotto / …)
+     - substance name + CAS + MW
+     - "Proporzione" column:
+         * limiting reagent      → "1 Eq" (read-only)
+         * non-solvent inputs    → editable Eq
+         * solvent               → editable M (target reaction concentration)
+         * product / byproduct   → "—" (no proportion in template)
+   Absolute quantities (g, mL, mmol) are NOT shown — they belong to the Run.
+
+   Two render modes:
+     - is_draft=True  → editable inputs + star/× action buttons
+     - is_draft=False → printed text, no inputs, no action buttons
+#}
+
+{% if reaction.components %}
+<div class="table-responsive">
+  <table class="table {% if is_draft %}table-hover{% endif %} align-middle mb-0 reaction-components">
+    <thead>
+      <tr>
+        <th style="width: 1px;"></th>
+        <th>{{ _("Sostanza") }}</th>
+        <th class="text-end" style="width: 12rem;">{{ _("Proporzione") }}</th>
+        {% if is_draft %}<th style="width: 5rem;"></th>{% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in reaction.components %}
+      {% set sub = c.substance %}
+      {% set mix = c.mixture %}
+      {% set is_solvent = c.role == "solvent" %}
+      {% set is_product = c.role in ("product", "byproduct") %}
+
+      {# Badge: "Limitante" wins, otherwise role label + role-specific color #}
+      {% set badge_text, badge_color =
+        ("Limitante", "warning") if c.is_limiting else
+        ({
+          "starting_material": ("SM", "primary"),
+          "reactant":          ("Reattivo", "primary"),
+          "reagent":           ("Reagente", "primary"),
+          "catalyst":          ("Catalizzatore", "warning"),
+          "ligand":            ("Legante", "warning"),
+          "base":              ("Base", "info"),
+          "acid":              ("Acido", "info"),
+          "oxidant":           ("Ossidante", "danger"),
+          "reductant":         ("Riducente", "danger"),
+          "solvent":           ("Solvente", "info"),
+          "additive":          ("Additivo", "secondary"),
+          "internal_standard": ("Std interno", "secondary"),
+          "product":           ("Prodotto", "success"),
+          "byproduct":         ("Sottoprodotto", "secondary"),
+        })[c.role] %}
+
+      <tr>
+        <td>
+          <span class="badge text-bg-{{ badge_color }}">{{ _(badge_text) }}</span>
+        </td>
+        <td>
+          {% if mix %}
+          <a href="{{ url_for('mixtures.detail', mixture_id=mix.id) }}"
+             class="text-decoration-none fw-semibold">{{ mix.display_label }}</a>
+          <span class="badge text-bg-light ms-1" style="font-size: 0.65rem">{{ _("miscela") }}</span>
+          {% set solute = c.effective_substance %}
+          {% if solute and solute.molecular_weight %}
+          <span class="ms-2 small text-muted">MW {{ '%.2f'|format(solute.molecular_weight) }}</span>
+          {% endif %}
+          {% elif sub %}
+          <a href="{{ url_for('substances.detail', substance_id=sub.id) }}"
+             class="text-decoration-none fw-semibold">{{ sub.name }}</a>
+          {% if sub.cas_number %}
+          <code class="ms-2 small text-muted">{{ sub.cas_number }}</code>
+          {% endif %}
+          {% if sub.molecular_weight %}
+          <span class="ms-2 small text-muted">MW {{ '%.2f'|format(sub.molecular_weight) }}</span>
+          {% endif %}
+          {% else %}
+          <em class="text-muted">{{ _("(componente rimosso)") }}</em>
+          {% endif %}
+        </td>
+
+        <td class="text-end" style="white-space: nowrap;">
+          {% if is_product %}
+            <span class="text-muted">—</span>
+
+          {% elif is_draft %}
+            {# ── EDIT MODE: input fields ─────────────────────────────── #}
+            {% if is_solvent %}
+              <input type="number" step="0.001" min="0"
+                     class="form-control form-control-sm text-end d-inline-block"
+                     style="width: 6rem;"
+                     value="{{ '%g'|format(c.concentration_M) if c.concentration_M is not none else '' }}"
+                     name="value"
+                     placeholder="{{ _('opz.') }}"
+                     title="{{ _('Concentrazione target del reagente limitante nel solvente (es. 0.1 M).') }}"
+                     hx-post="{{ url_for('reactions.edit_component', component_id=c.id) }}"
+                     hx-trigger="change delay:200ms"
+                     hx-target="#components-table"
+                     hx-vals='{"field": "concentration_M"}'
+                     hx-include="this">
+              <span class="ms-1 small">M</span>
+            {% else %}
+              <input type="number" step="0.001" min="0"
+                     class="form-control form-control-sm text-end d-inline-block"
+                     style="width: 6rem;"
+                     value="{{ '%g'|format(c.equivalents) if c.equivalents is not none else '' }}"
+                     {% if c.is_limiting %}readonly title="{{ _('Il reagente limitante ha sempre eq=1') }}"{% endif %}
+                     name="value"
+                     hx-post="{{ url_for('reactions.edit_component', component_id=c.id) }}"
+                     hx-trigger="change delay:200ms"
+                     hx-target="#components-table"
+                     hx-vals='{"field": "equivalents"}'
+                     hx-include="this">
+              <span class="ms-1 small">{{ _("Eq") }}</span>
+            {% endif %}
+
+          {% else %}
+            {# ── VIEW MODE: printed text, no input borders ───────────── #}
+            {% if is_solvent %}
+              {% if c.concentration_M is not none %}
+                <span class="font-monospace">{{ '%g'|format(c.concentration_M) }}</span>
+                <span class="ms-1 small text-muted">M</span>
+              {% else %}
+                <span class="text-muted">—</span>
+              {% endif %}
+            {% else %}
+              {% if c.equivalents is not none %}
+                <span class="font-monospace">{{ '%g'|format(c.equivalents) }}</span>
+                <span class="ms-1 small text-muted">{{ _("Eq") }}</span>
+              {% else %}
+                <span class="text-muted">—</span>
+              {% endif %}
+            {% endif %}
+          {% endif %}
+        </td>
+
+        {% if is_draft %}
+        <td class="text-end" style="white-space: nowrap;">
+          {% if not c.is_limiting and not is_product and not is_solvent %}
+            <form method="post"
+                  action="{{ url_for('reactions.edit_component', component_id=c.id) }}"
+                  hx-post="{{ url_for('reactions.edit_component', component_id=c.id) }}"
+                  hx-target="#components-table"
+                  hx-vals='{"field": "is_limiting", "value": "1"}'
+                  class="d-inline">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-sm btn-link text-warning p-0 px-1"
+                      title="{{ _('Imposta come limitante') }}">
+                <i data-lucide="star" style="width:14px;height:14px"></i>
+              </button>
+            </form>
+          {% endif %}
+          <form method="post"
+                hx-post="{{ url_for('reactions.delete_component', component_id=c.id) }}"
+                hx-target="#components-table"
+                hx-confirm="{{ _('Rimuovere questo componente?') }}"
+                action="{{ url_for('reactions.delete_component', component_id=c.id) }}"
+                class="d-inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-sm btn-link text-danger p-0 px-1"
+                    title="{{ _('Rimuovi') }}">
+              <i data-lucide="x" style="width:14px;height:14px"></i>
+            </button>
+          </form>
+        </td>
+        {% endif %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="text-center py-4 text-muted">
+  <p class="mb-0">{{ _("Nessun componente. Aggiungine uno per iniziare.") }}</p>
+</div>
+{% endif %}
+<script>if (window.lucide) lucide.createIcons();</script>
+
+{# Out-of-band update of the reaction scheme card. ONLY when this
+   partial is served as a standalone HTMX response (i.e. after
+   add_component / delete_component / edit_component): we emit the
+   scheme card with hx-swap-oob so HTMX replaces the existing one.
+   When this partial is included server-side from detail.html (full
+   page render), we MUST NOT render a duplicate scheme — detail.html
+   already includes _scheme_card.html itself. The HX-Request header
+   tells us which case we're in. #}
+{% if request.headers.get('HX-Request') %}
+{% with oob=True %}
+{% include "reactions/_scheme_card.html" %}
+{% endwith %}
+{% endif %}

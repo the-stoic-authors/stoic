@@ -1,0 +1,72 @@
+{% if preps %}
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead>
+        <tr>
+          <th>{{ _("Codice") }}</th>
+          <th>{{ _("Miscela") }}</th>
+          <th>{{ _("Quantità") }}</th>
+          <th>{{ _("Componenti") }}</th>
+          <th>{{ _("Quando") }}</th>
+          <th>{{ _("Operatore") }}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for prep in preps %}
+        <tr>
+          <td>
+            <a href="{{ url_for('preps.detail', prep_id=prep.id) }}"
+               class="fw-semibold text-decoration-none font-monospace">
+              {{ prep.code }}
+            </a>
+          </td>
+          <td>
+            <a href="{{ url_for('mixtures.detail', mixture_id=prep.mixture_id) }}"
+               class="text-decoration-none">
+              {{ prep.mixture.name if prep.mixture else "—" }}
+            </a>
+          </td>
+          <td>
+            <code>{{ "%g"|format(prep.target_quantity) }} {{ prep.target_quantity_unit }}</code>
+          </td>
+          <td class="small text-muted">
+            {{ prep.consumptions|length }} {{ _("componenti") }}
+          </td>
+          <td class="small">
+            {{ prep.prepared_at.strftime("%Y-%m-%d %H:%M") if prep.prepared_at else "—" }}
+          </td>
+          <td class="small">
+            {{ prep.prepared_by.username if prep.prepared_by else "—" }}
+          </td>
+          <td class="text-end">
+            <a href="{{ url_for('preps.detail', prep_id=prep.id) }}"
+               class="btn btn-sm btn-link">
+              <i data-lucide="arrow-right"></i>
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="card">
+  <div class="card-body text-center py-5">
+    <i data-lucide="beaker" class="text-muted mb-3" style="width:48px;height:48px"></i>
+    <p class="text-muted mb-2">
+      {% if q %}
+        {{ _("Nessuna preparazione corrisponde a '%(q)s'.", q=q) }}
+      {% else %}
+        {{ _("Nessuna preparazione registrata.") }}
+      {% endif %}
+    </p>
+    <a href="{{ url_for('mixtures.list_view') }}" class="btn btn-link">
+      {{ _("Vai alle miscele per prepararne una") }}
+    </a>
+  </div>
+</div>
+{% endif %}
+<script>if (window.lucide) lucide.createIcons();</script>

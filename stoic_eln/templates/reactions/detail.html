@@ -1,0 +1,767 @@
+{% extends "base.html" %}
+{% block title %}
+  {% if reaction.is_draft %}{{ _("Modifica") }} —{% endif %}
+  {{ reaction.display_code }} — {{ reaction.title }}
+{% endblock %}
+
+{% set is_draft = reaction.is_draft %}
+
+{% block content %}
+
+<!-- ─── Breadcrumb + draft banner ─────────────────────────────────────── -->
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb small mb-2">
+    <li class="breadcrumb-item">
+      <a href="{{ url_for('reactions.list_view') }}" class="text-decoration-none">{{ _("Reazioni") }}</a>
+    </li>
+    <li class="breadcrumb-item active">
+      <code class="text-body">{{ reaction.display_code }}</code>
+      {% if is_draft %}<span class="badge text-bg-warning ms-1">{{ _("BOZZA") }}</span>{% endif %}
+    </li>
+  </ol>
+</nav>
+
+{% if is_draft %}
+<div class="alert alert-warning d-flex align-items-center gap-2">
+  <i data-lucide="edit"></i>
+  <div>
+    <strong>{{ _("Stai modificando una bozza.") }}</strong>
+    {{ _("Le modifiche non sono visibili agli altri finché non premi 'Pubblica' in fondo alla pagina.") }}
+  </div>
+</div>
+{% else %}
+{# Published reaction → read-only view with role-aware action buttons. #}
+<div class="card mb-3 border-0 bg-body-tertiary">
+  <div class="card-body py-2 d-flex flex-wrap align-items-center justify-content-between gap-2">
+    <span class="small text-muted">
+      <i data-lucide="eye" style="width:14px;height:14px"></i>
+      {{ _("Visualizzazione: solo lettura.") }}
+      {% if not current_user.can_edit_reactions %}
+        {{ _("Solo i supervisori possono modificare i template.") }}
+      {% endif %}
+    </span>
+    <div class="d-flex flex-wrap gap-2">
+      <form method="post" action="{{ url_for('runs.create_from_template', reaction_id=reaction.id) }}"
+            class="d-inline">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-sm btn-success">
+          <i data-lucide="play" style="width:14px;height:14px"></i>
+          {{ _("Esegui run") }}
+        </button>
+      </form>
+      {% if current_user.can_edit_reactions and reaction.is_active %}
+        <form method="post" action="{{ url_for('reactions.edit', reaction_id=reaction.id) }}" class="d-inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-sm btn-outline-primary">
+            <i data-lucide="pencil" style="width:14px;height:14px"></i>
+            {{ _("Modifica") }}
+          </button>
+        </form>
+        <form method="post" action="{{ url_for('reactions.duplicate', reaction_id=reaction.id) }}" class="d-inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-sm btn-outline-secondary">
+            <i data-lucide="copy" style="width:14px;height:14px"></i>
+            {{ _("Duplica") }}
+          </button>
+        </form>
+        {% if reaction.template_code_base %}
+          {% set sibling_count = reaction.runs|length if reaction.runs else 0 %}
+          <a href="{{ url_for('reactions.versions', reaction_id=reaction.id) }}"
+             class="btn btn-sm btn-outline-secondary">
+            <i data-lucide="history" style="width:14px;height:14px"></i>
+            {{ _("Versioni") }}
+            {% if reaction.version_number and reaction.version_number > 1 %}
+              <span class="badge text-bg-light ms-1">v{{ reaction.version_number }}</span>
+            {% endif %}
+          </a>
+        {% endif %}
+        <form method="post" action="{{ url_for('reactions.deactivate', reaction_id=reaction.id) }}"
+              class="d-inline"
+              onsubmit="return confirm('{{ _('Disattivare questa reazione?') }}')">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-sm btn-outline-danger">
+            <i data-lucide="trash-2" style="width:14px;height:14px"></i>
+            {{ _("Disattiva") }}
+          </button>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% if not reaction.is_active %}
+<div class="alert alert-secondary d-flex justify-content-between align-items-center">
+  <span><i data-lucide="archive"></i> {{ _("Reazione disattivata.") }}</span>
+  <form method="post" action="{{ url_for('reactions.reactivate', reaction_id=reaction.id) }}" class="d-inline">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="btn btn-sm btn-outline-secondary">{{ _("Riattiva") }}</button>
+  </form>
+</div>
+{% endif %}
+
+{# All scalar template fields are gathered into a single form that posts to
+   /reactions/<id>/header on save. While the user is editing, intermediate
+   changes don't auto-save: the user must click "Salva" to commit them. #}
+<form method="post" action="{{ url_for('reactions.update_header', reaction_id=reaction.id) }}"
+      id="reaction-header-form">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+<!-- ─── Card 1: Header (codice template, titolo, descrizione, condizioni) ─── -->
+<div class="card mb-3">
+  <div class="card-body">
+
+    {# Riga 1: codice template + titolo #}
+    <div class="row g-3 mb-3">
+      <div class="col-md-3">
+        <label class="form-label small text-muted mb-1">
+          {{ _("Codice template") }}
+          {% if is_draft %}<span class="text-danger">*</span>{% endif %}
+        </label>
+        {% if is_draft %}
+          <input type="text" name="template_code"
+                 class="form-control font-monospace text-uppercase auto-save-field"
+                 maxlength="8"
+                 pattern="[A-Za-z0-9-]{1,8}"
+                 value="{{ reaction.template_code_base or '' }}"
+                 placeholder="es. MD600B"
+                 required
+                 data-field-name="template_code">
+          <small class="text-muted">{{ _("A-Z, 0-9, trattini. Max 8 caratteri. Nessun punto: la versione (.1, .2, ...) viene aggiunta automaticamente al salvataggio.") }}</small>
+        {% else %}
+          <div class="font-monospace fs-5">{{ reaction.template_code or "—" }}</div>
+          {% if reaction.template_code_base and reaction.template_code != reaction.template_code_base %}
+            <small class="text-muted">{{ _("Famiglia") }} <code>{{ reaction.template_code_base }}</code></small>
+          {% endif %}
+        {% endif %}
+      </div>
+      <div class="col-md-9">
+        <label class="form-label small text-muted mb-1">
+          {{ _("Titolo") }} {% if is_draft %}<span class="text-danger">*</span>{% endif %}
+        </label>
+        {% if is_draft %}
+          <input type="text" name="title" class="form-control fw-semibold auto-save-field"
+                 value="{{ reaction.title }}"
+                 placeholder="{{ _('es. Suzuki coupling on aryl bromide') }}"
+                 required data-field-name="title">
+        {% else %}
+          <div class="fs-5 fw-semibold">{{ reaction.title }}</div>
+        {% endif %}
+      </div>
+    </div>
+
+    {# Descrizione #}
+    <div class="mb-3">
+      <label class="form-label small text-muted mb-1">{{ _("Descrizione / razionale") }}</label>
+      {% if is_draft %}
+        <textarea name="description" class="form-control auto-save-field" rows="2"
+                  placeholder="{{ _('breve scopo della reazione') }}" data-field-name="description">{{ reaction.description or '' }}</textarea>
+      {% elif reaction.description %}
+        <p class="mb-0" style="white-space: pre-wrap">{{ reaction.description }}</p>
+      {% else %}
+        <p class="text-muted mb-0">—</p>
+      {% endif %}
+    </div>
+
+    {# Condizioni #}
+    <div class="row g-2">
+      <div class="col-sm-3">
+        <label class="form-label small text-muted mb-1">{{ _("Temp. (°C)") }}</label>
+        {% if is_draft %}
+          <input type="number" step="0.1" name="temperature_c"
+                 class="form-control form-control-sm auto-save-field"
+                 value="{{ reaction.temperature_c if reaction.temperature_c is not none else '' }}" data-field-name="temperature_c">
+        {% else %}
+          <div class="font-monospace">{{ reaction.temperature_c if reaction.temperature_c is not none else '—' }}</div>
+        {% endif %}
+      </div>
+      <div class="col-sm-3">
+        <label class="form-label small text-muted mb-1">{{ _("Durata (h)") }}</label>
+        {% if is_draft %}
+          <input type="number" step="0.1" min="0" name="duration_hours"
+                 class="form-control form-control-sm auto-save-field"
+                 value="{{ reaction.duration_hours if reaction.duration_hours is not none else '' }}" data-field-name="duration_hours">
+        {% else %}
+          <div class="font-monospace">{{ reaction.duration_hours if reaction.duration_hours is not none else '—' }}</div>
+        {% endif %}
+      </div>
+      <div class="col-sm-3">
+        <label class="form-label small text-muted mb-1">{{ _("Atmosfera") }}</label>
+        {% if is_draft %}
+          <select name="atmosphere" class="form-select form-select-sm auto-save-field" data-field-name="atmosphere">
+            <option value="" {% if not reaction.atmosphere %}selected{% endif %}>—</option>
+            {% for v, lbl in [('air', _('aria')), ('N2', 'N₂'), ('Ar', 'Ar'),
+                              ('vacuum', _('vuoto')), ('H2', 'H₂'), ('O2', 'O₂')] %}
+            <option value="{{ v }}" {% if reaction.atmosphere == v %}selected{% endif %}>{{ lbl }}</option>
+            {% endfor %}
+          </select>
+        {% else %}
+          {% set atm_label = {'air': _('aria'), 'N2': 'N₂', 'Ar': 'Ar',
+                              'vacuum': _('vuoto'), 'H2': 'H₂', 'O2': 'O₂'} %}
+          <div>{{ atm_label.get(reaction.atmosphere, '—') if reaction.atmosphere else '—' }}</div>
+        {% endif %}
+      </div>
+      <div class="col-sm-3">
+        <label class="form-label small text-muted mb-1">{{ _("Pressione (bar)") }}</label>
+        {% if is_draft %}
+          <input type="number" step="0.1" min="0" name="pressure_bar"
+                 class="form-control form-control-sm auto-save-field"
+                 value="{{ reaction.pressure_bar if reaction.pressure_bar is not none else '' }}" data-field-name="pressure_bar">
+        {% else %}
+          <div class="font-monospace">{{ reaction.pressure_bar if reaction.pressure_bar is not none else '—' }}</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+</form>{# /reaction-header-form — closed before the components card so the next card's
+        modals don't end up nested inside the form #}
+
+<!-- ─── Card 2: Componenti ────────────────────────────────────────────── -->
+<div class="card mb-3">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <strong>{{ _("Componenti") }}</strong>
+    {% if is_draft %}
+    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addComponentModal">
+      <i data-lucide="plus"></i> {{ _("Aggiungi componente") }}
+    </button>
+    {% endif %}
+  </div>
+  <div id="components-table">
+    {% include "reactions/_components_table.html" %}
+  </div>
+</div>
+
+<!-- ─── Card 3: Schema ────────────────────────────────────────────────── -->
+{% include "reactions/_scheme_card.html" %}
+
+<!-- ─── Card 4: Check list reazione ───────────────────────────────────── -->
+<div class="card mb-3">
+  <div class="card-header">
+    <strong>{{ _("Check list") }}</strong>
+  </div>
+  <div class="card-body">
+    {% with items=reaction.checklist_items, parent_kind="reaction",
+            parent_id=reaction.id, can_edit=is_draft %}
+      {% include "reactions/_checklist.html" %}
+    {% endwith %}
+  </div>
+</div>
+
+<!-- ─── Card 5: Procedimento ──────────────────────────────────────────── -->
+<div class="card mb-3">
+  <div class="card-header">
+    <strong>{{ _("Procedimento") }}</strong>
+  </div>
+  <div class="card-body">
+    {% if is_draft %}
+    {# Belongs to the header form #}
+    <textarea name="procedure" form="reaction-header-form"
+              class="form-control auto-save-field" rows="4"
+              placeholder="{{ _('es. Sciogliere il SM in DCM anidro sotto Ar, raffreddare a 0 °C, aggiungere il reagente goccia a goccia, lasciare 12 h a temperatura ambiente.') }}" data-field-name="procedure">{{ reaction.procedure or "" }}</textarea>
+    {% elif reaction.procedure %}
+    <p class="mb-0" style="white-space: pre-wrap">{{ reaction.procedure }}</p>
+    {% else %}
+    <p class="text-muted mb-0">—</p>
+    {% endif %}
+  </div>
+</div>
+
+<!-- ─── Card 6: Workup / Estrazioni / Purificazioni ───────────────────── -->
+<div class="card mb-3">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <div>
+      <strong>{{ _("Workup / Estrazioni / Purificazioni") }}</strong>
+    </div>
+    {% if is_draft %}
+    <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addStepModal">
+      <i data-lucide="plus"></i> {{ _("Aggiungi passo") }}
+    </button>
+    {% endif %}
+  </div>
+  <div class="card-body">
+    {% if reaction.steps %}
+      {% for step in reaction.steps %}
+        {% include "reactions/_step_card.html" %}
+      {% endfor %}
+    {% else %}
+      <p class="text-muted text-center py-3 mb-0">
+        {{ _("Nessun passo. Aggiungi un workup, un'estrazione, o una purificazione.") }}
+      </p>
+    {% endif %}
+  </div>
+</div>
+
+<!-- ─── Card 7: Fonte e note ──────────────────────────────────────────── -->
+<div class="card mb-3">
+  <div class="card-body">
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label small text-muted mb-1">{{ _("Fonte / riferimento") }}</label>
+        {% if is_draft %}
+          <input type="text" name="source" form="reaction-header-form"
+                 class="form-control form-control-sm auto-save-field"
+                 value="{{ reaction.source or '' }}"
+                 placeholder="DOI, paper, SOP interno…" data-field-name="source">
+        {% elif reaction.source %}
+          <p class="mb-0">{{ reaction.source }}</p>
+        {% else %}
+          <p class="text-muted mb-0">—</p>
+        {% endif %}
+      </div>
+      <div class="col-md-6">
+        <label class="form-label small text-muted mb-1">{{ _("Note") }}</label>
+        {% if is_draft %}
+          <textarea name="notes" form="reaction-header-form"
+                    class="form-control form-control-sm auto-save-field" rows="1" data-field-name="notes">{{ reaction.notes or '' }}</textarea>
+        {% elif reaction.notes %}
+          <p class="mb-0" style="white-space: pre-wrap">{{ reaction.notes }}</p>
+        {% else %}
+          <p class="text-muted mb-0">—</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Card 8: Statistiche aggregate (Settimana 6 patch 6) ──────────── -->
+{% if stats and stats.has_data %}
+<div class="card mb-3">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <strong>
+      <i data-lucide="bar-chart-2" style="width:16px;height:16px"></i>
+      {{ _("Statistiche template") }}
+      <span class="text-muted small ms-2">
+        ({{ _("%(n)d run completati", n=stats.n_runs) }})
+      </span>
+    </strong>
+    <a href="{{ url_for('reactions.stats', reaction_id=reaction.id) }}"
+       class="btn btn-sm btn-outline-primary">
+      {{ _("Dettagli") }}
+    </a>
+  </div>
+  <div class="card-body">
+    <div class="row g-3">
+      {# €/g cumulativo: average + last #}
+      <div class="col-md-4">
+        <div class="text-muted small mb-1">{{ _("Costo medio") }} ({{ currency_glyph() }}/g)</div>
+        <div class="fs-5 font-monospace">
+          {% if stats.avg_cost_per_g is not none %}
+            {{ stats.avg_cost_per_g|currency }}/g
+          {% else %}—{% endif %}
+        </div>
+        <div class="text-muted small">
+          {% if stats.min_cost_per_g is not none and stats.max_cost_per_g is not none and stats.n_runs_with_cost > 1 %}
+            {{ _("range:") }} {{ stats.min_cost_per_g|currency }} – {{ "%.2f"|format(stats.max_cost_per_g) }}/g
+          {% endif %}
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="text-muted small mb-1">{{ _("Costo medio per run") }}</div>
+        <div class="fs-5 font-monospace">
+          {% if stats.avg_cost_eur is not none %}
+            {{ stats.avg_cost_eur|currency }}
+          {% else %}—{% endif %}
+        </div>
+        <div class="text-muted small">
+          {% if stats.avg_yield_percent is not none %}
+            {{ _("resa media:") }} {{ "%.1f"|format(stats.avg_yield_percent) }}%
+          {% endif %}
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="text-muted small mb-1">{{ _("Ultimo run") }}</div>
+        <div class="fs-5 font-monospace">
+          {% if stats.last_run %}
+            <a href="{{ url_for('runs.detail', run_id=stats.last_run.run_id) }}"
+               class="text-decoration-none">
+              {{ stats.last_run.run_code }}
+            </a>
+          {% else %}—{% endif %}
+        </div>
+        <div class="text-muted small">
+          {% if stats.last_run %}
+            {{ stats.last_run.cost_eur|currency }}
+            {% if stats.last_run.cost_per_g is not none %}
+              · {{ stats.last_run.cost_per_g|currency }}/g
+            {% endif %}
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% if sparkline_svg %}
+    <div class="mt-3">
+      <div class="text-muted small mb-1">
+        {{ _("Trend") }} {{ currency_glyph() }}/g {{ _("nel tempo (run cronologici)") }}
+      </div>
+      {{ sparkline_svg|safe }}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+<!-- ─── Card: Commenti (Settimana 6 patch 9) ─────────────────────── -->
+<div class="card mb-3">
+  <div class="card-header">
+    <strong>
+      <i data-lucide="message-circle" style="width:16px;height:16px"></i>
+      {{ _("Commenti") }}
+      {% if notes_for_entity %}
+      <span class="badge text-bg-secondary ms-2">{{ notes_for_entity|length }}</span>
+      {% endif %}
+    </strong>
+  </div>
+  <div class="card-body">
+    {% with notes=notes_for_entity, entity_type='reaction', entity_id=reaction.id %}
+      {% include "notes/_thread.html" %}
+    {% endwith %}
+  </div>
+</div>
+
+<!-- ─── Card: Allegati (Settimana 6 patch 10) ────────────────────── -->
+<div class="card mb-3">
+  <div class="card-header">
+    <strong>
+      <i data-lucide="paperclip" style="width:16px;height:16px"></i>
+      {{ _("Allegati") }}
+      {% if attachments_for_entity %}
+      <span class="badge text-bg-secondary ms-2">{{ attachments_for_entity|length }}</span>
+      {% endif %}
+    </strong>
+    <small class="text-muted ms-2">{{ _("schede tecniche, protocolli, riferimenti") }}</small>
+  </div>
+  <div class="card-body">
+    {% with attachments=attachments_for_entity, entity_type='reaction', entity_id=reaction.id %}
+      {% include "attachments/_list.html" %}
+    {% endwith %}
+  </div>
+</div>
+
+<!-- ─── Action bar in fondo: Salva / Annulla / Modifica / Disattiva ───── -->
+<div class="d-flex justify-content-between align-items-center mb-4 mt-4">
+  <div class="text-muted small">
+    {{ _("Creata") }}: {{ reaction.created_at.strftime('%Y-%m-%d %H:%M') }}
+    {% if reaction.created_by %} — {{ reaction.created_by.operator_code }}{% endif %}
+    &nbsp;·&nbsp;
+    {{ _("Aggiornata") }}: {{ reaction.updated_at.strftime('%Y-%m-%d %H:%M') }}
+  </div>
+  <div class="d-flex gap-2">
+    {% if is_draft %}
+      <form method="post"
+            action="{{ url_for('reactions.cancel_draft', reaction_id=reaction.id) }}"
+            class="d-inline"
+            onsubmit="return confirm('{{ _('Tutte le modifiche non salvate andranno perse. Procedere?') }}');">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-outline-secondary">
+          <i data-lucide="x"></i> {{ _("Annulla") }}
+        </button>
+      </form>
+      <button type="submit" form="reaction-header-form"
+              formaction="{{ url_for('reactions.save_draft', reaction_id=reaction.id) }}"
+              class="btn btn-primary">
+        <i data-lucide="upload"></i> {{ _("Pubblica") }}
+      </button>
+    {% else %}
+      <form method="post"
+            action="{{ url_for('reactions.edit', reaction_id=reaction.id) }}"
+            class="d-inline">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-primary">
+          <i data-lucide="edit"></i> {{ _("Modifica") }}
+        </button>
+      </form>
+      {% if reaction.is_active %}
+      <form method="post"
+            action="{{ url_for('reactions.deactivate', reaction_id=reaction.id) }}"
+            onsubmit="return confirm('{{ _('Disattivare questa reazione?') }}');">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-outline-danger">
+          <i data-lucide="archive"></i> {{ _("Disattiva") }}
+        </button>
+      </form>
+      {% endif %}
+    {% endif %}
+  </div>
+</div>
+
+{% if is_draft %}
+<!-- ─── Modal: aggiungi componente ────────────────────────────────────── -->
+<div class="modal fade" id="addComponentModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" action="{{ url_for('reactions.add_component', reaction_id=reaction.id) }}"
+            hx-post="{{ url_for('reactions.add_component', reaction_id=reaction.id) }}"
+            hx-target="#components-table"
+            hx-swap="innerHTML"
+            hx-on::after-request="if(event.detail.successful){bootstrap.Modal.getInstance(this.closest('.modal')).hide();this.reset();}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="modal-header">
+          <h5 class="modal-title">{{ _("Aggiungi componente") }}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">{{ _("Tipo di componente") }}</label>
+            <div class="btn-group w-100" role="group" aria-label="Tipo">
+              <input type="radio" class="btn-check"
+                     name="component_kind" id="kind-substance"
+                     value="substance" checked
+                     onchange="document.getElementById('substance-picker-wrap').style.display='';document.getElementById('mixture-picker-wrap').style.display='none';">
+              <label class="btn btn-outline-primary" for="kind-substance">
+                <i data-lucide="flask-conical" style="width:14px;height:14px"></i>
+                {{ _("Sostanza pura") }}
+              </label>
+              <input type="radio" class="btn-check"
+                     name="component_kind" id="kind-mixture"
+                     value="mixture"
+                     onchange="document.getElementById('substance-picker-wrap').style.display='none';document.getElementById('mixture-picker-wrap').style.display='';">
+              <label class="btn btn-outline-primary" for="kind-mixture">
+                <i data-lucide="beaker" style="width:14px;height:14px"></i>
+                {{ _("Miscela (soluzione)") }}
+              </label>
+            </div>
+          </div>
+
+          <div class="mb-3" id="substance-picker-wrap">
+            <label class="form-label">{{ _("Sostanza") }}</label>
+            <select name="substance_id" class="form-select">
+              <option value="">{{ _("Seleziona…") }}</option>
+              {% for sub in substances_for_picker() %}
+              <option value="{{ sub.id }}">
+                {{ sub.name }}{% if sub.cas_number %} ({{ sub.cas_number }}){% endif %}
+              </option>
+              {% endfor %}
+            </select>
+            <small class="text-muted">{{ _("Solo sostanze. I lotti specifici si scelgono al Run.") }}</small>
+          </div>
+
+          <div class="mb-3" id="mixture-picker-wrap" style="display:none">
+            <label class="form-label">{{ _("Miscela") }}</label>
+            <select name="mixture_id" class="form-select">
+              <option value="">{{ _("Seleziona…") }}</option>
+              {% for m in mixtures_for_picker() %}
+              <option value="{{ m.id }}">{{ m.display_label }}</option>
+              {% endfor %}
+            </select>
+            <small class="text-muted">
+              {{ _("es. 'HCl 1N': il sistema calcolerà le moli dalla concentrazione × volume.") }}
+            </small>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">{{ _("Ruolo") }}</label>
+            <select name="role" class="form-select" required>
+              <option value="starting_material">{{ _("Materiale di partenza (limitante)") }}</option>
+              <option value="reactant">{{ _("Reattivo") }}</option>
+              <option value="reagent" selected>{{ _("Reagente") }}</option>
+              <option value="catalyst">{{ _("Catalizzatore") }}</option>
+              <option value="ligand">{{ _("Legante") }}</option>
+              <option value="base">{{ _("Base") }}</option>
+              <option value="acid">{{ _("Acido") }}</option>
+              <option value="oxidant">{{ _("Ossidante") }}</option>
+              <option value="reductant">{{ _("Riducente") }}</option>
+              <option value="solvent">{{ _("Solvente") }}</option>
+              <option value="additive">{{ _("Additivo") }}</option>
+              <option value="internal_standard">{{ _("Standard interno") }}</option>
+              <option value="product">{{ _("Prodotto") }}</option>
+              <option value="byproduct">{{ _("Sottoprodotto") }}</option>
+            </select>
+          </div>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">{{ _("Equivalenti") }}</label>
+              <input type="number" name="equivalents" class="form-control"
+                     step="0.001" min="0" placeholder="es. 1.5">
+              <small class="text-muted">{{ _("Per i ruoli non-solventi") }}</small>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">{{ _("Concentrazione (M)") }}</label>
+              <input type="number" name="concentration_M" class="form-control"
+                     step="0.001" min="0" placeholder="es. 0.1">
+              <small class="text-muted">{{ _("Solo per i solventi") }}</small>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-link" data-bs-dismiss="modal">{{ _("Annulla") }}</button>
+          <button type="submit" class="btn btn-primary">{{ _("Aggiungi componente") }}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ─── Modal: aggiungi passo workup ──────────────────────────────────── -->
+<div class="modal fade" id="addStepModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" action="{{ url_for('reactions.add_step', reaction_id=reaction.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="modal-header">
+          <h5 class="modal-title">{{ _("Nuovo passo") }}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">{{ _("Titolo") }}</label>
+            <input type="text" name="title" class="form-control" required
+                   placeholder="{{ _('es. Workup acquoso, Cromatografia su silice') }}">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">{{ _("Tipo") }}</label>
+            <select name="kind" class="form-select">
+              <option value="workup" selected>{{ _("Workup") }}</option>
+              <option value="extraction">{{ _("Estrazione") }}</option>
+              <option value="purification">{{ _("Purificazione") }}</option>
+              <option value="analysis">{{ _("Analisi") }}</option>
+              <option value="other">{{ _("Altro") }}</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-link" data-bs-dismiss="modal">{{ _("Annulla") }}</button>
+          <button type="submit" class="btn btn-primary">{{ _("Crea passo") }}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% if is_draft %}
+{# Auto-save header fields on blur or Enter, so opening a modal (e.g.
+   "Aggiungi componente") doesn't lose what the user has typed. #}
+<script>
+(function() {
+  const fields = document.querySelectorAll('.auto-save-field');
+  const csrf = document.querySelector('input[name="csrf_token"]')?.value || '';
+  const reactionId = {{ reaction.id }};
+  const url = '/reactions/' + reactionId + '/field';
+
+  function save(input) {
+    const fieldName = input.dataset.fieldName;
+    if (!fieldName) return;
+    const fd = new FormData();
+    fd.append('csrf_token', csrf);
+    fd.append('field', fieldName);
+    fd.append(fieldName, input.value);
+    fetch(url, {
+      method: 'POST',
+      body: fd,
+      headers: { 'HX-Request': 'true' },
+    }).then(r => {
+      if (r.ok) {
+        input.classList.add('htmx-just-saved');
+        setTimeout(() => input.classList.remove('htmx-just-saved'), 600);
+      }
+    }).catch(() => {});
+  }
+
+  fields.forEach(function (input) {
+    let lastSaved = input.value;
+    input.addEventListener('blur', function () {
+      if (input.value !== lastSaved) {
+        lastSaved = input.value;
+        save(input);
+      }
+    });
+    if (input.tagName === 'INPUT' && input.type !== 'textarea') {
+      input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' && input.tagName !== 'TEXTAREA') {
+          e.preventDefault();
+          input.blur();
+        }
+      });
+    }
+    // <select> fires change instead of blur reliably
+    if (input.tagName === 'SELECT') {
+      input.addEventListener('change', function () {
+        if (input.value !== lastSaved) {
+          lastSaved = input.value;
+          save(input);
+        }
+      });
+    }
+  });
+})();
+
+// Step-level fields (procedure of each workup) — different endpoint
+// per step (/reactions/steps/<id>/edit), debounced + saved on
+// pagehide via sendBeacon so closing the page doesn't lose data.
+//
+// The setup is idempotent (each field is initialized at most once)
+// so it's safe to re-run after HTMX swaps a step card in.
+function initStepProcedureFields() {
+  const csrf = document.querySelector('input[name="csrf_token"]')?.value || '';
+  const fields = document.querySelectorAll('.step-procedure-field');
+  if (!fields.length) return;
+
+  function buildBody(input) {
+    const fd = new FormData();
+    fd.append('csrf_token', csrf);
+    fd.append('field', input.dataset.fieldName);
+    fd.append('value', input.value);
+    return fd;
+  }
+
+  function save(input) {
+    fetch(input.dataset.saveUrl, {
+      method: 'POST',
+      body: buildBody(input),
+      headers: { 'HX-Request': 'true' },
+    }).then(r => {
+      if (r.ok) {
+        input.classList.add('htmx-just-saved');
+        setTimeout(() => input.classList.remove('htmx-just-saved'), 600);
+      }
+    }).catch(() => {});
+  }
+
+  fields.forEach(function (input) {
+    if (input.dataset.autoSaveBound === '1') return;  // idempotent
+    input.dataset.autoSaveBound = '1';
+
+    let lastSaved = input.value;
+    let timer = null;
+
+    function schedule() {
+      clearTimeout(timer);
+      timer = setTimeout(function () {
+        if (input.value !== lastSaved) {
+          lastSaved = input.value;
+          save(input);
+        }
+      }, 800);
+    }
+
+    // Debounced save while typing
+    input.addEventListener('input', schedule);
+    // Immediate save on blur
+    input.addEventListener('blur', function () {
+      clearTimeout(timer);
+      if (input.value !== lastSaved) {
+        lastSaved = input.value;
+        save(input);
+      }
+    });
+    // Synchronous save during page unload via sendBeacon — the only
+    // fetch-like API that reliably completes when the tab is closing
+    // or the user is navigating away.
+    window.addEventListener('pagehide', function () {
+      if (input.value !== lastSaved) {
+        lastSaved = input.value;
+        if (navigator.sendBeacon) {
+          navigator.sendBeacon(input.dataset.saveUrl, buildBody(input));
+        }
+      }
+    });
+  });
+}
+initStepProcedureFields();
+// Re-init after HTMX swaps a step card in
+document.body.addEventListener('htmx:afterSwap', initStepProcedureFields);
+</script>
+{% endif %}
+
+{% endblock %}

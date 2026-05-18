@@ -1,0 +1,23 @@
+{# A single run checklist item, ready to be HTMX-swapped in place. #}
+<li class="d-flex align-items-center gap-2 mb-1"
+    id="run-chk-item-{{ item.id }}">
+  {% if run.is_completed %}
+    <input type="checkbox" class="form-check-input"
+           {% if item.is_done %}checked{% endif %} disabled>
+  {% else %}
+    <form method="post"
+          action="{{ url_for('runs.toggle_checklist', run_id=run.id, cid=item.id) }}"
+          hx-post="{{ url_for('runs.toggle_checklist', run_id=run.id, cid=item.id) }}"
+          hx-target="#run-chk-item-{{ item.id }}"
+          hx-swap="outerHTML"
+          class="d-inline-flex align-items-center mb-0">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="checkbox" class="form-check-input"
+             {% if item.is_done %}checked{% endif %}
+             onchange="this.form.requestSubmit()">
+    </form>
+  {% endif %}
+  <span class="{% if item.is_done %}text-decoration-line-through text-muted{% endif %}">
+    {{ item.text }}
+  </span>
+</li>

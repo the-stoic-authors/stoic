@@ -1,0 +1,364 @@
+{% extends "base.html" %}
+{% block title %}{{ substance.display_name }}{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-start mb-4">
+  <div>
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb small mb-1">
+        <li class="breadcrumb-item">
+          <a href="{{ url_for('substances.list_view') }}" class="text-decoration-none">
+            {{ _("Sostanze") }}
+          </a>
+        </li>
+        <li class="breadcrumb-item active">{{ substance.name }}</li>
+      </ol>
+    </nav>
+    <h1>{{ substance.name }}</h1>
+    {% if substance.iupac_name and substance.iupac_name != substance.name %}
+      <p class="text-muted mb-0"><em>{{ substance.iupac_name }}</em></p>
+    {% endif %}
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('substances.sds', substance_id=substance.id) }}"
+       class="btn btn-outline-secondary" target="_blank">
+      <i data-lucide="printer"></i> {{ _("SDS") }}
+    </a>
+    <a href="{{ url_for('substances.edit', substance_id=substance.id) }}" class="btn btn-primary">
+      <i data-lucide="edit"></i> {{ _("Modifica") }}
+    </a>
+  </div>
+</div>
+
+{% if not substance.is_active %}
+<div class="alert alert-warning">
+  <i data-lucide="archive"></i>
+  {{ _("Questa sostanza è disattivata. Non può essere usata in nuove reazioni, ma i run storici la mantengono visibile.") }}
+  <form method="post" action="{{ url_for('substances.reactivate', substance_id=substance.id) }}" class="d-inline ms-2">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="btn btn-sm btn-outline-secondary">{{ _("Riattiva") }}</button>
+  </form>
+</div>
+{% endif %}
+
+{% if substance.smiles %}
+<div class="card mb-3">
+  <div class="card-body text-center py-3">
+    <canvas data-smiles="{{ substance.smiles }}"
+            data-width="320"
+            data-height="200"
+            class="substance-structure"></canvas>
+  </div>
+</div>
+{% endif %}
+
+<div class="row g-3">
+  <!-- ─── Identification ───────────────────────────────────────────────── -->
+  <div class="col-12 col-lg-6">
+    <div class="card h-100">
+      <div class="card-header"><strong>{{ _("Identificazione") }}</strong></div>
+      <div class="card-body">
+        <dl class="row mb-0 small">
+          <dt class="col-sm-4">{{ _("CAS") }}</dt>
+          <dd class="col-sm-8"><code>{{ substance.cas_number or "—" }}</code></dd>
+
+          <dt class="col-sm-4">{{ _("Formula") }}</dt>
+          <dd class="col-sm-8"><code>{{ substance.molecular_formula or "—" }}</code></dd>
+
+          <dt class="col-sm-4">{{ _("MW") }}</dt>
+          <dd class="col-sm-8">
+            {% if substance.molecular_weight %}{{ "%.3f"|format(substance.molecular_weight) }} g/mol
+            {% else %}—{% endif %}
+          </dd>
+
+          <dt class="col-sm-4">{{ _("SMILES") }}</dt>
+          <dd class="col-sm-8 text-break"><code class="small">{{ substance.smiles or "—" }}</code></dd>
+
+          <dt class="col-sm-4">{{ _("InChI") }}</dt>
+          <dd class="col-sm-8 text-break"><code class="small">{{ substance.inchi or "—" }}</code></dd>
+
+          <dt class="col-sm-4">{{ _("InChIKey") }}</dt>
+          <dd class="col-sm-8"><code class="small">{{ substance.inchi_key or "—" }}</code></dd>
+
+          {% if substance.pubchem_cid %}
+          <dt class="col-sm-4">PubChem CID</dt>
+          <dd class="col-sm-8">
+            <a href="https://pubchem.ncbi.nlm.nih.gov/compound/{{ substance.pubchem_cid }}"
+               target="_blank" rel="noopener">
+              {{ substance.pubchem_cid }} <i data-lucide="external-link" style="width:12px;height:12px"></i>
+            </a>
+          </dd>
+          {% endif %}
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Properties ───────────────────────────────────────────────────── -->
+  <div class="col-12 col-lg-6">
+    <div class="card h-100">
+      <div class="card-header"><strong>{{ _("Proprietà fisiche") }}</strong></div>
+      <div class="card-body">
+        <dl class="row mb-0 small">
+          <dt class="col-sm-4">{{ _("Stato") }}</dt>
+          <dd class="col-sm-8">
+            {% if substance.state == "solid" %}{{ _("solido") }}
+            {% elif substance.state == "liquid" %}{{ _("liquido") }}
+            {% elif substance.state == "gas" %}{{ _("gas") }}
+            {% else %}—{% endif %}
+            {% if substance.is_solvent %}<span class="badge text-bg-info">{{ _("solvente") }}</span>{% endif %}
+          </dd>
+
+          <dt class="col-sm-4">{{ _("Densità") }}</dt>
+          <dd class="col-sm-8">
+            {% if substance.density %}{{ "%.4g"|format(substance.density) }} g/mL
+            {% else %}—{% endif %}
+          </dd>
+
+          <dt class="col-sm-4">{{ _("MP") }}</dt>
+          <dd class="col-sm-8">
+            {% if substance.melting_point_c is not none %}{{ "%.1f"|format(substance.melting_point_c) }} °C
+            {% else %}—{% endif %}
+          </dd>
+
+          <dt class="col-sm-4">{{ _("BP") }}</dt>
+          <dd class="col-sm-8">
+            {% if substance.boiling_point_c is not none %}{{ "%.1f"|format(substance.boiling_point_c) }} °C
+            {% else %}—{% endif %}
+          </dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Safety (GHS) ─────────────────────────────────────────────────── -->
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header"><strong>{{ _("Sicurezza (GHS)") }}</strong></div>
+      <div class="card-body">
+        {% if substance.ghs_pictograms %}
+        <div class="mb-3 d-flex flex-wrap gap-2">
+          {% for code in substance.ghs_pictograms %}
+            <img src="{{ url_for('static', filename='img/ghs/' + code + '.svg') }}"
+                 data-ghs-code="{{ code }}"
+                 alt="{{ code }}" title="{{ code }}" class="ghs-icon">
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <h6 class="text-muted small text-uppercase">{{ _("Frasi H") }}</h6>
+            {% if h_phrases %}
+            <ul class="list-unstyled small">
+              {% for p in h_phrases %}
+              <li class="mb-1">
+                <code class="me-1">{{ p.code }}</code>
+                {% if p.text %}{{ p.text }}{% endif %}
+              </li>
+              {% endfor %}
+            </ul>
+            {% else %}<p class="text-muted small mb-0">—</p>{% endif %}
+          </div>
+          <div class="col-md-6">
+            <h6 class="text-muted small text-uppercase">{{ _("Frasi P") }}</h6>
+            {% if p_phrases %}
+            <ul class="list-unstyled small">
+              {% for p in p_phrases %}
+              <li class="mb-1">
+                <code class="me-1">{{ p.code }}</code>
+                {% if p.text %}{{ p.text }}{% endif %}
+              </li>
+              {% endfor %}
+            </ul>
+            {% else %}<p class="text-muted small mb-0">—</p>{% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Inventory ────────────────────────────────────────────────────── -->
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <strong>{{ _("Lotti in magazzino") }}</strong>
+        <div class="d-flex gap-2">
+          <a href="{{ url_for('orders.new', substance_id=substance.id) }}"
+             class="btn btn-sm btn-outline-primary">
+            <i data-lucide="shopping-cart"></i> {{ _("Pianifica ordine") }}
+          </a>
+          <a href="{{ url_for('inventory.create', substance_id=substance.id) }}" class="btn btn-sm btn-primary">
+            <i data-lucide="plus"></i> {{ _("Aggiungi lotto") }}
+          </a>
+        </div>
+      </div>
+      <div class="card-body p-0">
+        {% if substance.inventory_items %}
+        <div class="table-responsive">
+          <table class="table table-hover mb-0 small">
+            <thead>
+              <tr>
+                <th>{{ _("Lotto") }}</th>
+                <th>{{ _("Fornitore") }}</th>
+                <th>{{ _("Posizione") }}</th>
+                <th class="text-end">{{ _("Iniziale") }}</th>
+                <th class="text-end">{{ _("Residuo") }}</th>
+                <th class="text-end">{{ _("Costo/unità") }}</th>
+                <th>{{ _("Acquistato") }}</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in substance.inventory_items %}
+              <tr {% if not item.is_active %}class="text-muted"{% endif %}>
+                <td>
+                  <code>{{ item.batch_code or '—' }}</code>
+                  {% if not item.is_active %}<span class="badge text-bg-secondary">{{ _("inattivo") }}</span>{% endif %}
+                </td>
+                <td>{{ item.supplier or "—" }}</td>
+                <td>{{ item.location or "—" }}</td>
+                <td class="text-end">{{ item.initial_quantity_display }}</td>
+                <td class="text-end">
+                  {{ item.quantity_display }}
+                  {% if item.percent_remaining is not none %}
+                    <small class="text-muted">({{ "%.0f"|format(item.percent_remaining) }}%)</small>
+                  {% endif %}
+                </td>
+                <td class="text-end">{{ item.cost_per_unit_display }}</td>
+                <td>{{ item.purchased_at.isoformat() if item.purchased_at else "—" }}</td>
+                <td class="text-end">
+                  <a href="{{ url_for('inventory.edit', item_id=item.id) }}" class="btn btn-sm btn-link">
+                    <i data-lucide="edit"></i>
+                  </a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="text-center py-4 text-muted small">
+          {{ _("Nessun lotto in magazzino.") }}
+          <a href="{{ url_for('inventory.create', substance_id=substance.id) }}">
+            {{ _("Aggiungi il primo lotto") }}
+          </a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Low-stock thresholds ─────────────────────────────────────────── -->
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <strong>{{ _("Soglia basso stock") }}</strong>
+        <small class="text-muted ms-2">
+          {{ _("Sotto questa quantità totale la sostanza apparirà negli avvisi della Dashboard.") }}
+        </small>
+      </div>
+      <div class="card-body">
+        <form method="post"
+              action="{{ url_for('substances.update_low_stock', substance_id=substance.id) }}"
+              class="row g-2 align-items-end">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="col-md-4">
+            <label class="form-label small text-muted mb-1">
+              {{ _("Soglia (g) — per solidi") }}
+            </label>
+            <input type="number" step="any" min="0"
+                   class="form-control form-control-sm"
+                   name="low_stock_threshold_g"
+                   value="{{ substance.low_stock_threshold_g if substance.low_stock_threshold_g is not none else '' }}"
+                   placeholder="{{ _('lascia vuoto per nessun avviso') }}">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label small text-muted mb-1">
+              {{ _("Soglia (mL) — per liquidi") }}
+            </label>
+            <input type="number" step="any" min="0"
+                   class="form-control form-control-sm"
+                   name="low_stock_threshold_mL"
+                   value="{{ substance.low_stock_threshold_mL if substance.low_stock_threshold_mL is not none else '' }}"
+                   placeholder="{{ _('lascia vuoto per nessun avviso') }}">
+          </div>
+          <div class="col-md-2">
+            <button type="submit" class="btn btn-primary btn-sm w-100">
+              {{ _("Salva soglie") }}
+            </button>
+          </div>
+          <div class="col-md-2">
+            {% if substance.is_low_stock %}
+              <span class="badge text-bg-warning">{{ _("sotto soglia") }}</span>
+            {% elif substance.low_stock_threshold_g is not none or substance.low_stock_threshold_mL is not none %}
+              <span class="badge text-bg-success">{{ _("ok") }}</span>
+            {% endif %}
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  {% if substance.notes %}
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header"><strong>{{ _("Note") }}</strong></div>
+      <div class="card-body">
+        <p class="mb-0" style="white-space: pre-wrap;">{{ substance.notes }}</p>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+{% if substance.is_active %}
+<!-- ─── Commenti (Settimana 6 patch 9) ───────────────────────────── -->
+<div class="card mb-3">
+  <div class="card-header">
+    <strong>
+      <i data-lucide="message-circle" style="width:16px;height:16px"></i>
+      {{ _("Commenti") }}
+      {% if notes_for_entity %}
+      <span class="badge text-bg-secondary ms-2">{{ notes_for_entity|length }}</span>
+      {% endif %}
+    </strong>
+    <small class="text-muted ms-2">{{ _("avvertenze, precauzioni, osservazioni d'uso") }}</small>
+  </div>
+  <div class="card-body">
+    {% with notes=notes_for_entity, entity_type='substance', entity_id=substance.id %}
+      {% include "notes/_thread.html" %}
+    {% endwith %}
+  </div>
+</div>
+
+<!-- ─── Allegati (Settimana 6 patch 10) ──────────────────────────── -->
+<div class="card mb-3">
+  <div class="card-header">
+    <strong>
+      <i data-lucide="paperclip" style="width:16px;height:16px"></i>
+      {{ _("Allegati") }}
+      {% if attachments_for_entity %}
+      <span class="badge text-bg-secondary ms-2">{{ attachments_for_entity|length }}</span>
+      {% endif %}
+    </strong>
+    <small class="text-muted ms-2">{{ _("scheda di sicurezza, certificato d'analisi") }}</small>
+  </div>
+  <div class="card-body">
+    {% with attachments=attachments_for_entity, entity_type='substance', entity_id=substance.id %}
+      {% include "attachments/_list.html" %}
+    {% endwith %}
+  </div>
+</div>
+
+<div class="mt-4 d-flex justify-content-end">
+  <form method="post" action="{{ url_for('substances.deactivate', substance_id=substance.id) }}"
+        onsubmit="return confirm('{{ _('Disattivare questa sostanza?') }}');">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="btn btn-outline-danger btn-sm">
+      <i data-lucide="archive"></i> {{ _("Disattiva sostanza") }}
+    </button>
+  </form>
+</div>
+{% endif %}
+{% endblock %}

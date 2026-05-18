@@ -1,0 +1,85 @@
+{# Reusable fragment: tbody with prep-consumption rows.
+
+   Renders once in prepare.html on the initial load and again on
+   every HTMX recompute when the operator changes a lot dropdown.
+   The wrapping ``<tbody id="prep-rows">`` is what HTMX swaps via
+   ``hx-target="#prep-rows" hx-swap="outerHTML"``.
+
+   Variables required in context:
+     - `suggestion`   — SuggestionResult
+     - `mixture`      — the target Mixture
+#}
+<tbody id="prep-rows">
+{% for r in suggestion.rows %}
+<tr class="prep-row" data-component-id="{{ r.component_id }}">
+  <td>
+    <strong>{{ r.substance_name }}</strong>
+    <div class="small text-muted">{{ r.role }}</div>
+  </td>
+  <td>
+    {% if r.available_lots %}
+    <select name="consumption_lot_id[]"
+            class="form-select form-select-sm"
+            hx-post="{{ url_for('mixtures.recompute_prep_row', mixture_id=mixture.id) }}"
+            hx-trigger="change"
+            hx-target="#prep-rows"
+            hx-include="[name=target_quantity], [name=target_unit]"
+            hx-vals='{"component_id": "{{ r.component_id }}", "lot_id": ""}'
+            hx-swap="outerHTML">
+      <option value="">— {{ _("nessuno") }} —</option>
+      {% for lot in r.available_lots %}
+      <option value="{{ lot.id }}"
+              {% if lot.id == r.suggested_lot_id %}selected{% endif %}>
+        {{ lot.batch_code }} ({{ "%g"|format(lot.quantity_remaining) }} {{ lot.quantity_unit }}{% if lot.location %} @ {{ lot.location }}{% endif %})
+      </option>
+      {% endfor %}
+    </select>
+    {# Stock concentration hint, shown for solute rows where the
+       stock info was successfully read. Implements the "auto-detect
+       with confirmation on screen" behaviour: the operator sees
+       explicitly which concentration the dilution math is using. #}
+    {% if r.stock_info and r.stock_info.concentration is not none %}
+      <div class="small text-info mt-1">
+        <i data-lucide="info" style="width:12px;height:12px;"></i>
+        {{ _("Stock") }}: <strong>{{ r.stock_info.display_text }}</strong>
+      </div>
+    {% elif r.stock_info and r.stock_info.source == 'pure_substance' %}
+      <div class="small text-muted mt-1">
+        {{ _("Stock") }}: {{ r.stock_info.display_text }}
+      </div>
+    {% endif %}
+    {% else %}
+    <input type="hidden" name="consumption_lot_id[]" value="">
+    <span class="text-warning small">
+      <i data-lucide="alert-triangle" style="width:14px;height:14px;"></i>
+      {{ _("nessun lotto disponibile") }}
+    </span>
+    {% endif %}
+  </td>
+  <td style="max-width: 130px">
+    <input type="number"
+           name="consumption_quantity[]"
+           class="form-control form-control-sm"
+           min="0" step="any"
+           value="{{ '%g'|format(r.suggested_quantity) if r.suggested_quantity is not none else '' }}"
+           placeholder="0">
+  </td>
+  <td style="max-width: 90px">
+    <select name="consumption_unit[]" class="form-select form-select-sm">
+      {% for u in ('mL', 'L', 'g', 'kg') %}
+      <option value="{{ u }}"
+              {% if r.suggested_unit == u %}selected{% endif %}>{{ u }}</option>
+      {% endfor %}
+    </select>
+  </td>
+  <td class="small text-muted">
+    {% if r.available_lots %}
+      {{ "%g"|format(r.available_lots[0].quantity_remaining) }} {{ r.available_lots[0].quantity_unit }}
+    {% else %}
+      —
+    {% endif %}
+  </td>
+</tr>
+{% endfor %}
+</tbody>
+

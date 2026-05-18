@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Ordini") }}{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h1>{{ _("Ordini") }}</h1>
+    <p class="text-muted mb-0">{{ _("%(n)d ordini visualizzati", n=orders|length) }}</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('orders.shopping_list') }}" class="btn btn-outline-primary">
+      <i data-lucide="list-checks"></i> {{ _("Lista della spesa") }}
+    </a>
+    <a href="{{ url_for('orders.new') }}" class="btn btn-primary">
+      <i data-lucide="plus"></i> {{ _("Nuovo ordine") }}
+    </a>
+  </div>
+</div>
+
+{# Filter card #}
+<div class="card mb-3 stoic-sticky-search">
+  <div class="card-body">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-md-4">
+        <label class="form-label small text-muted mb-1">{{ _("Cerca") }}</label>
+        <input type="search" class="form-control form-control-sm"
+               name="q" value="{{ q }}"
+               placeholder="{{ _('sostanza, fornitore, catalogo, riferimento…') }}">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small text-muted mb-1">{{ _("Stato") }}</label>
+        <select name="status" class="form-select form-select-sm">
+          <option value="open" {% if status == 'open' %}selected{% endif %}>
+            {{ _("Aperti") }}
+          </option>
+          <option value="planned" {% if status == 'planned' %}selected{% endif %}>
+            {{ _("Pianificati") }}
+          </option>
+          <option value="ordered" {% if status == 'ordered' %}selected{% endif %}>
+            {{ _("Ordinati") }}
+          </option>
+          <option value="received" {% if status == 'received' %}selected{% endif %}>
+            {{ _("Ricevuti") }}
+          </option>
+          <option value="received_partial" {% if status == 'received_partial' %}selected{% endif %}>
+            {{ _("Parziali") }}
+          </option>
+          <option value="cancelled" {% if status == 'cancelled' %}selected{% endif %}>
+            {{ _("Annullati") }}
+          </option>
+          <option value="all" {% if status == 'all' %}selected{% endif %}>
+            {{ _("Tutti") }}
+          </option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small text-muted mb-1">{{ _("Fornitore") }}</label>
+        <select name="supplier" class="form-select form-select-sm">
+          <option value="">{{ _("Qualsiasi") }}</option>
+          {% for s in suppliers %}
+          <option value="{{ s }}" {% if s == supplier_filter %}selected{% endif %}>{{ s }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small text-muted mb-1">{{ _("Gruppo") }}</label>
+        <select name="group" class="form-select form-select-sm">
+          <option value="">{{ _("Qualsiasi") }}</option>
+          {% for g in groups %}
+          <option value="{{ g.slug }}" {% if g.slug == group_filter %}selected{% endif %}>
+            {{ g.name }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-primary btn-sm w-100">
+          <i data-lucide="search"></i> {{ _("Filtra") }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% if orders %}
+<div class="card stoic-sticky-thead">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0 small">
+      <thead>
+        <tr>
+          <th>{{ _("Sostanza") }}</th>
+          <th>{{ _("Fornitore") }}</th>
+          <th class="text-end">{{ _("Quantità") }}</th>
+          <th class="text-end">{{ _("Costo") }}</th>
+          <th>{{ _("Ordinato il") }}</th>
+          <th>{{ _("Consegna prevista") }}</th>
+          <th>{{ _("Stato") }}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for order in orders %}
+        {% set status_label, status_color = order.status_label_color %}
+        <tr>
+          <td>
+            <a href="{{ url_for('orders.detail', order_id=order.id) }}"
+               class="text-decoration-none fw-semibold">
+              {{ order.substance.name }}
+            </a>
+            {% if order.substance.cas_number %}
+            <div class="text-muted" style="font-size: 0.75rem">{{ order.substance.cas_number }}</div>
+            {% endif %}
+          </td>
+          <td>
+            {{ order.supplier or "—" }}
+            {% if order.catalogue_number %}
+            <div class="text-muted" style="font-size: 0.75rem">{{ order.catalogue_number }}</div>
+            {% endif %}
+          </td>
+          <td class="text-end font-monospace">
+            {{ order.ordered_quantity_display }}
+            {% if order.is_received and order.received_quantity_display != order.ordered_quantity_display %}
+              <div class="text-muted small">
+                ric: {{ order.received_quantity_display }}
+              </div>
+            {% endif %}
+          </td>
+          <td class="text-end font-monospace">
+            {% if order.ordered_total_eur is not none %}{{ order.ordered_total_eur|currency }}
+            {% else %}—{% endif %}
+          </td>
+          <td>{{ order.ordered_at.isoformat() if order.ordered_at else "—" }}</td>
+          <td>
+            {% if order.expected_delivery_date %}
+              {{ order.expected_delivery_date.isoformat() }}
+              {% if order.is_overdue %}
+                <div class="text-danger small">
+                  {{ _("in ritardo di %(d)d gg", d=-order.days_until_delivery) }}
+                </div>
+              {% elif order.days_until_delivery is not none and order.days_until_delivery <= 7 %}
+                <div class="text-warning small">
+                  {{ _("entro %(d)d gg", d=order.days_until_delivery) }}
+                </div>
+              {% endif %}
+            {% else %}—{% endif %}
+          </td>
+          <td>
+            <span class="badge text-bg-{{ status_color }}">{{ _(status_label) }}</span>
+          </td>
+          <td class="text-end">
+            <a href="{{ url_for('orders.detail', order_id=order.id) }}"
+               class="btn btn-sm btn-link p-0" title="{{ _('Apri') }}">
+              <i data-lucide="external-link" style="width:14px;height:14px"></i>
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      {% if total_open_eur > 0 %}
+      <tfoot>
+        <tr class="border-top">
+          <td colspan="3" class="text-end fw-semibold">
+            {{ _("Totale aperti:") }}
+          </td>
+          <td class="text-end font-monospace fw-semibold">
+            {{ total_open_eur|currency }}
+          </td>
+          <td colspan="4"></td>
+        </tr>
+      </tfoot>
+      {% endif %}
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="card">
+  <div class="card-body text-center py-5">
+    <i data-lucide="shopping-cart" class="text-muted mb-3"
+       style="width: 48px; height: 48px;"></i>
+    <p class="text-muted mb-3">
+      {% if q or status not in ('all', 'open') or supplier_filter or group_filter %}
+        {{ _("Nessun ordine corrisponde ai filtri impostati.") }}
+      {% else %}
+        {{ _("Nessun ordine. Pianifica il primo!") }}
+      {% endif %}
+    </p>
+    <a href="{{ url_for('orders.new') }}" class="btn btn-primary">
+      <i data-lucide="plus"></i> {{ _("Nuovo ordine") }}
+    </a>
+  </div>
+</div>
+{% endif %}
+<script>if (window.lucide) lucide.createIcons();</script>
+{% endblock %}

@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Impostazioni") }}{% endblock %}
+
+{% block content %}
+<div class="page-header mb-3">
+  <h1>{{ _("Impostazioni") }}</h1>
+  <p class="text-muted mb-0">{{ _("Configurazione del laboratorio") }}</p>
+</div>
+
+<div class="row g-3">
+
+  {# ── Codice dei Run ── #}
+  <div class="col-md-6">
+    <a href="{{ url_for('settings.run_code') }}"
+       class="card text-decoration-none text-body h-100">
+      <div class="card-body">
+        <div class="d-flex align-items-center gap-3 mb-2">
+          <i data-lucide="hash" style="width:24px;height:24px"></i>
+          <strong>{{ _("Codice dei Run") }}</strong>
+        </div>
+        <p class="text-muted small mb-2">
+          {{ _("Formato e progressività dei codici delle reazioni eseguite (Run).") }}
+        </p>
+        <div class="small">
+          {{ _("Formato attuale:") }} <code>{{ run_code_format }}</code>
+          <br>
+          {{ _("Esempio:") }} <code>{{ run_code_preview }}</code>
+        </div>
+      </div>
+    </a>
+  </div>
+
+  {# ── Codice delle preparazioni (patch 13.3) ── #}
+  <div class="col-md-6">
+    <a href="{{ url_for('settings.prep_code') }}"
+       class="card text-decoration-none text-body h-100">
+      <div class="card-body">
+        <div class="d-flex align-items-center gap-3 mb-2">
+          <i data-lucide="beaker" style="width:24px;height:24px"></i>
+          <strong>{{ _("Codice delle preparazioni") }}</strong>
+        </div>
+        <p class="text-muted small mb-2">
+          {{ _("Formato e progressività dei codici delle miscele preparate.") }}
+        </p>
+        <div class="small">
+          {{ _("Formato attuale:") }} <code>{{ prep_code_format }}</code>
+          <br>
+          {{ _("Esempio:") }} <code>{{ prep_code_preview }}</code>
+        </div>
+      </div>
+    </a>
+  </div>
+
+  {# ── Utenti ── #}
+  <div class="col-md-6">
+    <a href="{{ url_for('settings.users') }}"
+       class="card text-decoration-none text-body h-100">
+      <div class="card-body">
+        <div class="d-flex align-items-center gap-3 mb-2">
+          <i data-lucide="users" style="width:24px;height:24px"></i>
+          <strong>{{ _("Utenti") }}</strong>
+        </div>
+        <p class="text-muted small mb-0">
+          {{ _("Gestisci ruoli e permessi degli utenti.") }}
+        </p>
+      </div>
+    </a>
+  </div>
+
+  {# ── Valuta ── #}
+  <div class="col-md-6">
+    <a href="{{ url_for('settings.currency') }}"
+       class="card text-decoration-none text-body h-100">
+      <div class="card-body">
+        <div class="d-flex align-items-center gap-3 mb-2">
+          <i data-lucide="banknote" style="width:24px;height:24px"></i>
+          <strong>{{ _("Valuta") }}</strong>
+        </div>
+        <p class="text-muted small mb-2">
+          {{ _("Codice ISO e simbolo per la moneta usata in tutti i costi e prezzi.") }}
+        </p>
+        <div class="small">
+          {{ _("Attuale:") }}
+          <code>{{ currency_code }}</code>
+          ({{ currency_glyph(currency_code) }})
+        </div>
+      </div>
+    </a>
+  </div>
+
+  {# ── Audit log ── #}
+  <div class="col-md-6">
+    <a href="{{ url_for('settings.audit_log') }}"
+       class="card text-decoration-none text-body h-100">
+      <div class="card-body">
+        <div class="d-flex align-items-center gap-3 mb-2">
+          <i data-lucide="file-text" style="width:24px;height:24px"></i>
+          <strong>{{ _("Audit log") }}</strong>
+        </div>
+        <p class="text-muted small mb-0">
+          {{ _("Storico di tutti gli eventi tracciati: chi ha fatto cosa, quando.") }}
+        </p>
+      </div>
+    </a>
+  </div>
+
+  {# ── Crittografia e backup (patch 14.0/14.1/14.2/14.3) ── #}
+  <div class="col-md-6">
+    <a href="{{ url_for('settings.backups') }}"
+       class="card text-decoration-none text-body h-100">
+      <div class="card-body">
+        <div class="d-flex align-items-center gap-3 mb-2">
+          <i data-lucide="hard-drive-download" style="width:24px;height:24px"></i>
+          <strong>{{ _("Crittografia e backup") }}</strong>
+        </div>
+        <p class="text-muted small mb-0">
+          {{ _("Cifratura del database, backup automatici notturni, "
+               "configurazione di orario e retention, ripristino.") }}
+        </p>
+      </div>
+    </a>
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,341 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Dashboard") }}{% endblock %}
+
+{% block content %}
+<div class="page-header mb-4">
+  <h1>{{ _("Benvenuto") }}, {{ current_user.full_name }}</h1>
+</div>
+
+{# ─── KPI cards ──────────────────────────────────────────────────── #}
+<div class="row g-3 mb-4">
+  <div class="col-12 col-md-6 col-lg-3">
+    <a href="{{ url_for('substances.list_view') }}"
+       class="text-decoration-none d-block h-100">
+      <div class="kpi-card">
+        <div class="kpi-icon"><i data-lucide="flask-conical"></i></div>
+        <div class="kpi-value">{{ summary.total_substances }}</div>
+        <div class="kpi-label">{{ _("Sostanze") }}</div>
+      </div>
+    </a>
+  </div>
+  <div class="col-12 col-md-6 col-lg-3">
+    <a href="{{ url_for('inventory.list_view') }}"
+       class="text-decoration-none d-block h-100">
+      <div class="kpi-card">
+        <div class="kpi-icon"><i data-lucide="package"></i></div>
+        <div class="kpi-value">{{ summary.total_active_lots }}</div>
+        <div class="kpi-label">
+          {{ _("Lotti attivi") }}
+          {% if summary.total_active_lots_value_eur > 0 %}
+          <div class="small text-muted mt-1">
+            {{ summary.total_active_lots_value_eur|currency(decimals=0) }} {{ _("totali") }}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </a>
+  </div>
+  <div class="col-12 col-md-6 col-lg-3">
+    <a href="{{ url_for('reactions.list_view') }}"
+       class="text-decoration-none d-block h-100">
+      <div class="kpi-card">
+        <div class="kpi-icon"><i data-lucide="arrow-left-right"></i></div>
+        <div class="kpi-value">{{ n_reactions }}</div>
+        <div class="kpi-label">{{ _("Reazioni") }}</div>
+      </div>
+    </a>
+  </div>
+  <div class="col-12 col-md-6 col-lg-3">
+    <a href="{{ url_for('runs.list_view') }}"
+       class="text-decoration-none d-block h-100">
+      <div class="kpi-card">
+        <div class="kpi-icon"><i data-lucide="play-circle"></i></div>
+        <div class="kpi-value">{{ n_runs_completed }}</div>
+        <div class="kpi-label">{{ _("Run completati") }}</div>
+      </div>
+    </a>
+  </div>
+</div>
+
+{# ─── Alerts ─────────────────────────────────────────────────────── #}
+{% if summary.open_orders %}
+<div class="card mb-3">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <strong>
+      <i data-lucide="shopping-cart" style="width:16px;height:16px"></i>
+      {{ _("Ordini in arrivo") }}
+    </strong>
+    <div class="d-flex gap-3 align-items-center">
+      {% if summary.open_orders_total_eur > 0 %}
+      <span class="text-muted small">
+        {{ summary.open_orders_total_eur|currency(decimals=0) }} {{ _("totali") }}
+      </span>
+      {% endif %}
+      <span class="badge text-bg-secondary">{{ summary.open_orders|length }}</span>
+      <a href="{{ url_for('orders.list_view') }}" class="btn btn-sm btn-outline-primary">
+        {{ _("Tutti gli ordini") }}
+      </a>
+    </div>
+  </div>
+  <ul class="list-group list-group-flush">
+    {% for o in summary.open_orders[:5] %}
+    {% set sl, sc = o.status_label_color %}
+    <li class="list-group-item d-flex justify-content-between align-items-center">
+      <div>
+        <a href="{{ url_for('orders.detail', order_id=o.id) }}"
+           class="text-decoration-none fw-semibold">
+          {{ o.substance.name }}
+        </a>
+        <span class="text-muted ms-2">{{ o.ordered_quantity_display }}</span>
+        {% if o.supplier %}<span class="text-muted ms-2">·</span>
+          <span class="small">{{ o.supplier }}</span>{% endif %}
+        <div class="small text-muted">
+          {% if o.expected_delivery_date %}
+            {{ _("consegna prevista:") }} {{ o.expected_delivery_date.isoformat() }}
+            {% if o.is_overdue %}
+              <span class="text-danger">— {{ _("in ritardo di %(d)d gg", d=-o.days_until_delivery) }}</span>
+            {% endif %}
+          {% else %}
+            {{ _("nessuna data prevista") }}
+          {% endif %}
+        </div>
+      </div>
+      <span class="badge text-bg-{{ sc }}">{{ _(sl) }}</span>
+    </li>
+    {% endfor %}
+    {% if summary.open_orders|length > 5 %}
+    <li class="list-group-item small text-muted">
+      {{ _("e altri %(n)d ordini…", n=summary.open_orders|length - 5) }}
+    </li>
+    {% endif %}
+  </ul>
+</div>
+{% endif %}
+
+{% if summary.total_alerts == 0 %}
+<div class="card mb-3">
+  <div class="card-body text-center py-4">
+    <i data-lucide="check-circle" class="text-success mb-2" style="width:32px;height:32px"></i>
+    <p class="mb-0 text-muted">
+      {{ _("Nessun avviso. Magazzino in ordine.") }}
+    </p>
+  </div>
+</div>
+{% else %}
+
+<div class="row g-3">
+
+  {# ── Lotti scaduti ── #}
+  {% if summary.expired_lots %}
+  <div class="col-12 col-lg-6">
+    <div class="card border-danger h-100">
+      <div class="card-header bg-danger-subtle d-flex justify-content-between align-items-center">
+        <strong class="text-danger">
+          <i data-lucide="alert-octagon" style="width:16px;height:16px"></i>
+          {{ _("Lotti scaduti") }}
+        </strong>
+        <span class="badge text-bg-danger">{{ summary.expired_lots|length }}</span>
+      </div>
+      <ul class="list-group list-group-flush">
+        {% for lot in summary.expired_lots[:8] %}
+        {% set days_overdue = (today - lot.expiry_date).days if lot.expiry_date and today else 0 %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <div>
+            <a href="{{ url_for('substances.detail', substance_id=lot.substance_id) }}"
+               class="text-decoration-none fw-semibold">
+              {{ lot.substance.name }}
+            </a>
+            <span class="text-muted ms-2"><code>{{ lot.batch_code or "—" }}</code></span>
+            <div class="small text-muted">
+              {{ lot.quantity_display }} ·
+              {{ _("scaduto da %(d)d gg", d=days_overdue) }}
+              ({{ lot.expiry_date.isoformat() }})
+            </div>
+          </div>
+          <a href="{{ url_for('inventory.edit', item_id=lot.id) }}"
+             class="btn btn-sm btn-outline-secondary">
+            <i data-lucide="edit-2" style="width:14px;height:14px"></i>
+          </a>
+        </li>
+        {% endfor %}
+        {% if summary.expired_lots|length > 8 %}
+        <li class="list-group-item small text-muted">
+          {{ _("e altri %(n)d lotti…", n=summary.expired_lots|length - 8) }}
+          <a href="{{ url_for('inventory.list_view', status='expired') }}"
+             class="text-decoration-none">{{ _("vedi tutti") }}</a>
+        </li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+  {% endif %}
+
+  {# ── Lotti in scadenza ── #}
+  {% if summary.expiring_lots %}
+  <div class="col-12 col-lg-6">
+    <div class="card border-warning h-100">
+      <div class="card-header bg-warning-subtle d-flex justify-content-between align-items-center">
+        <strong class="text-warning-emphasis">
+          <i data-lucide="alarm-clock" style="width:16px;height:16px"></i>
+          {{ _("Lotti in scadenza (≤30 giorni)") }}
+        </strong>
+        <span class="badge text-bg-warning">{{ summary.expiring_lots|length }}</span>
+      </div>
+      <ul class="list-group list-group-flush">
+        {% for lot in summary.expiring_lots[:8] %}
+        {% set days_left = (lot.expiry_date - today).days if lot.expiry_date and today else 0 %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <div>
+            <a href="{{ url_for('substances.detail', substance_id=lot.substance_id) }}"
+               class="text-decoration-none fw-semibold">
+              {{ lot.substance.name }}
+            </a>
+            <span class="text-muted ms-2"><code>{{ lot.batch_code or "—" }}</code></span>
+            <div class="small text-muted">
+              {{ lot.quantity_display }} ·
+              {{ _("entro %(d)d gg", d=days_left) }}
+              ({{ lot.expiry_date.isoformat() }})
+            </div>
+          </div>
+          <a href="{{ url_for('inventory.edit', item_id=lot.id) }}"
+             class="btn btn-sm btn-outline-secondary">
+            <i data-lucide="edit-2" style="width:14px;height:14px"></i>
+          </a>
+        </li>
+        {% endfor %}
+        {% if summary.expiring_lots|length > 8 %}
+        <li class="list-group-item small text-muted">
+          {{ _("e altri %(n)d lotti…", n=summary.expiring_lots|length - 8) }}
+          <a href="{{ url_for('inventory.list_view', status='expiring') }}"
+             class="text-decoration-none">{{ _("vedi tutti") }}</a>
+        </li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+  {% endif %}
+
+  {# ── Sostanze sotto soglia ── #}
+  {% if summary.low_stock_substances %}
+  <div class="col-12 col-lg-6">
+    <div class="card border-info h-100">
+      <div class="card-header bg-info-subtle d-flex justify-content-between align-items-center">
+        <strong class="text-info-emphasis">
+          <i data-lucide="trending-down" style="width:16px;height:16px"></i>
+          {{ _("Sostanze sotto soglia") }}
+        </strong>
+        <span class="badge text-bg-info">{{ summary.low_stock_substances|length }}</span>
+      </div>
+      <ul class="list-group list-group-flush">
+        {% for sub in summary.low_stock_substances[:8] %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <div>
+            <a href="{{ url_for('substances.detail', substance_id=sub.id) }}"
+               class="text-decoration-none fw-semibold">
+              {{ sub.name }}
+            </a>
+            {% if sub.cas_number %}
+              <span class="text-muted ms-2 small">{{ sub.cas_number }}</span>
+            {% endif %}
+            <div class="small text-muted">
+              {{ sub.low_stock_summary or "—" }}
+            </div>
+          </div>
+        </li>
+        {% endfor %}
+        {% if summary.low_stock_substances|length > 8 %}
+        <li class="list-group-item small text-muted">
+          {{ _("e altre %(n)d sostanze…", n=summary.low_stock_substances|length - 8) }}
+        </li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endif %}
+
+{# ─── Shopping suggestions ──────────────────────────────────────── #}
+{% if shopping_top5 %}
+<div class="card mt-3 border-primary-subtle">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <strong>
+      <i data-lucide="shopping-cart" style="width:16px;height:16px"></i>
+      {{ _("Suggeriti per il riordino") }}
+    </strong>
+    <a href="{{ url_for('orders.shopping_list') }}" class="btn btn-sm btn-primary">
+      {{ _("Apri lista della spesa") }}
+      {% if shopping_total_count > 5 %}
+      <span class="badge text-bg-light ms-1">{{ shopping_total_count }}</span>
+      {% endif %}
+    </a>
+  </div>
+  <ul class="list-group list-group-flush">
+    {% for s in shopping_top5 %}
+    {% set rl, rc = s.reason_label_color %}
+    <li class="list-group-item d-flex justify-content-between align-items-center">
+      <div>
+        <a href="{{ url_for('substances.detail', substance_id=s.substance.id) }}"
+           class="text-decoration-none fw-semibold">{{ s.substance.name }}</a>
+        <span class="badge text-bg-{{ rc }} ms-2">{{ _(rl) }}</span>
+        <div class="small text-muted">
+          {{ _("suggerito:") }} <strong>{{ s.suggested_quantity_display }}</strong>
+          {% if s.last_supplier %}{{ _("da") }} {{ s.last_supplier }}{% endif %}
+          {% if s.estimated_total_cost_eur is not none %}
+            ({{ s.estimated_total_cost_eur|currency }})
+          {% endif %}
+        </div>
+      </div>
+      <a href="{{ url_for('orders.new', substance_id=s.substance.id) }}"
+         class="btn btn-sm btn-outline-primary"
+         title="{{ _('Pianifica ordine') }}">
+        <i data-lucide="plus" style="width:14px;height:14px"></i>
+        {{ _("Pianifica") }}
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+{# ─── Audit timeline (admin only) ──────────────────────────────── #}
+{% if recent_audit_events %}
+<div class="card mt-3">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <strong>
+      <i data-lucide="file-text" style="width:16px;height:16px"></i>
+      {{ _("Attività recente") }}
+    </strong>
+    <a href="{{ url_for('settings.audit_log') }}" class="btn btn-sm btn-outline-primary">
+      {{ _("Audit completo") }}
+    </a>
+  </div>
+  <ul class="list-group list-group-flush">
+    {% for e in recent_audit_events %}
+    {% set lbl, color = label_for_action(e.action or '') %}
+    <li class="list-group-item d-flex justify-content-between align-items-center">
+      <div>
+        <span class="badge text-bg-{{ color }} me-2">{{ lbl }}</span>
+        {% if e.entity_type %}
+          <code class="small text-muted">{{ e.entity_type }}{% if e.entity_id is not none %} #{{ e.entity_id }}{% endif %}</code>
+        {% endif %}
+        <span class="text-muted small ms-2">
+          {{ _("da") }}
+          {% if e.user %}
+            <strong>{{ e.user.full_name }}</strong>
+          {% else %}
+            <em>{{ _("sistema") }}</em>
+          {% endif %}
+        </span>
+      </div>
+      <span class="text-muted small font-monospace">
+        {{ e.created_at.strftime('%Y-%m-%d %H:%M') if e.created_at else '—' }}
+      </span>
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+{% endblock %}

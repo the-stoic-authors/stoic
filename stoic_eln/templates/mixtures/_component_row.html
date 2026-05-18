@@ -1,0 +1,86 @@
+{# A single component row. Used both for pre-rendered rows in edit
+   mode (with `c` populated) and as a template for the JS to clone
+   when the user adds a new row (with `c` is none).
+
+   Variable: `c` -> a MixtureComponent or None.
+
+   A component is either a Substance or another Mixture. The
+   `component_kind[]` hidden input carries this choice, paired
+   with `component_ref_id[]` which holds the id of whichever
+   was picked. The route's _parse_component_rows zips them.
+
+   Cycle prevention: when editing an existing mixture, the JS
+   autocomplete filters out the mixture's own id from the
+   "mixture" picker, so the user can't pick the mixture as one
+   of its own components.
+#}
+{% set kind_value = ('mixture' if c and c.child_mixture_id else 'substance') %}
+{% set ref_id_value = (c.child_mixture_id if c and c.child_mixture_id else (c.substance_id if c else '')) %}
+{% set ref_display = '' %}
+{% if c %}
+  {% if c.child_mixture %}{% set ref_display = c.child_mixture.display_label %}
+  {% elif c.substance %}{% set ref_display = c.substance.name %}
+  {% endif %}
+{% endif %}
+<div class="component-row row g-2 mb-2 align-items-end">
+  <div class="col-md-2">
+    <label class="form-label small text-muted">{{ _("Tipo") }}</label>
+    <select name="component_kind[]"
+            class="form-select form-select-sm component-kind-select">
+      <option value="substance" {% if kind_value == 'substance' %}selected{% endif %}>
+        {{ _("Sostanza") }}
+      </option>
+      <option value="mixture" {% if kind_value == 'mixture' %}selected{% endif %}>
+        {{ _("Miscela") }}
+      </option>
+    </select>
+  </div>
+  <div class="col-md-4">
+    <label class="form-label small text-muted component-ref-label">
+      {% if kind_value == 'mixture' %}{{ _("Miscela") }}{% else %}{{ _("Sostanza") }}{% endif %}
+    </label>
+    <input type="text"
+           class="form-control form-control-sm component-autocomplete"
+           value="{{ ref_display }}"
+           placeholder="{{ _('Cerca…') }}"
+           autocomplete="off">
+    <input type="hidden"
+           name="component_ref_id[]"
+           class="component-ref-id"
+           value="{{ ref_id_value }}">
+  </div>
+  <div class="col-md-2">
+    <label class="form-label small text-muted">{{ _("Ruolo") }}</label>
+    <select name="component_role[]" class="form-select form-select-sm">
+      {% set role_value = c.role if c else 'solute' %}
+      <option value="solute"   {% if role_value == 'solute' %}selected{% endif %}>{{ _("Solute") }}</option>
+      <option value="solvent"  {% if role_value == 'solvent' %}selected{% endif %}>{{ _("Solvente") }}</option>
+      <option value="cosolvent"{% if role_value == 'cosolvent' %}selected{% endif %}>{{ _("Cosolvente") }}</option>
+      <option value="additive" {% if role_value == 'additive' %}selected{% endif %}>{{ _("Additivo") }}</option>
+    </select>
+  </div>
+  <div class="col-md-1">
+    <label class="form-label small text-muted">{{ _("Conc.") }}</label>
+    <input type="text"
+           name="component_concentration[]"
+           class="form-control form-control-sm"
+           value="{{ '%g'|format(c.concentration) if c and c.concentration is not none else '' }}"
+           placeholder="0.0">
+  </div>
+  <div class="col-md-2">
+    <label class="form-label small text-muted">{{ _("Unità") }}</label>
+    <select name="component_concentration_unit[]" class="form-select form-select-sm">
+      {% set unit_value = c.concentration_unit if c else '' %}
+      <option value="" {% if not unit_value %}selected{% endif %}>—</option>
+      {% for u in ('M', 'N', 'mM', '%v/v', '%w/w', '%w/v', 'mg/mL', 'g/L', 'ppm', 'ratio') %}
+        <option value="{{ u }}" {% if unit_value == u %}selected{% endif %}>{{ u }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-1 text-end">
+    <button type="button" class="btn btn-sm btn-outline-danger remove-component"
+            title="{{ _('Rimuovi riga') }}">
+      <i data-lucide="x"></i>
+    </button>
+  </div>
+</div>

@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Importa da PubChem") }}{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-12 col-lg-8 col-xl-6 mx-auto">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb small">
+        <li class="breadcrumb-item">
+          <a href="{{ url_for('substances.list_view') }}">{{ _("Sostanze") }}</a>
+        </li>
+        <li class="breadcrumb-item active">{{ _("Importa da PubChem") }}</li>
+      </ol>
+    </nav>
+
+    <div class="card">
+      <div class="card-body">
+        <h2 class="mb-3"><i data-lucide="download-cloud"></i> {{ _("Importa da PubChem") }}</h2>
+        <p class="text-muted">
+          {{ _("Cerca per nome, numero CAS, SMILES, InChI, InChIKey, o CID PubChem.") }}
+        </p>
+
+        {% if error %}
+        <div class="alert alert-danger">
+          <i data-lucide="alert-triangle"></i> {{ error }}
+        </div>
+        {% endif %}
+
+        <form method="post" novalidate>
+          {{ form.hidden_tag() }}
+
+          <div class="mb-3">
+            {{ form.query.label(class="form-label") }}
+            {{ form.query(class="form-control form-control-lg" + (" is-invalid" if form.query.errors else "")) }}
+            {% for e in form.query.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+          </div>
+
+          <div class="mb-3">
+            {{ form.query_type.label(class="form-label") }}
+            {{ form.query_type(class="form-select") }}
+          </div>
+
+          <div class="d-flex justify-content-end gap-2">
+            <a href="{{ url_for('substances.list_view') }}" class="btn btn-link">{{ _("Annulla") }}</a>
+            {{ form.submit(class="btn btn-primary") }}
+          </div>
+        </form>
+
+        <hr class="my-4">
+
+        <details class="small text-muted">
+          <summary>{{ _("Esempi di ricerca") }}</summary>
+          <ul class="mt-2 mb-0">
+            <li>Nome: <code>caffeine</code> · <code>aspirin</code></li>
+            <li>CAS: <code>64-17-5</code> (etanolo) · <code>50-78-2</code> (aspirina)</li>
+            <li>SMILES: <code>CCO</code> (etanolo) · <code>CN1C=NC2=C1C(=O)N(C(=O)N2C)C</code> (caffeina)</li>
+            <li>InChIKey: <code>RYYVLZVUVIJVGH-UHFFFAOYSA-N</code> (caffeina)</li>
+            <li>CID: <code>2519</code> (caffeina)</li>
+          </ul>
+        </details>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

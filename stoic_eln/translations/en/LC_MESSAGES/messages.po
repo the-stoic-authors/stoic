@@ -1,0 +1,5155 @@
+# English translations for Stoic ELN.
+msgid ""
+msgstr ""
+"Project-Id-Version: stoic-eln 2.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-05-13 11:50+0000\n"
+"PO-Revision-Date: 2026-05-02 00:00+0000\n"
+"Last-Translator: \n"
+"Language: en\n"
+"Language-Team: English\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+#: stoic_eln/blueprints/attachments/routes.py:105
+#: stoic_eln/services/attachments.py:234
+msgid "Nessun file selezionato."
+msgstr "No file selected."
+
+#: stoic_eln/blueprints/attachments/routes.py:131
+msgid "Allegato caricato."
+msgstr "Attachment uploaded."
+
+#: stoic_eln/blueprints/auth/forms.py:10
+#: stoic_eln/templates/settings/new_user.html:31
+#: stoic_eln/templates/settings/users.html:37
+msgid "Username"
+msgstr "Username"
+
+#: stoic_eln/blueprints/auth/forms.py:11
+msgid "Password"
+msgstr "Change password"
+
+#: stoic_eln/blueprints/auth/forms.py:12
+msgid "Ricordami"
+msgstr "Receive order"
+
+#: stoic_eln/blueprints/auth/forms.py:13 stoic_eln/templates/auth/login.html:3
+msgid "Accedi"
+msgstr "Sign in"
+
+#: stoic_eln/blueprints/auth/forms.py:17
+msgid "Password attuale"
+msgstr "Current code"
+
+#: stoic_eln/blueprints/auth/forms.py:19
+msgid "Nuova password"
+msgstr "New step"
+
+#: stoic_eln/blueprints/auth/forms.py:22
+msgid "La password deve essere lunga almeno 8 caratteri."
+msgstr "Password must be at least 8 characters long."
+
+#: stoic_eln/blueprints/auth/forms.py:26
+msgid "Conferma nuova password"
+msgstr "Change password"
+
+#: stoic_eln/blueprints/auth/forms.py:29
+#: stoic_eln/blueprints/settings/routes.py:392
+msgid "Le password non coincidono."
+msgstr "Passwords don't match."
+
+#: stoic_eln/blueprints/auth/forms.py:32
+#: stoic_eln/templates/auth/change_password.html:2
+#: stoic_eln/templates/auth/change_password.html:9
+#: stoic_eln/templates/base.html:226
+msgid "Cambia password"
+msgstr "Change password"
+
+#: stoic_eln/blueprints/auth/routes.py:51
+msgid "Username o password non corretti."
+msgstr "Incorrect username or password."
+
+#: stoic_eln/blueprints/auth/routes.py:62
+msgid "Il tuo account non è attivo. Contatta un amministratore."
+msgstr "Your account is not active. Contact an administrator."
+
+#: stoic_eln/blueprints/auth/routes.py:89
+msgid "Sei stato disconnesso."
+msgstr "You have been signed out."
+
+#: stoic_eln/blueprints/auth/routes.py:99
+msgid "La password attuale non è corretta."
+msgstr "Current password is not correct."
+
+#: stoic_eln/blueprints/auth/routes.py:110
+msgid "Password aggiornata correttamente."
+msgstr "Password updated successfully."
+
+#: stoic_eln/blueprints/inventory/forms.py:20
+#: stoic_eln/templates/mixtures/prepare.html:137
+#: stoic_eln/templates/orders/receive.html:92
+msgid "Codice lotto"
+msgstr "Lot code"
+
+#: stoic_eln/blueprints/inventory/forms.py:24
+#: stoic_eln/templates/inventory/_list_table.html:36
+#: stoic_eln/templates/inventory/list.html:53
+#: stoic_eln/templates/orders/detail.html:51
+#: stoic_eln/templates/orders/form.html:52
+#: stoic_eln/templates/orders/list.html:57
+#: stoic_eln/templates/orders/list.html:92
+#: stoic_eln/templates/substances/detail.html:203
+msgid "Fornitore"
+msgstr "Supplier"
+
+#: stoic_eln/blueprints/inventory/forms.py:26
+msgid "Codice catalogo"
+msgstr "Current code"
+
+#: stoic_eln/blueprints/inventory/forms.py:30
+msgid "Quantità iniziale (g)"
+msgstr "Quantity (g)"
+
+#: stoic_eln/blueprints/inventory/forms.py:34
+msgid "Quantità iniziale (mL)"
+msgstr "Quantity (mL)"
+
+#: stoic_eln/blueprints/inventory/forms.py:38
+msgid "Quantità residua (g)"
+msgstr "Received quantity (g)"
+
+#: stoic_eln/blueprints/inventory/forms.py:42
+msgid "Quantità residua (mL)"
+msgstr "Received quantity (mL)"
+
+#: stoic_eln/blueprints/inventory/forms.py:47
+msgid "Costo totale (EUR)"
+msgstr "Total cost"
+
+#: stoic_eln/blueprints/inventory/forms.py:50
+msgid "Data di acquisto"
+msgstr "Purchased"
+
+#: stoic_eln/blueprints/inventory/forms.py:51
+msgid "Data di scadenza"
+msgstr "Expiring substances"
+
+#: stoic_eln/blueprints/inventory/forms.py:53
+#: stoic_eln/templates/inventory/_list_table.html:37
+#: stoic_eln/templates/mixtures/detail.html:235
+#: stoic_eln/templates/mixtures/prepare.html:149
+#: stoic_eln/templates/orders/receive.html:101
+#: stoic_eln/templates/preps/detail.html:88
+#: stoic_eln/templates/substances/detail.html:204
+msgid "Posizione"
+msgstr "Location"
+
+#: stoic_eln/blueprints/inventory/forms.py:57
+msgid "Lotto attivo"
+msgstr "Active lots"
+
+#: stoic_eln/blueprints/inventory/forms.py:58
+#: stoic_eln/blueprints/mixtures/forms.py:149
+#: stoic_eln/blueprints/reactions/forms.py:94
+#: stoic_eln/blueprints/reactions/forms.py:138
+#: stoic_eln/blueprints/substances/forms.py:63
+#: stoic_eln/templates/mixtures/detail.html:275
+#: stoic_eln/templates/mixtures/prepare.html:164
+#: stoic_eln/templates/orders/detail.html:79
+#: stoic_eln/templates/orders/form.html:90
+#: stoic_eln/templates/preps/detail.html:57
+#: stoic_eln/templates/preps/detail.html:140
+#: stoic_eln/templates/reactions/detail.html:314
+#: stoic_eln/templates/substances/detail.html:306
+#: stoic_eln/templates/substances/sds.html:88
+msgid "Note"
+msgstr "Notes"
+
+#: stoic_eln/blueprints/inventory/forms.py:60
+#: stoic_eln/blueprints/mixtures/forms.py:151
+#: stoic_eln/blueprints/reactions/forms.py:97
+#: stoic_eln/blueprints/substances/forms.py:94
+#: stoic_eln/templates/notes/_edit_form.html:24
+#: stoic_eln/templates/settings/currency.html:61
+#: stoic_eln/templates/settings/prep_code.html:98
+#: stoic_eln/templates/settings/run_code.html:119
+msgid "Salva"
+msgstr "Save"
+
+#: stoic_eln/blueprints/inventory/routes.py:268
+#: stoic_eln/blueprints/inventory/routes.py:271
+#, python-format
+msgid "Lotto aggiunto a '%(name)s'."
+msgstr "Lot added to '%(name)s'."
+
+#: stoic_eln/blueprints/inventory/routes.py:311
+msgid "Lotto aggiornato."
+msgstr "Lot updated."
+
+#: stoic_eln/blueprints/inventory/routes.py:336
+msgid "Lotto disattivato."
+msgstr "Lot deactivated."
+
+#: stoic_eln/blueprints/inventory/routes.py:350
+msgid "Lotto riattivato."
+msgstr "Lot reactivated."
+
+#: stoic_eln/blueprints/inventory/routes.py:392
+msgid "Formato etichetta non valido."
+msgstr "Invalid label format."
+
+#: stoic_eln/blueprints/mixtures/forms.py:36
+#: stoic_eln/templates/mixtures/_list_table.html:29
+#: stoic_eln/templates/mixtures/detail.html:60
+msgid "Soluzione"
+msgstr "Solution"
+
+#: stoic_eln/blueprints/mixtures/forms.py:37
+#: stoic_eln/templates/mixtures/_list_table.html:30
+#: stoic_eln/templates/mixtures/detail.html:61
+msgid "Eluente"
+msgstr "Eluent"
+
+#: stoic_eln/blueprints/mixtures/forms.py:38
+#: stoic_eln/templates/mixtures/_list_table.html:31
+#: stoic_eln/templates/mixtures/detail.html:62
+msgid "Tampone"
+msgstr "Buffer"
+
+#: stoic_eln/blueprints/mixtures/forms.py:39
+#: stoic_eln/templates/mixtures/_list_table.html:32
+#: stoic_eln/templates/mixtures/detail.html:63
+msgid "Miscela reagenti"
+msgstr "Reagent mixture"
+
+#: stoic_eln/blueprints/mixtures/forms.py:40
+#: stoic_eln/templates/mixtures/_list_table.html:33
+#: stoic_eln/templates/mixtures/detail.html:64
+#: stoic_eln/templates/reactions/_step_card.html:88
+#: stoic_eln/templates/reactions/_step_card.html:93
+#: stoic_eln/templates/reactions/detail.html:618
+#: stoic_eln/templates/runs/detail.html:528
+msgid "Altro"
+msgstr "Other"
+
+#: stoic_eln/blueprints/mixtures/forms.py:65
+#: stoic_eln/blueprints/substances/forms.py:21
+#: stoic_eln/blueprints/substances/forms.py:112
+#: stoic_eln/templates/mixtures/_list_table.html:7
+#: stoic_eln/templates/settings/users.html:38
+#: stoic_eln/templates/substances/_list_table.html:7
+#: stoic_eln/templates/substances/import_preview.html:48
+#: stoic_eln/templates/substances/sds.html:27
+msgid "Nome"
+msgstr "Name"
+
+#: stoic_eln/blueprints/mixtures/forms.py:71
+#: stoic_eln/blueprints/substances/forms.py:109
+#: stoic_eln/templates/mixtures/_list_table.html:8
+#: stoic_eln/templates/mixtures/detail.html:57
+#: stoic_eln/templates/reactions/_step_card.html:79
+#: stoic_eln/templates/reactions/detail.html:612
+msgid "Tipo"
+msgstr "Type"
+
+#: stoic_eln/blueprints/mixtures/forms.py:78
+#: stoic_eln/templates/mixtures/detail.html:88
+msgid "Descrizione"
+msgstr "Description"
+
+#: stoic_eln/blueprints/mixtures/forms.py:93
+msgid "Concentrazione principale"
+msgstr "Primary concentration"
+
+#: stoic_eln/blueprints/mixtures/forms.py:98
+#: stoic_eln/templates/mixtures/_component_row.html:38
+#: stoic_eln/templates/mixtures/prepare.html:41
+#: stoic_eln/templates/mixtures/prepare.html:123
+#: stoic_eln/templates/reactions/_step_card.html:147
+#: stoic_eln/templates/reactions/_step_card.html:351
+msgid "Unità"
+msgstr "Unità"
+
+#: stoic_eln/blueprints/mixtures/forms.py:108
+#: stoic_eln/templates/mixtures/detail.html:78
+msgid "Solvente principale"
+msgstr "Primary solvent"
+
+#: stoic_eln/blueprints/mixtures/forms.py:116
+msgid "Pittogrammi GHS (override)"
+msgstr "GHS pictograms (override)"
+
+#: stoic_eln/blueprints/mixtures/forms.py:132
+msgid "Frasi H (override, separate da virgola)"
+msgstr "H phrases (override, comma-separated)"
+
+#: stoic_eln/blueprints/mixtures/forms.py:137
+msgid "Frasi P (override, separate da virgola)"
+msgstr "P phrases (override, comma-separated)"
+
+#: stoic_eln/blueprints/mixtures/forms.py:146
+msgid "Sovrascrivi GHS dei componenti"
+msgstr "Override component GHS"
+
+#: stoic_eln/blueprints/mixtures/routes.py:282
+#: stoic_eln/blueprints/mixtures/routes.py:329
+#, fuzzy, python-format
+msgid "Errore durante il salvataggio"
+msgstr "Error while saving the file: %(err)s"
+
+#: stoic_eln/blueprints/mixtures/routes.py:286
+msgid "Miscela creata"
+msgstr "Mixture created"
+
+#: stoic_eln/blueprints/mixtures/routes.py:333
+msgid "Miscela aggiornata"
+msgstr "Mixture updated"
+
+#: stoic_eln/blueprints/mixtures/routes.py:356
+#, python-format
+msgid "Non posso disattivare: ci sono lotti attivi (%(n)d)"
+msgstr "Cannot deactivate: %(n)d active batches still exist."
+
+#: stoic_eln/blueprints/mixtures/routes.py:365
+msgid "Miscela disattivata"
+msgstr "Mixture deactivated"
+
+#: stoic_eln/blueprints/mixtures/routes.py:502
+msgid "Quantità target non valida."
+msgstr "Target quantity not valid."
+
+#: stoic_eln/blueprints/mixtures/routes.py:540
+msgid "Nessun lotto precursore selezionato. Seleziona almeno uno."
+msgstr "No precursor batch selected. Select at least one."
+
+#: stoic_eln/blueprints/mixtures/routes.py:573
+msgid "Errore imprevisto durante la preparazione."
+msgstr "Unexpected error during preparation."
+
+#: stoic_eln/blueprints/mixtures/routes.py:591
+#, python-format
+msgid "Preparazione completata: lotto %(code)s"
+msgstr "Preparation completed: batch %(code)s"
+
+#: stoic_eln/blueprints/notes/routes.py:86
+#: stoic_eln/blueprints/notes/routes.py:152
+msgid "Il commento non può essere vuoto."
+msgstr "Comment cannot be empty."
+
+#: stoic_eln/blueprints/notes/routes.py:93
+#: stoic_eln/blueprints/notes/routes.py:158
+msgid "Il commento è troppo lungo (max 10000 caratteri)."
+msgstr "Comment is too long (max 10000 chars)."
+
+#: stoic_eln/blueprints/orders/routes.py:153
+#: stoic_eln/blueprints/reactions/routes.py:540
+#: stoic_eln/blueprints/reactions/routes.py:1177
+msgid "Sostanza non trovata."
+msgstr "Substance not found."
+
+#: stoic_eln/blueprints/orders/routes.py:160
+msgid "Inserisci una quantità (g o mL)."
+msgstr "Enter a quantity (g or mL)."
+
+#: stoic_eln/blueprints/orders/routes.py:185
+#, python-format
+msgid "Ordine pianificato per %(name)s."
+msgstr "Planned order for %(name)s."
+
+#: stoic_eln/blueprints/orders/routes.py:255
+#, python-format
+msgid "Ordine non più modificabile (stato: %(s)s)."
+msgstr "Order no longer editable (status: %(s)s)."
+
+#: stoic_eln/blueprints/orders/routes.py:271
+msgid "Ordine aggiornato."
+msgstr "Order updated."
+
+#: stoic_eln/blueprints/orders/routes.py:311
+msgid "Ordine segnato come ordinato."
+msgstr "Order marked as ordered."
+
+#: stoic_eln/blueprints/orders/routes.py:325
+msgid "Ordine già finalizzato."
+msgstr "Order already finalized."
+
+#: stoic_eln/blueprints/orders/routes.py:370
+msgid "Ordine ricevuto parzialmente. Lotto creato."
+msgstr "Order received partially. Lot created."
+
+#: stoic_eln/blueprints/orders/routes.py:372
+msgid "Ordine ricevuto. Lotto creato."
+msgstr "Order received. Lot created."
+
+#: stoic_eln/blueprints/orders/routes.py:400
+msgid "Ordine annullato."
+msgstr "Order cancelled."
+
+#: stoic_eln/blueprints/orders/routes.py:431
+msgid "Nessuna sostanza selezionata."
+msgstr "No substances selected."
+
+#: stoic_eln/blueprints/orders/routes.py:460
+#, python-format
+msgid "Generato dalla lista della spesa (motivo: %(r)s)."
+msgstr "Generated from shopping list (reason: %(r)s)."
+
+#: stoic_eln/blueprints/orders/routes.py:472
+#, python-format
+msgid "Creati %(n)d ordini pianificati."
+msgstr "Created %(n)d planned orders."
+
+#: stoic_eln/blueprints/orders/routes.py:474
+msgid "Nessun ordine creato (potrebbero essere già aperti)."
+msgstr "No orders created (they may already be open)."
+
+#: stoic_eln/blueprints/orders/routes.py:490
+msgid "Preferenze lista della spesa aggiornate."
+msgstr "Shopping list preferences updated."
+
+#: stoic_eln/blueprints/reactions/forms.py:18
+msgid "Materiale di partenza (SM)"
+msgstr "Starting material (limiting)"
+
+#: stoic_eln/blueprints/reactions/forms.py:19
+#: stoic_eln/templates/reactions/detail.html:556
+msgid "Reattivo"
+msgstr "Reactant"
+
+#: stoic_eln/blueprints/reactions/forms.py:20
+#: stoic_eln/templates/reactions/_step_card.html:335
+#: stoic_eln/templates/reactions/detail.html:557
+msgid "Reagente"
+msgstr "Reagent"
+
+#: stoic_eln/blueprints/reactions/forms.py:21
+#: stoic_eln/templates/reactions/detail.html:558
+msgid "Catalizzatore"
+msgstr "Catalyst"
+
+#: stoic_eln/blueprints/reactions/forms.py:22
+#: stoic_eln/templates/reactions/detail.html:559
+msgid "Legante"
+msgstr "Ligand"
+
+#: stoic_eln/blueprints/reactions/forms.py:23
+#: stoic_eln/templates/reactions/_step_card.html:337
+#: stoic_eln/templates/reactions/detail.html:560
+msgid "Base"
+msgstr "Base"
+
+#: stoic_eln/blueprints/reactions/forms.py:24
+#: stoic_eln/templates/reactions/_step_card.html:336
+#: stoic_eln/templates/reactions/detail.html:561
+msgid "Acido"
+msgstr "Acid"
+
+#: stoic_eln/blueprints/reactions/forms.py:25
+#: stoic_eln/templates/reactions/_step_card.html:338
+#: stoic_eln/templates/reactions/detail.html:562
+msgid "Ossidante"
+msgstr "Oxidant"
+
+#: stoic_eln/blueprints/reactions/forms.py:26
+#: stoic_eln/templates/reactions/_step_card.html:339
+#: stoic_eln/templates/reactions/detail.html:563
+msgid "Riducente"
+msgstr "Reductant"
+
+#: stoic_eln/blueprints/reactions/forms.py:27
+#: stoic_eln/templates/mixtures/_component_row.html:24
+#: stoic_eln/templates/reactions/_scheme_card.html:61
+#: stoic_eln/templates/reactions/_step_card.html:334
+#: stoic_eln/templates/reactions/detail.html:564
+msgid "Solvente"
+msgstr "Solvent"
+
+#: stoic_eln/blueprints/reactions/forms.py:28
+#: stoic_eln/templates/mixtures/_component_row.html:26
+#: stoic_eln/templates/reactions/_step_card.html:340
+#: stoic_eln/templates/reactions/detail.html:565
+msgid "Additivo"
+msgstr "Additive"
+
+#: stoic_eln/blueprints/reactions/forms.py:29
+#: stoic_eln/templates/reactions/_step_card.html:341
+#: stoic_eln/templates/reactions/detail.html:566
+msgid "Standard interno"
+msgstr "Internal standard"
+
+#: stoic_eln/blueprints/reactions/forms.py:30
+#: stoic_eln/templates/reactions/detail.html:567
+msgid "Prodotto"
+msgstr "Product"
+
+#: stoic_eln/blueprints/reactions/forms.py:31
+#: stoic_eln/templates/reactions/detail.html:568
+msgid "Sottoprodotto"
+msgstr "Byproduct"
+
+#: stoic_eln/blueprints/reactions/forms.py:39
+#: stoic_eln/templates/reactions/_list_table.html:8
+#: stoic_eln/templates/reactions/detail.html:140
+#: stoic_eln/templates/reactions/detail.html:607
+#: stoic_eln/templates/reactions/versions.html:37
+msgid "Titolo"
+msgstr "Title"
+
+#: stoic_eln/blueprints/reactions/forms.py:44
+#: stoic_eln/templates/reactions/detail.html:155
+msgid "Descrizione / razionale"
+msgstr "Description / rationale"
+
+#: stoic_eln/blueprints/reactions/forms.py:49
+msgid "Procedura"
+msgstr "Procedura"
+
+#: stoic_eln/blueprints/reactions/forms.py:56
+msgid "Temperatura (°C)"
+msgstr "Temp. (°C)"
+
+#: stoic_eln/blueprints/reactions/forms.py:59
+#: stoic_eln/templates/reactions/detail.html:179
+msgid "Durata (h)"
+msgstr "Duration (h)"
+
+#: stoic_eln/blueprints/reactions/forms.py:62
+#: stoic_eln/templates/reactions/detail.html:189
+msgid "Atmosfera"
+msgstr "Atmosphere"
+
+#: stoic_eln/blueprints/reactions/forms.py:65
+#: stoic_eln/templates/reactions/detail.html:193
+#: stoic_eln/templates/reactions/detail.html:199
+#: stoic_eln/templates/runs/detail.html:481
+msgid "aria"
+msgstr "air"
+
+#: stoic_eln/blueprints/reactions/forms.py:68
+#: stoic_eln/templates/reactions/detail.html:194
+#: stoic_eln/templates/reactions/detail.html:200
+#: stoic_eln/templates/runs/detail.html:482
+msgid "vuoto"
+msgstr "vacuum"
+
+#: stoic_eln/blueprints/reactions/forms.py:75
+#: stoic_eln/templates/reactions/detail.html:205
+msgid "Pressione (bar)"
+msgstr "Pressure (bar)"
+
+#: stoic_eln/blueprints/reactions/forms.py:80
+msgid "Schema SMILES (opzionale)"
+msgstr "Manual SMILES scheme (optional)"
+
+#: stoic_eln/blueprints/reactions/forms.py:89
+#: stoic_eln/templates/reactions/detail.html:301
+msgid "Fonte / riferimento"
+msgstr "Source / reference"
+
+#: stoic_eln/blueprints/reactions/forms.py:109
+#: stoic_eln/templates/inventory/_list_table.html:34
+#: stoic_eln/templates/mixtures/_component_row.html:9
+#: stoic_eln/templates/mixtures/detail.html:105
+#: stoic_eln/templates/orders/detail.html:42
+#: stoic_eln/templates/orders/form.html:28
+#: stoic_eln/templates/orders/list.html:91
+#: stoic_eln/templates/orders/shopping_list.html:96
+#: stoic_eln/templates/reactions/_components_table.html:23
+#: stoic_eln/templates/reactions/_step_card.html:144
+#: stoic_eln/templates/reactions/_step_card.html:311
+#: stoic_eln/templates/reactions/detail.html:528
+#: stoic_eln/templates/runs/detail.html:210
+#: stoic_eln/templates/runs/detail.html:302
+#: stoic_eln/templates/runs/detail.html:547
+msgid "Sostanza"
+msgstr "Substance"
+
+#: stoic_eln/blueprints/reactions/forms.py:112
+#: stoic_eln/templates/preps/_list_table.html:8
+#: stoic_eln/templates/preps/list.html:28
+#: stoic_eln/templates/reactions/_step_card.html:302
+#: stoic_eln/templates/reactions/_step_card.html:322
+#: stoic_eln/templates/reactions/detail.html:541
+msgid "Miscela"
+msgstr "Mixture"
+
+#: stoic_eln/blueprints/reactions/forms.py:115
+#: stoic_eln/templates/mixtures/_component_row.html:20
+#: stoic_eln/templates/mixtures/detail.html:106
+#: stoic_eln/templates/reactions/_step_card.html:145
+#: stoic_eln/templates/reactions/_step_card.html:332
+#: stoic_eln/templates/reactions/detail.html:553
+#: stoic_eln/templates/runs/detail.html:211
+#: stoic_eln/templates/runs/detail.html:548
+#: stoic_eln/templates/settings/new_user.html:74
+#: stoic_eln/templates/settings/users.html:40
+msgid "Ruolo"
+msgstr "Role"
+
+#: stoic_eln/blueprints/reactions/forms.py:121
+#: stoic_eln/templates/reactions/detail.html:573
+msgid "Equivalenti"
+msgstr "Equivalents"
+
+#: stoic_eln/blueprints/reactions/forms.py:125
+msgid "mmol"
+msgstr "mmol"
+
+#: stoic_eln/blueprints/reactions/forms.py:128
+msgid "g"
+msgstr "g"
+
+#: stoic_eln/blueprints/reactions/forms.py:131
+msgid "mL"
+msgstr "mL"
+
+#: stoic_eln/blueprints/reactions/forms.py:133
+#: stoic_eln/templates/reactions/_step_card.html:105
+#: stoic_eln/templates/reactions/_step_card.html:119
+msgid "Reagente limitante"
+msgstr "Limiting reagent"
+
+#: stoic_eln/blueprints/reactions/forms.py:135
+#: stoic_eln/templates/reactions/detail.html:579
+msgid "Concentrazione (M)"
+msgstr "Concentration (M)"
+
+#: stoic_eln/blueprints/reactions/forms.py:140
+#: stoic_eln/templates/reactions/_step_card.html:374
+msgid "Aggiungi"
+msgstr "Add"
+
+#: stoic_eln/blueprints/reactions/routes.py:161
+#: stoic_eln/blueprints/reactions/routes.py:279
+#: stoic_eln/templates/reactions/form.html:2
+#: stoic_eln/templates/reactions/form.html:18
+#: stoic_eln/templates/reactions/form.html:27
+#: stoic_eln/templates/reactions/list.html:14
+msgid "Nuova reazione"
+msgstr "New reaction"
+
+#: stoic_eln/blueprints/reactions/routes.py:201
+msgid "Hai già una bozza in lavorazione per questo template."
+msgstr "You already have a draft in progress for this template."
+
+#: stoic_eln/blueprints/reactions/routes.py:209
+msgid ""
+"Modifica in corso. Premi 'Salva' per confermare o 'Annulla' per scartare "
+"le modifiche."
+msgstr "Editing in progress. Press 'Save' to confirm or 'Cancel' to discard changes."
+
+#: stoic_eln/blueprints/reactions/routes.py:225
+#: stoic_eln/blueprints/reactions/routes.py:306
+msgid "Questa reazione non è una bozza."
+msgstr "This reaction is not a draft."
+
+#: stoic_eln/blueprints/reactions/routes.py:280
+msgid "Inserisci un titolo per la reazione prima di salvare."
+msgstr "Enter a title for the reaction before saving."
+
+#: stoic_eln/blueprints/reactions/routes.py:290
+#, python-format
+msgid "Template '%(code)s' salvato."
+msgstr "Template '%(code)s' saved."
+
+#: stoic_eln/blueprints/reactions/routes.py:324
+msgid "Modifiche scartate."
+msgstr "Changes discarded."
+
+#: stoic_eln/blueprints/reactions/routes.py:482
+#, python-format
+msgid "Reazione %(code)s disattivata."
+msgstr "Reaction %(code)s deactivated."
+
+#: stoic_eln/blueprints/reactions/routes.py:496
+#, python-format
+msgid "Reazione %(code)s riattivata."
+msgstr "Reaction %(code)s reactivated."
+
+#: stoic_eln/blueprints/reactions/routes.py:516
+msgid "Dati componente non validi."
+msgstr "Invalid component data."
+
+#: stoic_eln/blueprints/reactions/routes.py:520
+#: stoic_eln/blueprints/settings/routes.py:187
+#: stoic_eln/blueprints/settings/routes.py:394
+msgid "Ruolo non valido."
+msgstr "Invalid role."
+
+#: stoic_eln/blueprints/reactions/routes.py:530
+#: stoic_eln/blueprints/reactions/routes.py:1167
+msgid "Seleziona esattamente una tra Sostanza e Miscela."
+msgstr "Select exactly one between Substance and Mixture."
+
+#: stoic_eln/blueprints/reactions/routes.py:546
+#: stoic_eln/blueprints/reactions/routes.py:1183
+msgid "Miscela non trovata."
+msgstr "Mixture not found."
+
+#: stoic_eln/blueprints/reactions/routes.py:1024
+msgid "Il titolo dello step è obbligatorio."
+msgstr "The step title is required."
+
+#: stoic_eln/blueprints/reactions/routes.py:1041
+#, python-format
+msgid "Step '%(t)s' aggiunto."
+msgstr "Step '%(t)s' added."
+
+#: stoic_eln/blueprints/reactions/routes.py:1104
+msgid "Step rimosso."
+msgstr "Step removed."
+
+#: stoic_eln/blueprints/reactions/routes.py:1351
+msgid "Reazione duplicata. Inserisci un nuovo codice prima di salvare."
+msgstr "Reaction duplicated. Enter a new code before saving."
+
+#: stoic_eln/blueprints/reactions/routes.py:1401
+msgid "Questa reazione non ha un codice template."
+msgstr "This reaction has no template code."
+
+#: stoic_eln/blueprints/runs/routes.py:104
+msgid "Questa azione non è permessa: il run non è più in bozza."
+msgstr "Action not permitted: the run is no longer a draft."
+
+#: stoic_eln/blueprints/runs/routes.py:135
+msgid "Scala non valida."
+msgstr "Invalid scale."
+
+#: stoic_eln/blueprints/runs/routes.py:139
+msgid "La scala deve essere maggiore di zero."
+msgstr "Scale must be greater than zero."
+
+#: stoic_eln/blueprints/runs/routes.py:181
+#: stoic_eln/blueprints/runs/routes.py:305
+msgid "Lotto non valido."
+msgstr "Invalid lot."
+
+#: stoic_eln/blueprints/runs/routes.py:185
+#: stoic_eln/blueprints/runs/routes.py:309
+msgid "Lotto non trovato."
+msgstr "Batch not found."
+
+#: stoic_eln/blueprints/runs/routes.py:195
+#: stoic_eln/blueprints/runs/routes.py:315
+#, fuzzy
+msgid "Lotto non corrisponde alla miscela."
+msgstr "Lot does not match the substance."
+
+#: stoic_eln/blueprints/runs/routes.py:199
+#: stoic_eln/blueprints/runs/routes.py:319
+msgid "Lotto non corrisponde alla sostanza."
+msgstr "Lot does not match the substance."
+
+#: stoic_eln/blueprints/runs/routes.py:229
+msgid "Run completato: non si possono più modificare i pesi."
+msgstr "Run completed: weights can no longer be edited."
+
+#: stoic_eln/blueprints/runs/routes.py:232
+msgid ""
+"Run in esecuzione: solo i pesi dei prodotti possono ancora essere "
+"inseriti."
+msgstr "Run in progress: only product weights can still be entered."
+
+#: stoic_eln/blueprints/runs/routes.py:250
+#: stoic_eln/blueprints/runs/routes.py:364
+msgid "Quantità non valida."
+msgstr "Invalid quantity."
+
+#: stoic_eln/blueprints/runs/routes.py:291
+msgid "Run completato: non si possono modificare i lotti."
+msgstr "Run completed: lots cannot be modified."
+
+#: stoic_eln/blueprints/runs/routes.py:343
+msgid "Run completato: non si possono modificare le quantità."
+msgstr "Run completed: quantities cannot be modified."
+
+#: stoic_eln/blueprints/runs/routes.py:406
+msgid "Run completato: la check list non è più modificabile."
+msgstr "Run completed: the checklist is no longer editable."
+
+#: stoic_eln/blueprints/runs/routes.py:446
+msgid "Run avviato. Inventario aggiornato."
+msgstr "Run started. Inventory updated."
+
+#: stoic_eln/blueprints/runs/routes.py:465
+msgid "Solo i run in esecuzione possono essere completati."
+msgstr "Only running runs can be completed."
+
+#: stoic_eln/blueprints/runs/routes.py:489
+#, python-format
+msgid ""
+"Resa > 100%% (%(p).1f%%): possibile errore di pesata o sale idrato. "
+"Salvato comunque."
+msgstr "Yield > 100%% (%(p).1f%%): possible weighing error or hydrated salt. Saved anyway."
+
+#: stoic_eln/blueprints/runs/routes.py:496
+#, python-format
+msgid "Creato lotto %(code)s: %(qty).3f g di %(name)s."
+msgstr "Created lot %(code)s: %(qty).3f g of %(name)s."
+
+#: stoic_eln/blueprints/runs/routes.py:502
+msgid "Run registrato come fallito (resa zero)."
+msgstr "Run recorded as failed (zero yield)."
+
+#: stoic_eln/blueprints/runs/routes.py:504
+msgid "Run completato."
+msgstr "Run completed."
+
+#: stoic_eln/blueprints/runs/routes.py:516
+msgid "Le note post-mortem si aggiungono solo a run completati."
+msgstr "Post-mortem notes can only be added to completed runs."
+
+#: stoic_eln/blueprints/runs/routes.py:524
+msgid "Note aggiornate."
+msgstr "Notes updated."
+
+#: stoic_eln/blueprints/runs/routes.py:535
+msgid "Solo le bozze possono essere annullate."
+msgstr "Only drafts can be cancelled."
+
+#: stoic_eln/blueprints/runs/routes.py:541
+msgid "Bozza di run eliminata."
+msgstr "Run draft deleted."
+
+#: stoic_eln/blueprints/runs/routes.py:555
+msgid "Puoi eseguire solo template pubblicati."
+msgstr "Only published templates can be run."
+
+#: stoic_eln/blueprints/runs/routes.py:565
+#, python-format
+msgid "Bozza di run creata: %(code)s."
+msgstr "Run draft created: %(code)s."
+
+#: stoic_eln/blueprints/settings/routes.py:66
+msgid "Impostazioni codice run aggiornate."
+msgstr "Run code settings updated."
+
+#: stoic_eln/blueprints/settings/routes.py:131
+#, fuzzy
+msgid "Impostazioni codice preparazione aggiornate."
+msgstr "Run code settings updated."
+
+#: stoic_eln/blueprints/settings/routes.py:193
+msgid "Non puoi rimuovere l'ultimo amministratore."
+msgstr "Cannot remove the last administrator."
+
+#: stoic_eln/blueprints/settings/routes.py:198
+#, python-format
+msgid "Ruolo aggiornato per %(name)s."
+msgstr "Role updated for %(name)s."
+
+#: stoic_eln/blueprints/settings/routes.py:234
+#, python-format
+msgid "Valuta impostata su %(c)s."
+msgstr "Currency set to %(c)s."
+
+#: stoic_eln/blueprints/settings/routes.py:384
+msgid "Username obbligatorio."
+msgstr "Username required."
+
+#: stoic_eln/blueprints/settings/routes.py:386
+msgid "Username già in uso."
+msgstr "Username already in use."
+
+#: stoic_eln/blueprints/settings/routes.py:388
+msgid "Nome completo obbligatorio."
+msgstr "Full name required."
+
+#: stoic_eln/blueprints/settings/routes.py:390
+msgid "Password obbligatoria (almeno 6 caratteri)."
+msgstr "Password required (min 6 chars)."
+
+#: stoic_eln/blueprints/settings/routes.py:399
+msgid "Codice operatore già in uso."
+msgstr "Operator code already in use."
+
+#: stoic_eln/blueprints/settings/routes.py:439
+#, python-format
+msgid ""
+"Utente %(u)s creato. Comunica le credenziali e invitalo a cambiare la "
+"password al primo accesso."
+msgstr "User %(u)s created. Share the credentials and ask them to change the password on first login."
+
+#: stoic_eln/blueprints/settings/routes.py:516
+#, python-format
+msgid "Backup creato: %(name)s (%(mb).2f MB)."
+msgstr "Backup created: %(name)s (%(mb).2f MB)."
+
+#: stoic_eln/blueprints/settings/routes.py:521
+#, python-format
+msgid "Backup fallito: %(err)s"
+msgstr "Backup failed: %(err)s"
+
+#: stoic_eln/blueprints/settings/routes.py:559
+msgid "Conferma il ripristino spuntando la casella."
+msgstr "Confirm the restore by ticking the checkbox."
+
+#: stoic_eln/blueprints/settings/routes.py:563
+msgid "Nome file di backup non valido."
+msgstr "Invalid backup filename."
+
+#: stoic_eln/blueprints/settings/routes.py:573
+#, python-format
+msgid ""
+"Ripristino effettuato da %(name)s. Riavvia l'applicazione perché le "
+"modifiche abbiano effetto."
+msgstr "Restored from %(name)s. Restart the application for changes to take effect."
+
+#: stoic_eln/blueprints/settings/routes.py:578
+#, python-format
+msgid "Ripristino fallito: %(err)s"
+msgstr "Restore failed: %(err)s"
+
+#: stoic_eln/blueprints/settings/routes.py:602
+#, python-format
+msgid "Backup %(name)s eliminato."
+msgstr "Backup %(name)s deleted."
+
+#: stoic_eln/blueprints/settings/routes.py:604
+#, python-format
+msgid "Impossibile eliminare il backup: %(err)s"
+msgstr "Could not delete backup: %(err)s"
+
+#: stoic_eln/blueprints/settings/routes.py:647
+msgid ""
+"Configurazione backup salvata. Riavvia l'applicazione per applicare il "
+"nuovo orario allo scheduler."
+msgstr "Backup configuration saved. Restart the application to apply the new schedule."
+
+#: stoic_eln/blueprints/settings/routes.py:679
+#, fuzzy
+msgid "La passphrase non può essere vuota."
+msgstr "Comment cannot be empty."
+
+#: stoic_eln/blueprints/settings/routes.py:683
+#, fuzzy
+msgid "Le due passphrase inserite non coincidono."
+msgstr "Passwords don't match."
+
+#: stoic_eln/blueprints/settings/routes.py:687
+#, fuzzy
+msgid "La passphrase deve essere lunga almeno 12 caratteri."
+msgstr "La password deve essere lunga almeno 8 caratteri."
+
+#: stoic_eln/blueprints/settings/routes.py:696
+#, python-format
+msgid "Test crittografia fallito: %(err)s. La passphrase non è stata salvata."
+msgstr "Encryption self-test failed: %(err)s. The passphrase was not saved."
+
+#: stoic_eln/blueprints/settings/routes.py:712
+msgid ""
+"Passphrase salvata in instance/backup.key. I prossimi backup saranno "
+"cifrati con AES-256-GCM. ATTENZIONE: conserva la passphrase in un posto "
+"sicuro; se la perdi, i backup cifrati saranno irrecuperabili."
+msgstr "Passphrase saved to instance/backup.key. Future backups will be encrypted with AES-256-GCM. WARNING: keep the passphrase in a safe place; if you lose it, encrypted backups become unrecoverable."
+
+#: stoic_eln/blueprints/settings/routes.py:735
+#, fuzzy
+msgid "Nessuna passphrase configurata."
+msgstr "No substances selected."
+
+#: stoic_eln/blueprints/settings/routes.py:740
+msgid "Conferma la disattivazione spuntando la casella."
+msgstr "Confirm deactivation by ticking the checkbox."
+
+#: stoic_eln/blueprints/settings/routes.py:752
+msgid ""
+"Crittografia disattivata. I prossimi backup saranno in chiaro. I backup "
+"cifrati esistenti rimangono cifrati."
+msgstr "Encryption disabled. Future backups will be in plaintext. Existing encrypted backups remain encrypted."
+
+#: stoic_eln/blueprints/settings/routes.py:784
+#, fuzzy
+msgid "Sorgente non valida."
+msgstr "Invalid scale."
+
+#: stoic_eln/blueprints/settings/routes.py:790
+#, fuzzy, python-format
+msgid "Errore: %(err)s"
+msgstr "PubChem error: %(err)s"
+
+#: stoic_eln/blueprints/settings/routes.py:800
+#, python-format
+msgid ""
+"Sorgente passphrase impostata su '%(s)s'. Il cambio è attivo dal prossimo"
+" riavvio di Stoic."
+msgstr "Passphrase source set to '%(s)s'. The change takes effect from Stoic's next restart."
+
+#: stoic_eln/blueprints/settings/routes.py:805
+msgid ""
+"Da ora in poi Stoic ti chiederà la passphrase a ogni avvio. Se hai ancora"
+" il file instance/backup.key, considera di eliminarlo manualmente "
+"(altrimenti la sicurezza extra del modo 'prompt' è inutile)."
+msgstr "From now on Stoic will ask for the passphrase at every startup. If instance/backup.key still exists, consider deleting it manually (otherwise the extra security of 'prompt' mode is wasted)."
+
+#: stoic_eln/blueprints/settings/routes.py:826
+msgid "Conferma l'eliminazione spuntando la casella."
+msgstr "Confirm deletion by ticking the checkbox."
+
+#: stoic_eln/blueprints/settings/routes.py:832
+#, fuzzy
+msgid "Nessun file backup.key da eliminare."
+msgstr "No file selected."
+
+#: stoic_eln/blueprints/settings/routes.py:844
+msgid ""
+"File instance/backup.key eliminato. La passphrase ora esiste solo nella "
+"tua testa (e in RAM mentre Stoic gira)."
+msgstr "File instance/backup.key deleted. The passphrase now lives only in your head (and in RAM while Stoic is running)."
+
+#: stoic_eln/blueprints/settings/routes.py:850
+#, python-format
+msgid "Impossibile eliminare il file: %(err)s"
+msgstr "Could not delete file: %(err)s"
+
+#: stoic_eln/blueprints/substances/forms.py:25
+#: stoic_eln/templates/substances/sds.html:28
+msgid "Nome IUPAC"
+msgstr "IUPAC name"
+
+#: stoic_eln/blueprints/substances/forms.py:27
+#: stoic_eln/templates/substances/_list_table.html:9
+#: stoic_eln/templates/substances/detail.html:62
+#: stoic_eln/templates/substances/import_preview.html:52
+msgid "CAS"
+msgstr "CAS"
+
+#: stoic_eln/blueprints/substances/forms.py:32
+#: stoic_eln/templates/runs/_substance_card.html:34
+#: stoic_eln/templates/substances/_list_table.html:10
+#: stoic_eln/templates/substances/detail.html:65
+#: stoic_eln/templates/substances/import_preview.html:54
+#: stoic_eln/templates/substances/sds.html:30
+msgid "Formula"
+msgstr "Formula"
+
+#: stoic_eln/blueprints/substances/forms.py:37
+msgid "Peso molecolare (g/mol)"
+msgstr "Molecular weight"
+
+#: stoic_eln/blueprints/substances/forms.py:40
+#: stoic_eln/templates/substances/detail.html:74
+msgid "SMILES"
+msgstr "SMILES"
+
+#: stoic_eln/blueprints/substances/forms.py:41
+#: stoic_eln/templates/substances/detail.html:77
+msgid "InChI"
+msgstr "InChI"
+
+#: stoic_eln/blueprints/substances/forms.py:43
+#: stoic_eln/templates/substances/detail.html:80
+msgid "InChIKey"
+msgstr "InChIKey"
+
+#: stoic_eln/blueprints/substances/forms.py:48
+msgid "Densità (g/mL)"
+msgstr "Quantity (mL)"
+
+#: stoic_eln/blueprints/substances/forms.py:51
+#: stoic_eln/templates/substances/sds.html:43
+msgid "Stato fisico"
+msgstr "Physical state"
+
+#: stoic_eln/blueprints/substances/forms.py:54
+msgid "Solido"
+msgstr "solid"
+
+#: stoic_eln/blueprints/substances/forms.py:55
+msgid "Liquido"
+msgstr "liquid"
+
+#: stoic_eln/blueprints/substances/forms.py:56
+msgid "Gas"
+msgstr "gas"
+
+#: stoic_eln/blueprints/substances/forms.py:60
+msgid "Solvente (dosato in mL)"
+msgstr "Solvent (dispensed in mL)"
+
+#: stoic_eln/blueprints/substances/forms.py:61
+msgid "Punto di fusione (°C)"
+msgstr "Melting point"
+
+#: stoic_eln/blueprints/substances/forms.py:62
+msgid "Punto di ebollizione (°C)"
+msgstr "Boiling point"
+
+#: stoic_eln/blueprints/substances/forms.py:68
+#: stoic_eln/templates/substances/form.html:105
+msgid "Pittogrammi GHS"
+msgstr "GHS pictograms"
+
+#: stoic_eln/blueprints/substances/forms.py:84
+msgid "Frasi H (separate da virgola)"
+msgstr "Comma-separated codes."
+
+#: stoic_eln/blueprints/substances/forms.py:89
+msgid "Frasi P (separate da virgola)"
+msgstr "Comma-separated codes."
+
+#: stoic_eln/blueprints/substances/forms.py:101
+#: stoic_eln/templates/inventory/list.html:22
+#: stoic_eln/templates/orders/list.html:25
+#: stoic_eln/templates/preps/list.html:16
+#: stoic_eln/templates/settings/audit_log.html:25
+msgid "Cerca"
+msgstr "Search"
+
+#: stoic_eln/blueprints/substances/forms.py:111
+msgid "Rilevamento automatico"
+msgstr "Auto-detected"
+
+#: stoic_eln/blueprints/substances/forms.py:113
+msgid "Numero CAS"
+msgstr "Catalogue number"
+
+#: stoic_eln/blueprints/substances/forms.py:117
+msgid "PubChem CID"
+msgstr "PubChem CID"
+
+#: stoic_eln/blueprints/substances/forms.py:121
+msgid "Cerca su PubChem"
+msgstr "PubChem result"
+
+#: stoic_eln/blueprints/substances/forms.py:127
+#: stoic_eln/templates/substances/import_preview.html:13
+msgid "Importa"
+msgstr "Import"
+
+#: stoic_eln/blueprints/substances/routes.py:168
+#, python-format
+msgid "Esiste già una sostanza con questo InChIKey: %(name)s"
+msgstr "A substance with this InChIKey already exists: %(name)s"
+
+#: stoic_eln/blueprints/substances/routes.py:177
+#, python-format
+msgid "Sostanza '%(name)s' creata."
+msgstr "Substance '%(name)s' created."
+
+#: stoic_eln/blueprints/substances/routes.py:216
+#, python-format
+msgid "InChIKey già usato dalla sostanza '%(name)s'"
+msgstr "InChIKey already used by substance '%(name)s'"
+
+#: stoic_eln/blueprints/substances/routes.py:233
+#, python-format
+msgid "Sostanza '%(name)s' aggiornata."
+msgstr "Substance '%(name)s' updated."
+
+#: stoic_eln/blueprints/substances/routes.py:249
+#, python-format
+msgid "Sostanza '%(name)s' disattivata."
+msgstr "Substance '%(name)s' deactivated."
+
+#: stoic_eln/blueprints/substances/routes.py:263
+#, python-format
+msgid "Sostanza '%(name)s' riattivata."
+msgstr "Substance '%(name)s' reactivated."
+
+#: stoic_eln/blueprints/substances/routes.py:314
+#, python-format
+msgid "Nessun risultato trovato per '%(q)s'."
+msgstr "No results found for '%(q)s'."
+
+#: stoic_eln/blueprints/substances/routes.py:316
+#, python-format
+msgid "Errore PubChem: %(err)s"
+msgstr "PubChem error: %(err)s"
+
+#: stoic_eln/blueprints/substances/routes.py:370
+msgid "Token CSRF mancante. Riprova."
+msgstr "Missing CSRF token. Retry."
+
+#: stoic_eln/blueprints/substances/routes.py:375
+msgid "Sessione scaduta. Cerca di nuovo."
+msgstr "Session expired. Search again."
+
+#: stoic_eln/blueprints/substances/routes.py:385
+#, python-format
+msgid "Sostanza già presente: '%(name)s'"
+msgstr "Substance already exists: '%(name)s'"
+
+#: stoic_eln/blueprints/substances/routes.py:419
+#, python-format
+msgid "Importata da PubChem: '%(name)s'"
+msgstr "Imported from PubChem: '%(name)s'"
+
+#: stoic_eln/blueprints/substances/routes.py:458
+msgid "Soglie aggiornate."
+msgstr "Thresholds updated."
+
+#: stoic_eln/services/attachments.py:180
+#, python-format
+msgid "Tipo di file '.%(ext)s' non permesso (potenzialmente eseguibile)."
+msgstr "File type '.%(ext)s' not allowed (potentially executable)."
+
+#: stoic_eln/services/attachments.py:186
+#, python-format
+msgid "Tipo di file '.%(ext)s' non supportato. Tipi permessi: %(types)s."
+msgstr "File type '.%(ext)s' not supported. Allowed types: %(types)s."
+
+#: stoic_eln/services/attachments.py:196
+#, python-format
+msgid "entity_type non valido: %(t)s"
+msgstr "invalid entity_type: %(t)s"
+
+#: stoic_eln/services/attachments.py:246
+msgid "File vuoto."
+msgstr "Empty file."
+
+#: stoic_eln/services/attachments.py:253
+#, python-format
+msgid "File troppo grande (%(size).1f MB). Massimo: %(max).0f MB."
+msgstr "File too large (%(size).1f MB). Max: %(max).0f MB."
+
+#: stoic_eln/services/attachments.py:270
+#, python-format
+msgid "Errore nel salvataggio del file: %(err)s"
+msgstr "Error while saving the file: %(err)s"
+
+#: stoic_eln/templates/base.html:59 stoic_eln/templates/base.html:60
+#, fuzzy
+msgid "Mostra/nascondi sidebar"
+msgstr "Show/hide details"
+
+#: stoic_eln/templates/base.html:67
+msgid "Laboratorio"
+msgstr "Laboratory"
+
+#: stoic_eln/templates/base.html:70 stoic_eln/templates/base.html:72
+#: stoic_eln/templates/main/dashboard.html:2
+msgid "Dashboard"
+msgstr "Dashboard"
+
+#: stoic_eln/templates/base.html:76 stoic_eln/templates/base.html:78
+#: stoic_eln/templates/inventory/form.html:28
+#: stoic_eln/templates/inventory/label_print.html:11
+#: stoic_eln/templates/main/dashboard.html:17
+#: stoic_eln/templates/substances/detail.html:11
+#: stoic_eln/templates/substances/form.html:10
+#: stoic_eln/templates/substances/import_preview.html:10
+#: stoic_eln/templates/substances/import_search.html:10
+#: stoic_eln/templates/substances/list.html:2
+#: stoic_eln/templates/substances/list.html:7
+msgid "Sostanze"
+msgstr "Substances"
+
+#: stoic_eln/templates/base.html:82 stoic_eln/templates/base.html:84
+#: stoic_eln/templates/main/dashboard.html:44
+#: stoic_eln/templates/reactions/detail.html:15
+#: stoic_eln/templates/reactions/form.html:10
+#: stoic_eln/templates/reactions/list.html:2
+#: stoic_eln/templates/reactions/list.html:7
+#: stoic_eln/templates/reactions/run_placeholder.html:8
+#: stoic_eln/templates/reactions/versions.html:8
+#: stoic_eln/templates/runs/detail.html:13
+msgid "Reazioni"
+msgstr "Reactions"
+
+#: stoic_eln/templates/base.html:88 stoic_eln/templates/base.html:90
+#: stoic_eln/templates/runs/list.html:2 stoic_eln/templates/runs/list.html:6
+#: stoic_eln/templates/runs/stats.html:16
+msgid "Storico run"
+msgstr "Runs history"
+
+#: stoic_eln/templates/base.html:94 stoic_eln/templates/base.html:96
+#: stoic_eln/templates/inventory/form.html:20
+#: stoic_eln/templates/mixtures/detail.html:11
+#: stoic_eln/templates/mixtures/list.html:2
+#: stoic_eln/templates/mixtures/list.html:7
+#: stoic_eln/templates/mixtures/prepare.html:9
+#, fuzzy
+msgid "Miscele"
+msgstr "SMILES"
+
+#: stoic_eln/templates/base.html:100 stoic_eln/templates/base.html:102
+#: stoic_eln/templates/preps/list.html:6
+#, fuzzy
+msgid "Storico preparazioni"
+msgstr "Run in setup."
+
+#: stoic_eln/templates/base.html:105 stoic_eln/templates/inventory/list.html:2
+#: stoic_eln/templates/inventory/list.html:7
+msgid "Magazzino"
+msgstr "Warehouse"
+
+#: stoic_eln/templates/base.html:108 stoic_eln/templates/base.html:110
+msgid "Inventario"
+msgstr "Inventory"
+
+#: stoic_eln/templates/base.html:114 stoic_eln/templates/base.html:116
+#: stoic_eln/templates/orders/list.html:2
+#: stoic_eln/templates/orders/list.html:7
+msgid "Ordini"
+msgstr "Orders"
+
+#: stoic_eln/templates/base.html:120
+msgid "Admin"
+msgstr "Admin"
+
+#: stoic_eln/templates/base.html:123 stoic_eln/templates/base.html:125
+#: stoic_eln/templates/settings/index.html:61
+#: stoic_eln/templates/settings/new_user.html:11
+#: stoic_eln/templates/settings/users.html:2
+#: stoic_eln/templates/settings/users.html:11
+#: stoic_eln/templates/settings/users.html:16
+msgid "Utenti"
+msgstr "Users"
+
+#: stoic_eln/templates/base.html:128
+#, fuzzy
+msgid "Report (in arrivo)"
+msgstr "Incoming orders"
+
+#: stoic_eln/templates/base.html:130
+msgid "Report"
+msgstr "Reports"
+
+#: stoic_eln/templates/base.html:134 stoic_eln/templates/base.html:136
+#: stoic_eln/templates/settings/audit_log.html:2
+#: stoic_eln/templates/settings/audit_log.html:9
+#: stoic_eln/templates/settings/index.html:98
+msgid "Audit log"
+msgstr "Audit log"
+
+#: stoic_eln/templates/base.html:140 stoic_eln/templates/base.html:142
+#: stoic_eln/templates/settings/backups.html:11
+#: stoic_eln/templates/settings/currency.html:2
+#: stoic_eln/templates/settings/index.html:2
+#: stoic_eln/templates/settings/index.html:6
+#: stoic_eln/templates/settings/new_user.html:2
+#: stoic_eln/templates/settings/new_user.html:8
+#: stoic_eln/templates/settings/prep_code.html:2
+#: stoic_eln/templates/settings/prep_code.html:8
+#: stoic_eln/templates/settings/run_code.html:2
+#: stoic_eln/templates/settings/run_code.html:8
+#: stoic_eln/templates/settings/users.html:2
+#: stoic_eln/templates/settings/users.html:9
+msgid "Impostazioni"
+msgstr "Settings"
+
+#: stoic_eln/templates/base.html:169
+msgid "Tema"
+msgstr "Theme"
+
+#: stoic_eln/templates/base.html:182 stoic_eln/templates/base.html:275
+msgid "Sistema"
+msgstr "System"
+
+#: stoic_eln/templates/base.html:188 stoic_eln/templates/base.html:269
+msgid "Chiaro"
+msgstr "Light"
+
+#: stoic_eln/templates/base.html:194 stoic_eln/templates/base.html:272
+msgid "Scuro"
+msgstr "Dark"
+
+#: stoic_eln/templates/base.html:232
+msgid "Logout"
+msgstr "Logout"
+
+#: stoic_eln/templates/attachments/_list.html:47
+msgid "caricato da"
+msgstr "uploaded by"
+
+#: stoic_eln/templates/attachments/_list.html:50
+#: stoic_eln/templates/notes/_note.html:13
+msgid "(utente eliminato)"
+msgstr "(deleted user)"
+
+#: stoic_eln/templates/attachments/_list.html:58
+#: stoic_eln/templates/settings/backups.html:385
+msgid "Scarica"
+msgstr "Download"
+
+#: stoic_eln/templates/attachments/_list.html:66
+#, python-format
+msgid "Eliminare definitivamente \"%(f)s\"?"
+msgstr "Permanently delete \"%(f)s\"?"
+
+#: stoic_eln/templates/attachments/_list.html:68
+#: stoic_eln/templates/reactions/_checklist_row.html:109
+#: stoic_eln/templates/settings/backups.html:397
+#: stoic_eln/templates/settings/backups.html:485
+msgid "Elimina"
+msgstr "Delete"
+
+#: stoic_eln/templates/attachments/_list.html:78
+msgid "Nessun allegato. Carica il primo qui sotto."
+msgstr "No attachments yet. Upload the first one below."
+
+#: stoic_eln/templates/attachments/_list.html:95
+msgid "Didascalia opzionale (es. NMR purificato)"
+msgstr "Optional caption (e.g. purified NMR)"
+
+#: stoic_eln/templates/attachments/_list.html:98
+msgid ""
+"Massimo 100 MB. Tipi accettati: PDF, immagini, dati di laboratorio (csv, "
+"xlsx, jdx, mol, raw, mzML…), archivi (.zip)."
+msgstr "Max 100 MB. Allowed: PDF, images, lab data files (csv, xlsx, jdx, mol, raw, mzML…), archives (.zip)."
+
+#: stoic_eln/templates/attachments/_list.html:102
+msgid "Carica"
+msgstr "Upload"
+
+#: stoic_eln/templates/auth/change_password.html:11
+msgid "La nuova password deve essere lunga almeno 8 caratteri."
+msgstr "The new password must be at least 8 characters long."
+
+#: stoic_eln/templates/auth/change_password.html:42
+#: stoic_eln/templates/inventory/form.html:159
+#: stoic_eln/templates/inventory/label_print.html:86
+#: stoic_eln/templates/mixtures/form.html:164
+#: stoic_eln/templates/mixtures/prepare.html:54
+#: stoic_eln/templates/mixtures/prepare.html:176
+#: stoic_eln/templates/notes/_edit_form.html:20
+#: stoic_eln/templates/orders/form.html:97
+#: stoic_eln/templates/orders/form.html:100
+#: stoic_eln/templates/orders/receive.html:111
+#: stoic_eln/templates/reactions/_checklist_row.html:55
+#: stoic_eln/templates/reactions/_step_card.html:373
+#: stoic_eln/templates/reactions/detail.html:458
+#: stoic_eln/templates/reactions/detail.html:587
+#: stoic_eln/templates/reactions/detail.html:623
+#: stoic_eln/templates/reactions/form.html:97
+#: stoic_eln/templates/settings/backups.html:454
+#: stoic_eln/templates/settings/backups.html:482
+#: stoic_eln/templates/settings/new_user.html:117
+#: stoic_eln/templates/settings/prep_code.html:96
+#: stoic_eln/templates/settings/run_code.html:117
+#: stoic_eln/templates/substances/form.html:149
+#: stoic_eln/templates/substances/import_search.html:44
+msgid "Annulla"
+msgstr "Cancel"
+
+#: stoic_eln/templates/errors/404.html:2
+msgid "Pagina non trovata"
+msgstr "Page not found"
+
+#: stoic_eln/templates/errors/404.html:7 stoic_eln/templates/errors/404.html:15
+msgid "La pagina che stai cercando non esiste."
+msgstr "The page you are looking for does not exist."
+
+#: stoic_eln/templates/errors/404.html:8 stoic_eln/templates/errors/500.html:8
+msgid "Torna alla dashboard"
+msgstr "Back to the dashboard"
+
+#: stoic_eln/templates/errors/404.html:16
+#: stoic_eln/templates/errors/500.html:16
+msgid "Torna alla home"
+msgstr "Back to home"
+
+#: stoic_eln/templates/errors/500.html:2
+msgid "Errore interno"
+msgstr "Internal error"
+
+#: stoic_eln/templates/errors/500.html:7 stoic_eln/templates/errors/500.html:15
+msgid "Si è verificato un errore. Riprova più tardi."
+msgstr "An error occurred. Please try again later."
+
+#: stoic_eln/templates/inventory/_list_table.html:35
+#: stoic_eln/templates/mixtures/detail.html:233
+#: stoic_eln/templates/mixtures/prepare.html:121
+#: stoic_eln/templates/orders/detail.html:105
+#: stoic_eln/templates/runs/detail.html:303
+#: stoic_eln/templates/runs/detail.html:549
+#: stoic_eln/templates/substances/detail.html:202
+msgid "Lotto"
+msgstr "Lot"
+
+#: stoic_eln/templates/inventory/_list_table.html:38
+#: stoic_eln/templates/substances/detail.html:208
+msgid "Acquistato"
+msgstr "Purchased"
+
+#: stoic_eln/templates/inventory/_list_table.html:39
+#: stoic_eln/templates/mixtures/detail.html:236
+#: stoic_eln/templates/mixtures/prepare.html:157
+#: stoic_eln/templates/orders/receive.html:97
+#: stoic_eln/templates/preps/detail.html:91
+msgid "Scadenza"
+msgstr "Expiry"
+
+#: stoic_eln/templates/inventory/_list_table.html:40
+#: stoic_eln/templates/substances/detail.html:205
+msgid "Iniziale"
+msgstr "Initial"
+
+#: stoic_eln/templates/inventory/_list_table.html:41
+#: stoic_eln/templates/substances/detail.html:206
+msgid "Residuo"
+msgstr "Remaining"
+
+#: stoic_eln/templates/inventory/_list_table.html:42
+#: stoic_eln/templates/orders/list.html:94
+#: stoic_eln/templates/reactions/stats.html:142
+#: stoic_eln/templates/runs/detail.html:213
+#: stoic_eln/templates/runs/list.html:24
+msgid "Costo"
+msgstr "Cost"
+
+#: stoic_eln/templates/inventory/_list_table.html:45
+#: stoic_eln/templates/inventory/list.html:30
+#: stoic_eln/templates/orders/list.html:31
+#: stoic_eln/templates/orders/list.html:97
+#: stoic_eln/templates/preps/detail.html:96
+#: stoic_eln/templates/reactions/versions.html:40
+#: stoic_eln/templates/runs/list.html:20
+#: stoic_eln/templates/settings/users.html:41
+#: stoic_eln/templates/substances/_list_table.html:12
+#: stoic_eln/templates/substances/detail.html:103
+#: stoic_eln/templates/substances/import_preview.html:71
+msgid "Stato"
+msgstr "Status"
+
+#: stoic_eln/templates/inventory/_list_table.html:61
+#: stoic_eln/templates/preps/detail.html:162
+#: stoic_eln/templates/reactions/_components_table.html:63
+#: stoic_eln/templates/reactions/_step_card.html:160
+#: stoic_eln/templates/runs/detail.html:333
+#: stoic_eln/templates/runs/detail.html:566
+#, fuzzy
+msgid "miscela"
+msgstr "Scale"
+
+#: stoic_eln/templates/inventory/_list_table.html:94
+#: stoic_eln/templates/main/dashboard.html:151
+#, python-format
+msgid "scaduto da %(d)d gg"
+msgstr "expired %(d)d days ago"
+
+#: stoic_eln/templates/inventory/_list_table.html:98
+#: stoic_eln/templates/main/dashboard.html:196
+#: stoic_eln/templates/orders/detail.html:137
+#: stoic_eln/templates/orders/list.html:142
+#, python-format
+msgid "entro %(d)d gg"
+msgstr "in %(d)d days"
+
+#: stoic_eln/templates/inventory/_list_table.html:130
+#: stoic_eln/templates/mixtures/detail.html:38
+#: stoic_eln/templates/mixtures/form.html:10
+#: stoic_eln/templates/notes/_note.html:31
+#: stoic_eln/templates/orders/detail.html:24
+#: stoic_eln/templates/reactions/_checklist_row.html:67
+#: stoic_eln/templates/reactions/_list_table.html:74
+#: stoic_eln/templates/reactions/detail.html:3
+#: stoic_eln/templates/reactions/detail.html:57
+#: stoic_eln/templates/reactions/detail.html:472
+#: stoic_eln/templates/reactions/form.html:16
+#: stoic_eln/templates/reactions/form.html:26
+#: stoic_eln/templates/substances/detail.html:28
+#: stoic_eln/templates/substances/form.html:16
+#: stoic_eln/templates/substances/form.html:26
+msgid "Modifica"
+msgstr "Edit"
+
+#: stoic_eln/templates/inventory/_list_table.html:137
+#: stoic_eln/templates/inventory/form.html:141
+msgid "Disattivare questo lotto?"
+msgstr "Deactivate this lot?"
+
+#: stoic_eln/templates/inventory/_list_table.html:140
+#: stoic_eln/templates/reactions/_list_table.html:86
+#: stoic_eln/templates/reactions/detail.html:84
+#: stoic_eln/templates/reactions/detail.html:481
+msgid "Disattiva"
+msgstr "Deactivate"
+
+#: stoic_eln/templates/inventory/_list_table.html:150
+#: stoic_eln/templates/reactions/detail.html:98
+#: stoic_eln/templates/substances/detail.html:39
+msgid "Riattiva"
+msgstr "Reactivate"
+
+#: stoic_eln/templates/inventory/_list_table.html:162
+msgid "Totale visualizzato:"
+msgstr "Displayed total:"
+
+#: stoic_eln/templates/inventory/_list_table.html:178
+msgid "Nessun lotto corrisponde ai filtri impostati."
+msgstr "No lots match the current filters."
+
+#: stoic_eln/templates/inventory/_list_table.html:180
+msgid "Nessun lotto in magazzino. Aggiungi un lotto da una sostanza."
+msgstr "No lots in warehouse. Add a lot from a substance."
+
+#: stoic_eln/templates/inventory/form.html:2
+#: stoic_eln/templates/inventory/form.html:43
+#: stoic_eln/templates/inventory/form.html:51
+msgid "Modifica lotto"
+msgstr "Edit lot"
+
+#: stoic_eln/templates/inventory/form.html:2
+#: stoic_eln/templates/inventory/form.html:43
+msgid "Nuovo lotto"
+msgstr "New lot"
+
+#: stoic_eln/templates/inventory/form.html:52
+msgid "Nuovo lotto di"
+msgstr "New lot of"
+
+#: stoic_eln/templates/inventory/form.html:79
+#: stoic_eln/templates/mixtures/detail.html:234
+#: stoic_eln/templates/mixtures/prepare.html:122
+#: stoic_eln/templates/orders/list.html:93
+#: stoic_eln/templates/preps/_list_table.html:9
+#: stoic_eln/templates/reactions/_step_card.html:345
+#: stoic_eln/templates/runs/detail.html:212
+#: stoic_eln/templates/substances/_list_table.html:15
+msgid "Quantità"
+msgstr "Quantity"
+
+#: stoic_eln/templates/inventory/form.html:81
+msgid ""
+"Compila la coppia coerente con lo stato fisico (g per solidi, mL per "
+"liquidi)."
+msgstr "Fill the pair consistent with the physical state (g for solids, mL for liquids)."
+
+#: stoic_eln/templates/inventory/form.html:95
+msgid "Lascia vuoto per usare la quantità iniziale."
+msgstr "Leave empty to use the initial quantity."
+
+#: stoic_eln/templates/inventory/form.html:105
+msgid "Logistica"
+msgstr "Logistics"
+
+#: stoic_eln/templates/inventory/form.html:142
+msgid "Disattiva lotto"
+msgstr "Deactivate lot"
+
+#: stoic_eln/templates/inventory/form.html:150
+#: stoic_eln/templates/inventory/label_print.html:2
+#: stoic_eln/templates/inventory/label_print.html:23
+#: stoic_eln/templates/inventory/label_print.html:29
+#: stoic_eln/templates/preps/detail.html:112
+msgid "Stampa etichetta"
+msgstr "Print label"
+
+#: stoic_eln/templates/inventory/form.html:155
+#: stoic_eln/templates/preps/detail.html:117
+msgid "Scheda lotto (PDF)"
+msgstr "Batch sheet (PDF)"
+
+#: stoic_eln/templates/inventory/form.html:174
+#: stoic_eln/templates/mixtures/detail.html:287
+#: stoic_eln/templates/preps/detail.html:188
+#: stoic_eln/templates/reactions/detail.html:428
+#: stoic_eln/templates/runs/detail.html:755
+#: stoic_eln/templates/substances/detail.html:340
+msgid "Allegati"
+msgstr "Attachments"
+
+#: stoic_eln/templates/inventory/form.html:179
+msgid "CoA, scheda lotto, etichetta…"
+msgstr "CoA, batch sheet, label…"
+
+#: stoic_eln/templates/inventory/label_print.html:20
+#, python-format
+msgid "Lotto #%(id)d"
+msgstr "Lot #%(id)d"
+
+#: stoic_eln/templates/inventory/label_print.html:33
+msgid "Scad"
+msgstr "Exp"
+
+#: stoic_eln/templates/inventory/label_print.html:41
+#: stoic_eln/templates/settings/prep_code.html:37
+#: stoic_eln/templates/settings/run_code.html:38
+msgid "Formato"
+msgstr "Format"
+
+#: stoic_eln/templates/inventory/label_print.html:60
+msgid "Copie"
+msgstr "Copies"
+
+#: stoic_eln/templates/inventory/label_print.html:64
+msgid "Numero di etichette identiche da stampare per questo lotto."
+msgstr "Number of identical labels to print for this lot."
+
+#: stoic_eln/templates/inventory/label_print.html:69
+msgid "Posizione di partenza sul foglio"
+msgstr "Start position on the sheet"
+
+#: stoic_eln/templates/inventory/label_print.html:74
+msgid ""
+"0 = primo slot in alto a sinistra. Utile per riusare un foglio Avery già "
+"parzialmente stampato — conta le celle già usate (sinistra→destra, riga "
+"per riga) e mettile qui."
+msgstr ""
+"0 = top-left slot. Useful when reusing a partially-printed Avery sheet — "
+"count the cells already used (left→right, row by row) and put that here."
+
+#: stoic_eln/templates/inventory/label_print.html:81
+msgid ""
+"Il QR contiene: lotto_id, batch, sostanza e scadenza in formato JSON. "
+"Sull'etichetta vengono stampati nome sostanza, batch, scadenza, CAS, "
+"formula, MW, densità, pittogrammi GHS e codici delle frasi H/P quando "
+"disponibili."
+msgstr ""
+"The QR contains lotto_id, batch, substance and expiry as JSON. The label "
+"itself shows the substance name, batch, expiry date, CAS, formula, MW, "
+"density, GHS pictograms and H/P phrase codes when available."
+
+#: stoic_eln/templates/inventory/label_print.html:90
+msgid "Genera PDF"
+msgstr "Generate PDF"
+
+#: stoic_eln/templates/inventory/list.html:8
+#, python-format
+msgid "%(n)d lotti visualizzati"
+msgstr "%(n)d lots displayed"
+
+#: stoic_eln/templates/inventory/list.html:12
+msgid "Catalogo sostanze"
+msgstr "Substance catalogue"
+
+#: stoic_eln/templates/inventory/list.html:27
+msgid "lotto, fornitore, sostanza, CAS…"
+msgstr "lot, supplier, substance, CAS…"
+
+#: stoic_eln/templates/inventory/list.html:33
+#: stoic_eln/templates/orders/list.html:52
+#: stoic_eln/templates/settings/audit_log.html:33
+msgid "Tutti"
+msgstr "All"
+
+#: stoic_eln/templates/inventory/list.html:36
+msgid "In stock"
+msgstr "In stock"
+
+#: stoic_eln/templates/inventory/list.html:39
+msgid "In scadenza (≤30 gg)"
+msgstr "Expiring (≤30 days)"
+
+#: stoic_eln/templates/inventory/list.html:42
+msgid "Scaduti"
+msgstr "Expired"
+
+#: stoic_eln/templates/inventory/list.html:45
+msgid "Esauriti"
+msgstr "Empty"
+
+#: stoic_eln/templates/inventory/list.html:48
+msgid "Disattivati"
+msgstr "Inactive"
+
+#: stoic_eln/templates/inventory/list.html:55
+#: stoic_eln/templates/inventory/list.html:64
+#: stoic_eln/templates/orders/list.html:59
+#: stoic_eln/templates/orders/list.html:68
+msgid "Qualsiasi"
+msgstr "Any"
+
+#: stoic_eln/templates/inventory/list.html:62
+#: stoic_eln/templates/orders/detail.html:71
+#: stoic_eln/templates/orders/list.html:66
+msgid "Gruppo"
+msgstr "Group"
+
+#: stoic_eln/templates/inventory/list.html:74
+#: stoic_eln/templates/orders/list.html:78
+#: stoic_eln/templates/settings/audit_log.html:87
+msgid "Filtra"
+msgstr "Filter"
+
+#: stoic_eln/templates/inventory/list.html:85
+msgid "Pulisci filtri"
+msgstr "Clear filters"
+
+#: stoic_eln/templates/main/dashboard.html:6
+msgid "Benvenuto"
+msgstr "Welcome"
+
+#: stoic_eln/templates/main/dashboard.html:28
+msgid "Lotti attivi"
+msgstr "Active lots"
+
+#: stoic_eln/templates/main/dashboard.html:31
+#: stoic_eln/templates/main/dashboard.html:71
+msgid "totali"
+msgstr "total"
+
+#: stoic_eln/templates/main/dashboard.html:54
+#: stoic_eln/templates/reactions/stats.html:42
+msgid "Run completati"
+msgstr "Completed runs"
+
+#: stoic_eln/templates/main/dashboard.html:66
+msgid "Ordini in arrivo"
+msgstr "Incoming orders"
+
+#: stoic_eln/templates/main/dashboard.html:76
+msgid "Tutti gli ordini"
+msgstr "All orders"
+
+#: stoic_eln/templates/main/dashboard.html:94
+msgid "consegna prevista:"
+msgstr "expected delivery:"
+
+#: stoic_eln/templates/main/dashboard.html:96
+#: stoic_eln/templates/orders/detail.html:133
+#: stoic_eln/templates/orders/list.html:138
+#, python-format
+msgid "in ritardo di %(d)d gg"
+msgstr "%(d)d days overdue"
+
+#: stoic_eln/templates/main/dashboard.html:99
+msgid "nessuna data prevista"
+msgstr "no expected date"
+
+#: stoic_eln/templates/main/dashboard.html:108
+#, python-format
+msgid "e altri %(n)d ordini…"
+msgstr "and %(n)d more orders…"
+
+#: stoic_eln/templates/main/dashboard.html:120
+msgid "Nessun avviso. Magazzino in ordine."
+msgstr "No alerts. Inventory is in order."
+
+#: stoic_eln/templates/main/dashboard.html:135
+msgid "Lotti scaduti"
+msgstr "Expired lots"
+
+#: stoic_eln/templates/main/dashboard.html:163
+#: stoic_eln/templates/main/dashboard.html:208
+#, python-format
+msgid "e altri %(n)d lotti…"
+msgstr "and %(n)d more lots…"
+
+#: stoic_eln/templates/main/dashboard.html:165
+#: stoic_eln/templates/main/dashboard.html:210
+msgid "vedi tutti"
+msgstr "see all"
+
+#: stoic_eln/templates/main/dashboard.html:180
+msgid "Lotti in scadenza (≤30 giorni)"
+msgstr "Expiring lots (≤30 days)"
+
+#: stoic_eln/templates/main/dashboard.html:225
+#: stoic_eln/templates/orders/shopping_list.html:35
+msgid "Sostanze sotto soglia"
+msgstr "Substances below threshold"
+
+#: stoic_eln/templates/main/dashboard.html:248
+#, python-format
+msgid "e altre %(n)d sostanze…"
+msgstr "and %(n)d more substances…"
+
+#: stoic_eln/templates/main/dashboard.html:265
+msgid "Suggeriti per il riordino"
+msgstr "Suggested for re-order"
+
+#: stoic_eln/templates/main/dashboard.html:268
+msgid "Apri lista della spesa"
+msgstr "Open shopping list"
+
+#: stoic_eln/templates/main/dashboard.html:283
+msgid "suggerito:"
+msgstr "suggested:"
+
+#: stoic_eln/templates/main/dashboard.html:284
+#: stoic_eln/templates/main/dashboard.html:324
+#: stoic_eln/templates/orders/receive.html:13
+msgid "da"
+msgstr "by"
+
+#: stoic_eln/templates/main/dashboard.html:292
+#: stoic_eln/templates/substances/detail.html:189
+msgid "Pianifica ordine"
+msgstr "Plan order"
+
+#: stoic_eln/templates/main/dashboard.html:294
+msgid "Pianifica"
+msgstr "Plan"
+
+#: stoic_eln/templates/main/dashboard.html:308
+msgid "Attività recente"
+msgstr "Recent activity"
+
+#: stoic_eln/templates/main/dashboard.html:311
+msgid "Audit completo"
+msgstr "Full audit"
+
+#: stoic_eln/templates/main/dashboard.html:328
+msgid "sistema"
+msgstr "system"
+
+#: stoic_eln/templates/mixtures/_component_row.html:13
+#, fuzzy
+msgid "Cerca sostanza…"
+msgstr "Substance"
+
+#: stoic_eln/templates/mixtures/_component_row.html:23
+#, fuzzy
+msgid "Solute"
+msgstr "solvent"
+
+#: stoic_eln/templates/mixtures/_component_row.html:25
+#, fuzzy
+msgid "Cosolvente"
+msgstr "solvent"
+
+#: stoic_eln/templates/mixtures/_component_row.html:30
+#, fuzzy
+msgid "Concentr."
+msgstr "Components"
+
+#: stoic_eln/templates/mixtures/_component_row.html:49
+#, fuzzy
+msgid "Rimuovi riga"
+msgstr "Remove"
+
+#: stoic_eln/templates/mixtures/_list_table.html:9
+#: stoic_eln/templates/mixtures/detail.html:69
+#: stoic_eln/templates/mixtures/detail.html:107
+#, fuzzy
+msgid "Concentrazione"
+msgstr "Concentration (M)"
+
+#: stoic_eln/templates/mixtures/_list_table.html:10
+#: stoic_eln/templates/preps/_list_table.html:10
+#: stoic_eln/templates/reactions/_step_card.html:129
+#: stoic_eln/templates/reactions/detail.html:224
+#: stoic_eln/templates/runs/detail.html:296
+#: stoic_eln/templates/runs/detail.html:542
+msgid "Componenti"
+msgstr "Components"
+
+#: stoic_eln/templates/mixtures/_list_table.html:11
+#: stoic_eln/templates/substances/_list_table.html:13
+msgid "GHS"
+msgstr "GHS"
+
+#: stoic_eln/templates/mixtures/_list_table.html:12
+#: stoic_eln/templates/mixtures/detail.html:213
+#: stoic_eln/templates/substances/_list_table.html:14
+msgid "Lotti"
+msgstr "Lots"
+
+#: stoic_eln/templates/mixtures/_list_table.html:24
+#: stoic_eln/templates/reactions/_list_table.html:26
+#: stoic_eln/templates/substances/_list_table.html:27
+msgid "disattivata"
+msgstr "deactivated"
+
+#: stoic_eln/templates/mixtures/_list_table.html:82
+#, fuzzy, python-format
+msgid "Nessuna miscela corrisponde a '%(q)s'."
+msgstr "No substance matches '%(q)s'."
+
+#: stoic_eln/templates/mixtures/_list_table.html:84
+#, fuzzy
+msgid "Nessuna miscela nel catalogo."
+msgstr "No substances in the catalogue."
+
+#: stoic_eln/templates/mixtures/_list_table.html:89
+#, fuzzy
+msgid "Crea la prima miscela"
+msgstr "Create the first reaction"
+
+#: stoic_eln/templates/mixtures/_prep_rows.html:29
+#, fuzzy
+msgid "nessuno"
+msgstr "Nessuna voce."
+
+#: stoic_eln/templates/mixtures/_prep_rows.html:44
+#: stoic_eln/templates/mixtures/_prep_rows.html:48
+#, fuzzy
+msgid "Stock"
+msgstr "In stock"
+
+#: stoic_eln/templates/mixtures/_prep_rows.html:55
+#, fuzzy
+msgid "nessun lotto disponibile"
+msgstr "(text not available)"
+
+#: stoic_eln/templates/mixtures/detail.html:23
+msgid "(aq)"
+msgstr "(aq)"
+
+#: stoic_eln/templates/mixtures/detail.html:25
+msgid "in"
+msgstr "in"
+
+#: stoic_eln/templates/mixtures/detail.html:34
+#: stoic_eln/templates/mixtures/detail.html:218
+#: stoic_eln/templates/mixtures/prepare.html:14
+#, fuzzy
+msgid "Prepara nuovo lotto"
+msgstr "New lot"
+
+#: stoic_eln/templates/mixtures/detail.html:46
+#, fuzzy
+msgid "Questa miscela è disattivata."
+msgstr "Reaction deactivated."
+
+#: stoic_eln/templates/mixtures/detail.html:54
+#: stoic_eln/templates/substances/detail.html:59
+#: stoic_eln/templates/substances/form.html:34
+#: stoic_eln/templates/substances/import_preview.html:46
+#: stoic_eln/templates/substances/sds.html:25
+msgid "Identificazione"
+msgstr "Identification"
+
+#: stoic_eln/templates/mixtures/detail.html:99
+#: stoic_eln/templates/mixtures/form.html:73
+#, fuzzy
+msgid "Composizione"
+msgstr "Location"
+
+#: stoic_eln/templates/mixtures/detail.html:124
+#, fuzzy
+msgid "solute"
+msgstr "solvent"
+
+#: stoic_eln/templates/mixtures/detail.html:125
+#: stoic_eln/templates/substances/_list_table.html:30
+#: stoic_eln/templates/substances/detail.html:109
+msgid "solvente"
+msgstr "solvent"
+
+#: stoic_eln/templates/mixtures/detail.html:126
+#, fuzzy
+msgid "cosolvente"
+msgstr "solvent"
+
+#: stoic_eln/templates/mixtures/detail.html:127
+#, fuzzy
+msgid "additivo"
+msgstr "Additive"
+
+#: stoic_eln/templates/mixtures/detail.html:145
+msgid "Nessun componente strutturato. Solo etichetta veloce."
+msgstr "No structured components. Quick label only."
+
+#: stoic_eln/templates/mixtures/detail.html:156
+#: stoic_eln/templates/mixtures/form.html:101
+#, fuzzy
+msgid "Sicurezza GHS"
+msgstr "Safety (GHS)"
+
+#: stoic_eln/templates/mixtures/detail.html:161
+#, fuzzy
+msgid "Override manuale"
+msgstr "manual SMILES"
+
+#: stoic_eln/templates/mixtures/detail.html:163
+#, fuzzy
+msgid "Derivata dai componenti"
+msgstr "derived from components"
+
+#: stoic_eln/templates/mixtures/detail.html:177
+#, fuzzy
+msgid "Nessun pittogramma assegnato."
+msgstr "No GHS pictograms found in PubChem."
+
+#: stoic_eln/templates/mixtures/detail.html:185
+#, fuzzy
+msgid "FRASI H"
+msgstr "H phrases"
+
+#: stoic_eln/templates/mixtures/detail.html:195
+#, fuzzy
+msgid "FRASI P"
+msgstr "P phrases"
+
+#: stoic_eln/templates/mixtures/detail.html:223
+#, fuzzy
+msgid "Lotto manuale"
+msgstr "manual SMILES"
+
+#: stoic_eln/templates/mixtures/detail.html:263
+#, fuzzy
+msgid "Nessun lotto attivo."
+msgstr "Active lots"
+
+#: stoic_eln/templates/mixtures/detail.html:291
+msgid "foto, CoA, schede"
+msgstr "photos, CoA, datasheets"
+
+#: stoic_eln/templates/mixtures/detail.html:305
+#, fuzzy
+msgid "Disattivare questa miscela?"
+msgstr "Deactivate this substance?"
+
+#: stoic_eln/templates/mixtures/detail.html:308
+#, fuzzy
+msgid "Disattiva miscela"
+msgstr "Inactive"
+
+#: stoic_eln/templates/mixtures/form.html:3
+#, fuzzy
+msgid "Modifica miscela"
+msgstr "Edit order"
+
+#: stoic_eln/templates/mixtures/form.html:3
+#: stoic_eln/templates/mixtures/form.html:12
+#: stoic_eln/templates/mixtures/list.html:12
+msgid "Nuova miscela"
+msgstr "New mixture"
+
+#: stoic_eln/templates/mixtures/form.html:16
+msgid ""
+"Una miscela rappresenta una preparazione fisica (soluzione, eluente, "
+"tampone) con uno o più componenti. Per la sostanza pura usa invece il "
+"catalogo Sostanze."
+msgstr "A mixture represents a physical preparation (solution, eluent, buffer) with one or more components. For pure substances, use the Substances catalog instead."
+
+#: stoic_eln/templates/mixtures/form.html:41
+msgid "es. 1.0 per HCl 1N"
+msgstr "e.g. 1.0 for HCl 1N"
+
+#: stoic_eln/templates/mixtures/form.html:55
+msgid "Acqua, MeOH, …"
+msgstr "Water, MeOH, …"
+
+#: stoic_eln/templates/mixtures/form.html:58
+msgid "Opzionale, mostrato sull'etichetta come '(aq)' ecc."
+msgstr "Optional, shown on the label as '(aq)' etc."
+
+#: stoic_eln/templates/mixtures/form.html:75
+#: stoic_eln/templates/reactions/_step_card.html:134
+#: stoic_eln/templates/reactions/detail.html:227
+#: stoic_eln/templates/reactions/detail.html:501
+#: stoic_eln/templates/reactions/detail.html:588
+msgid "Aggiungi componente"
+msgstr "Add component"
+
+#: stoic_eln/templates/mixtures/form.html:79
+msgid ""
+"Lascia vuoto per un'etichetta veloce (es. HCl 1N senza tracciare la "
+"composizione esatta)."
+msgstr "Leave empty for a quick label (e.g. HCl 1N without tracking the exact composition)."
+
+#: stoic_eln/templates/mixtures/form.html:108
+#, fuzzy
+msgid "Se non spuntato, la sicurezza è derivata automaticamente dai componenti."
+msgstr ""
+"Se non specificato, lo schema viene derivato automaticamente dai "
+"componenti."
+
+#: stoic_eln/templates/mixtures/form.html:109
+msgid ""
+"Spunta per definire pittogrammi e frasi specifici per questa miscela (es."
+" soluzione molto diluita)."
+msgstr "Tick to set pictograms and phrases specific to this mixture (e.g. a very dilute solution)."
+
+#: stoic_eln/templates/mixtures/list.html:8
+#, fuzzy, python-format
+msgid "%(n)d miscele nel catalogo"
+msgstr "%(n)d substances in catalogue"
+
+#: stoic_eln/templates/mixtures/list.html:25
+#, fuzzy
+msgid "Cerca per nome, tipo, componente…"
+msgstr "Cerca per nome, IUPAC, CAS, formula, lotto…"
+
+#: stoic_eln/templates/mixtures/list.html:45
+#: stoic_eln/templates/reactions/list.html:48
+#: stoic_eln/templates/substances/list.html:48
+msgid "Mostra disattivate"
+msgstr "Show inactive"
+
+#: stoic_eln/templates/mixtures/prepare.html:2
+#: stoic_eln/templates/mixtures/prepare.html:17
+#, fuzzy
+msgid "Prepara"
+msgstr "Procedura"
+
+#: stoic_eln/templates/mixtures/prepare.html:19
+msgid ""
+"Stoic scalerà i lotti precursori e creerà un nuovo lotto della miscela "
+"target."
+msgstr "Stoic will scale the precursor batches and create a new batch of the target mixture."
+
+#: stoic_eln/templates/mixtures/prepare.html:27
+msgid "Quanto ne vuoi produrre?"
+msgstr "How much do you want to produce?"
+
+#: stoic_eln/templates/mixtures/prepare.html:30
+#: stoic_eln/templates/preps/detail.html:31
+msgid "Quantità target"
+msgstr "Target quantity"
+
+#: stoic_eln/templates/mixtures/prepare.html:51
+#, fuzzy
+msgid "Calcola"
+msgstr "Calculated"
+
+#: stoic_eln/templates/mixtures/prepare.html:58
+#, fuzzy
+msgid "Composizione di"
+msgstr "Location"
+
+#: stoic_eln/templates/mixtures/prepare.html:73
+msgid ""
+"Nessun componente strutturato — l'auto-suggest userà solo la quantità "
+"target."
+msgstr "No structured components — auto-suggest will use only the target quantity."
+
+#: stoic_eln/templates/mixtures/prepare.html:84
+#, fuzzy
+msgid "Attenzione"
+msgstr "Action"
+
+#: stoic_eln/templates/mixtures/prepare.html:101
+msgid "Target"
+msgstr "Target"
+
+#: stoic_eln/templates/mixtures/prepare.html:103
+msgid "di"
+msgstr "of"
+
+#: stoic_eln/templates/mixtures/prepare.html:107
+#, fuzzy
+msgid "Cambia target"
+msgstr "Change password"
+
+#: stoic_eln/templates/mixtures/prepare.html:114
+msgid "Lotti precursori da consumare"
+msgstr "Precursor batches to consume"
+
+#: stoic_eln/templates/mixtures/prepare.html:120
+#, fuzzy
+msgid "Componente"
+msgstr "Components"
+
+#: stoic_eln/templates/mixtures/prepare.html:124
+#, fuzzy
+msgid "Disponibile"
+msgstr "(text not available)"
+
+#: stoic_eln/templates/mixtures/prepare.html:133
+#, fuzzy
+msgid "Lotto risultante"
+msgstr "Lot reactivated."
+
+#: stoic_eln/templates/mixtures/prepare.html:143
+#, fuzzy
+msgid "Lascia vuoto per generare automaticamente"
+msgstr "Lascia vuoto per usare la quantità iniziale."
+
+#: stoic_eln/templates/mixtures/prepare.html:145
+msgid "Generato automaticamente in base alle impostazioni; modificalo se serve."
+msgstr "Auto-generated from settings; edit it if needed."
+
+#: stoic_eln/templates/mixtures/prepare.html:154
+msgid "es. Scaffale B-3"
+msgstr "e.g. Shelf B-3"
+
+#: stoic_eln/templates/mixtures/prepare.html:173
+#, fuzzy
+msgid "Conferma e prepara"
+msgstr "Confirm password"
+
+#: stoic_eln/templates/notes/_edit_form.html:10
+msgid "Modifica del commento"
+msgstr "Editing comment"
+
+#: stoic_eln/templates/notes/_note.html:19
+#, python-format
+msgid "Modificato il %(d)s"
+msgstr "Edited on %(d)s"
+
+#: stoic_eln/templates/notes/_note.html:20
+msgid "modificato"
+msgstr "edited"
+
+#: stoic_eln/templates/notes/_note.html:40
+msgid "Eliminare definitivamente questo commento?"
+msgstr "Permanently delete \"%(f)s\"?"
+
+#: stoic_eln/templates/notes/_note.html:42
+msgid "Elimina (admin)"
+msgstr "Delete (admin)"
+
+#: stoic_eln/templates/notes/_thread.html:18
+msgid "Nessun commento ancora. Aggiungi il primo qui sotto."
+msgstr "No comments yet. Add the first one below."
+
+#: stoic_eln/templates/notes/_thread.html:32
+msgid ""
+"Aggiungi un commento… (markdown leggero: **grassetto**, *corsivo*, "
+"`codice`, [link](url), - lista)"
+msgstr "Add a comment… (light markdown: **bold**, *italic*, `code`, [link](url), - list)"
+
+#: stoic_eln/templates/notes/_thread.html:37
+#: stoic_eln/templates/reactions/detail.html:464
+msgid "Pubblica"
+msgstr "Post"
+
+#: stoic_eln/templates/orders/detail.html:2
+msgid "Ordine"
+msgstr "Order"
+
+#: stoic_eln/templates/orders/detail.html:15
+#, python-format
+msgid "Ordine #%(id)d"
+msgstr "Order #%(id)d"
+
+#: stoic_eln/templates/orders/detail.html:16
+#, python-format
+msgid "creato da %(u)s"
+msgstr "created by %(u)s"
+
+#: stoic_eln/templates/orders/detail.html:29
+msgid "Lista ordini"
+msgstr "Orders list"
+
+#: stoic_eln/templates/orders/detail.html:39
+msgid "Dettagli ordine"
+msgstr "Order details"
+
+#: stoic_eln/templates/orders/detail.html:56
+msgid "Quantità ordinata"
+msgstr "Ordered quantity"
+
+#: stoic_eln/templates/orders/detail.html:58
+#: stoic_eln/templates/orders/form.html:77
+msgid "Costo totale"
+msgstr "Total cost"
+
+#: stoic_eln/templates/orders/detail.html:69
+#: stoic_eln/templates/orders/detail.html:161
+#: stoic_eln/templates/orders/form.html:83
+msgid "Riferimento interno"
+msgstr "Internal reference"
+
+#: stoic_eln/templates/orders/detail.html:91
+msgid "Lotto creato"
+msgstr "Lot created"
+
+#: stoic_eln/templates/orders/detail.html:96
+msgid "Quantità ricevuta"
+msgstr "Received quantity"
+
+#: stoic_eln/templates/orders/detail.html:98
+#: stoic_eln/templates/orders/receive.html:53
+msgid "Ricevuto il"
+msgstr "Received on"
+
+#: stoic_eln/templates/orders/detail.html:100
+#: stoic_eln/templates/orders/receive.html:47
+msgid "Costo effettivo"
+msgstr "Actual cost"
+
+#: stoic_eln/templates/orders/detail.html:108
+msgid "senza codice"
+msgstr "without code"
+
+#: stoic_eln/templates/orders/detail.html:120
+msgid "Stato e azioni"
+msgstr "Status and actions"
+
+#: stoic_eln/templates/orders/detail.html:123
+msgid "Stato corrente:"
+msgstr "Current status:"
+
+#: stoic_eln/templates/orders/detail.html:129
+msgid "Consegna prevista:"
+msgstr "Expected delivery:"
+
+#: stoic_eln/templates/orders/detail.html:147
+#: stoic_eln/templates/orders/detail.html:169
+msgid "Segna come ordinato"
+msgstr "Mark as ordered"
+
+#: stoic_eln/templates/orders/detail.html:150
+#: stoic_eln/templates/orders/list.html:95
+msgid "Ordinato il"
+msgstr "Ordered on"
+
+#: stoic_eln/templates/orders/detail.html:155
+#: stoic_eln/templates/orders/list.html:96
+msgid "Consegna prevista"
+msgstr "Expected delivery"
+
+#: stoic_eln/templates/orders/detail.html:165
+msgid "PO, richiesta, …"
+msgstr "PO, request, …"
+
+#: stoic_eln/templates/orders/detail.html:180
+#: stoic_eln/templates/orders/receive.html:2
+#: stoic_eln/templates/orders/receive.html:7
+msgid "Ricevi ordine"
+msgstr "Receive order"
+
+#: stoic_eln/templates/orders/detail.html:185
+msgid "Annullare definitivamente questo ordine?"
+msgstr "Definitely cancel this order?"
+
+#: stoic_eln/templates/orders/detail.html:189
+msgid "Annulla ordine…"
+msgstr "Cancel order…"
+
+#: stoic_eln/templates/orders/detail.html:192
+msgid "Motivo (opzionale)"
+msgstr "Reason (optional)"
+
+#: stoic_eln/templates/orders/detail.html:194
+msgid "Conferma annullamento"
+msgstr "Confirm cancellation"
+
+#: stoic_eln/templates/orders/form.html:3
+#: stoic_eln/templates/orders/form.html:9
+msgid "Modifica ordine"
+msgstr "Edit order"
+
+#: stoic_eln/templates/orders/form.html:3
+#: stoic_eln/templates/orders/form.html:10
+#: stoic_eln/templates/orders/list.html:15
+#: stoic_eln/templates/orders/list.html:188
+msgid "Nuovo ordine"
+msgstr "New order"
+
+#: stoic_eln/templates/orders/form.html:14
+msgid ""
+"Modifica i dati dell'ordine pianificato. Una volta ordinato non sarà più "
+"modificabile da qui."
+msgstr "Edit the planned order's data. Once placed, it can no longer be modified from here."
+
+#: stoic_eln/templates/orders/form.html:41
+#: stoic_eln/templates/reactions/_step_card.html:313
+#: stoic_eln/templates/reactions/_step_card.html:324
+#: stoic_eln/templates/reactions/detail.html:530
+#: stoic_eln/templates/reactions/detail.html:543
+msgid "Seleziona…"
+msgstr "Select…"
+
+#: stoic_eln/templates/orders/form.html:55
+msgid "Sigma-Aldrich, TCI, …"
+msgstr "Sigma-Aldrich, TCI, …"
+
+#: stoic_eln/templates/orders/form.html:58
+msgid "Numero catalogo"
+msgstr "Catalogue number"
+
+#: stoic_eln/templates/orders/form.html:61
+msgid "es. 109207-100G"
+msgstr "e.g. 109207-100G"
+
+#: stoic_eln/templates/orders/form.html:65
+msgid "Quantità (g)"
+msgstr "Quantity (g)"
+
+#: stoic_eln/templates/orders/form.html:71
+msgid "Quantità (mL)"
+msgstr "Quantity (mL)"
+
+#: stoic_eln/templates/orders/form.html:86
+msgid "PO interno, numero richiesta, …"
+msgstr "Internal PO, request number, …"
+
+#: stoic_eln/templates/orders/form.html:103
+msgid "Salva modifiche"
+msgstr "Save changes"
+
+#: stoic_eln/templates/orders/form.html:104
+msgid "Crea ordine pianificato"
+msgstr "Create planned order"
+
+#: stoic_eln/templates/orders/list.html:8
+#, python-format
+msgid "%(n)d ordini visualizzati"
+msgstr "%(n)d orders displayed"
+
+#: stoic_eln/templates/orders/list.html:12
+#: stoic_eln/templates/orders/shopping_list.html:2
+#: stoic_eln/templates/orders/shopping_list.html:7
+msgid "Lista della spesa"
+msgstr "Shopping list"
+
+#: stoic_eln/templates/orders/list.html:28
+msgid "sostanza, fornitore, catalogo, riferimento…"
+msgstr "substance, supplier, catalogue, ref…"
+
+#: stoic_eln/templates/orders/list.html:34
+msgid "Aperti"
+msgstr "Open"
+
+#: stoic_eln/templates/orders/list.html:37
+msgid "Pianificati"
+msgstr "Planned"
+
+#: stoic_eln/templates/orders/list.html:40
+msgid "Ordinati"
+msgstr "Ordered"
+
+#: stoic_eln/templates/orders/list.html:43
+msgid "Ricevuti"
+msgstr "Received"
+
+#: stoic_eln/templates/orders/list.html:46
+msgid "Parziali"
+msgstr "Partial"
+
+#: stoic_eln/templates/orders/list.html:49
+msgid "Annullati"
+msgstr "Cancelled"
+
+#: stoic_eln/templates/orders/list.html:152
+#: stoic_eln/templates/reactions/versions.html:50
+msgid "Apri"
+msgstr "Open"
+
+#: stoic_eln/templates/orders/list.html:163
+msgid "Totale aperti:"
+msgstr "Open total:"
+
+#: stoic_eln/templates/orders/list.html:182
+msgid "Nessun ordine corrisponde ai filtri impostati."
+msgstr "No orders match the current filters."
+
+#: stoic_eln/templates/orders/list.html:184
+msgid "Nessun ordine. Pianifica il primo!"
+msgstr "No orders yet. Plan the first one!"
+
+#: stoic_eln/templates/orders/receive.html:12
+msgid "Ordinato:"
+msgstr "Format"
+
+#: stoic_eln/templates/orders/receive.html:24
+msgid "Quantità e costo effettivi"
+msgstr "Actual quantity and cost"
+
+#: stoic_eln/templates/orders/receive.html:27
+msgid ""
+"Lascia i valori così se l'ordine è arrivato esattamente come pianificato."
+" Modifica se è arrivato meno o se il costo finale è diverso."
+msgstr "Leave values as-is if the order arrived exactly as planned. Edit if less arrived or if the final cost is different."
+
+#: stoic_eln/templates/orders/receive.html:32
+msgid "Quantità ricevuta (g)"
+msgstr "Received quantity (g)"
+
+#: stoic_eln/templates/orders/receive.html:40
+msgid "Quantità ricevuta (mL)"
+msgstr "Received quantity (mL)"
+
+#: stoic_eln/templates/orders/receive.html:64
+msgid "Forza stato 'ricevuto parzialmente'"
+msgstr "Force 'partially received' status"
+
+#: stoic_eln/templates/orders/receive.html:66
+msgid "verrà rilevato automaticamente se la quantità è inferiore"
+msgstr "auto-detected if quantity is lower"
+
+#: stoic_eln/templates/orders/receive.html:73
+msgid "Spiegazione (se ricevuto parziale)"
+msgstr "Explanation (if partial)"
+
+#: stoic_eln/templates/orders/receive.html:76
+msgid "es. Esauriti, hanno spedito solo 4g invece di 5g"
+msgstr "e.g. Out of stock, only 4g shipped instead of 5g"
+
+#: stoic_eln/templates/orders/receive.html:84
+msgid "Dati del lotto"
+msgstr "Lot details"
+
+#: stoic_eln/templates/orders/receive.html:86
+msgid "Verrà creato un nuovo lotto in magazzino con questi dati."
+msgstr "A new lot will be created with these details."
+
+#: stoic_eln/templates/orders/receive.html:94
+msgid "es. ABCD-2024-001"
+msgstr "e.g. ABCD-2024-001"
+
+#: stoic_eln/templates/orders/receive.html:103
+msgid "Scaffale A1, Frigo 2, …"
+msgstr "Shelf A1, Fridge 2, …"
+
+#: stoic_eln/templates/orders/receive.html:113
+msgid "Conferma ricezione e crea lotto"
+msgstr "Confirm receipt and create lot"
+
+#: stoic_eln/templates/orders/shopping_list.html:9
+msgid "Sostanze da riordinare in base allo stato del magazzino."
+msgstr "Substances to re-order based on inventory state."
+
+#: stoic_eln/templates/orders/shopping_list.html:13
+msgid "Torna agli ordini"
+msgstr "Back to orders"
+
+#: stoic_eln/templates/orders/shopping_list.html:23
+msgid "Cosa includere nella lista"
+msgstr "What to include in the list"
+
+#: stoic_eln/templates/orders/shopping_list.html:45
+msgid "Sostanze esaurite"
+msgstr "Empty substances"
+
+#: stoic_eln/templates/orders/shopping_list.html:55
+msgid "Sostanze in scadenza"
+msgstr "Expiring substances"
+
+#: stoic_eln/templates/orders/shopping_list.html:62
+msgid "Salva preferenze"
+msgstr "Save preferences"
+
+#: stoic_eln/templates/orders/shopping_list.html:77
+#, python-format
+msgid "%(n)d sostanze suggerite"
+msgstr "%(n)d substances suggested"
+
+#: stoic_eln/templates/orders/shopping_list.html:83
+msgid "seleziona tutte"
+msgstr "select all"
+
+#: stoic_eln/templates/orders/shopping_list.html:87
+msgid "Crea ordini selezionati"
+msgstr "Create selected orders"
+
+#: stoic_eln/templates/orders/shopping_list.html:97
+msgid "Motivo"
+msgstr "Reason"
+
+#: stoic_eln/templates/orders/shopping_list.html:98
+msgid "Quantità suggerita"
+msgstr "Suggested quantity"
+
+#: stoic_eln/templates/orders/shopping_list.html:99
+msgid "Ultimo fornitore"
+msgstr "Last supplier"
+
+#: stoic_eln/templates/orders/shopping_list.html:100
+msgid "stimato"
+msgstr "estimated"
+
+#: stoic_eln/templates/orders/shopping_list.html:163
+msgid "Personalizza prima di creare"
+msgstr "Customize before creating"
+
+#: stoic_eln/templates/orders/shopping_list.html:174
+msgid "Totale stimato selezionabili:"
+msgstr "Estimated total of selectable:"
+
+#: stoic_eln/templates/orders/shopping_list.html:189
+msgid "Nota:"
+msgstr "Note:"
+
+#: stoic_eln/templates/orders/shopping_list.html:190
+#, python-format
+msgid ""
+"la quantità suggerita è soglia + 50%% di buffer. Il fornitore e il costo "
+"stimato vengono dall'ultimo lotto acquistato. Verifica e personalizza "
+"prima di confermare l'ordine."
+msgstr "the suggested quantity is the threshold + 50%% buffer. Supplier and estimated cost come from the last batch purchased. Review and customise before confirming the order."
+
+#: stoic_eln/templates/orders/shopping_list.html:199
+msgid "Nessuna sostanza da riordinare. Magazzino in ordine."
+msgstr "No substances to re-order. Inventory is in order."
+
+#: stoic_eln/templates/orders/shopping_list.html:202
+msgid "Verifica le impostazioni qui sopra se ti aspettavi qualche suggerimento."
+msgstr "Check settings above if you expected some suggestions."
+
+#: stoic_eln/templates/preps/_list_table.html:7
+#: stoic_eln/templates/preps/detail.html:73
+#: stoic_eln/templates/reactions/_list_table.html:7
+#: stoic_eln/templates/reactions/stats.html:138
+#: stoic_eln/templates/reactions/versions.html:36
+#: stoic_eln/templates/runs/list.html:18
+msgid "Codice"
+msgstr "Code"
+
+#: stoic_eln/templates/preps/_list_table.html:11
+#: stoic_eln/templates/preps/detail.html:36
+#, fuzzy
+msgid "Quando"
+msgstr "liquid"
+
+#: stoic_eln/templates/preps/_list_table.html:12
+#: stoic_eln/templates/preps/detail.html:41
+#: stoic_eln/templates/reactions/stats.html:140
+#: stoic_eln/templates/runs/detail.html:70
+#: stoic_eln/templates/runs/list.html:21
+msgid "Operatore"
+msgstr "Operator"
+
+#: stoic_eln/templates/preps/_list_table.html:35
+#, fuzzy
+msgid "componenti"
+msgstr "Components"
+
+#: stoic_eln/templates/preps/_list_table.html:61
+#, fuzzy, python-format
+msgid "Nessuna preparazione corrisponde a '%(q)s'."
+msgstr "No substance matches '%(q)s'."
+
+#: stoic_eln/templates/preps/_list_table.html:63
+#, fuzzy
+msgid "Nessuna preparazione registrata."
+msgstr "No versions found."
+
+#: stoic_eln/templates/preps/_list_table.html:67
+msgid "Vai alle miscele per prepararne una"
+msgstr "Go to mixtures to prepare one"
+
+#: stoic_eln/templates/preps/detail.html:9
+#: stoic_eln/templates/preps/list.html:2
+#, fuzzy
+msgid "Preparazioni"
+msgstr "Reactions"
+
+#: stoic_eln/templates/preps/detail.html:16
+#, fuzzy
+msgid "Preparazione di"
+msgstr "Reactions"
+
+#: stoic_eln/templates/preps/detail.html:28
+msgid "Sommario"
+msgstr "Summary"
+
+#: stoic_eln/templates/preps/detail.html:50
+msgid "Anno (per sequenza)"
+msgstr "Year (for sequence)"
+
+#: stoic_eln/templates/preps/detail.html:53
+#, fuzzy
+msgid "Numero sequenza"
+msgstr "Catalogue number"
+
+#: stoic_eln/templates/preps/detail.html:68
+#, fuzzy
+msgid "Lotto prodotto"
+msgstr "Byproduct"
+
+#: stoic_eln/templates/preps/detail.html:76
+msgid "Quantità residua"
+msgstr "Remaining quantity"
+
+#: stoic_eln/templates/preps/detail.html:99
+#: stoic_eln/templates/settings/users.html:72
+msgid "attivo"
+msgstr "active"
+
+#: stoic_eln/templates/preps/detail.html:101
+#: stoic_eln/templates/settings/users.html:74
+msgid "disattivato"
+msgstr "deactivated"
+
+#: stoic_eln/templates/preps/detail.html:108
+#, fuzzy
+msgid "Apri lotto"
+msgstr "Product"
+
+#: stoic_eln/templates/preps/detail.html:122
+msgid "Lotto non trovato (è stato cancellato dall'inventario?)."
+msgstr "Batch not found (was it removed from inventory?)."
+
+#: stoic_eln/templates/preps/detail.html:132
+#, fuzzy
+msgid "Lotti consumati"
+msgstr "Expired lots"
+
+#: stoic_eln/templates/preps/detail.html:137
+#, fuzzy
+msgid "Lotto consumato"
+msgstr "Lot created"
+
+#: stoic_eln/templates/preps/detail.html:138
+#, fuzzy
+msgid "Sostanza / Miscela"
+msgstr "Substance"
+
+#: stoic_eln/templates/preps/detail.html:139
+msgid "Quantità prelevata"
+msgstr "Quantity drawn"
+
+#: stoic_eln/templates/preps/detail.html:153
+#, fuzzy
+msgid "(lotto eliminato)"
+msgstr "(deleted user)"
+
+#: stoic_eln/templates/preps/detail.html:192
+msgid "CoA del lotto, foto della preparazione, calibrazioni"
+msgstr "batch CoA, prep photos, calibrations"
+
+#: stoic_eln/templates/preps/list.html:8
+msgid "Tutte le miscele preparate dai precursori, ordinate dalla più recente."
+msgstr "All mixtures prepared from precursors, newest first."
+
+#: stoic_eln/templates/preps/list.html:21
+msgid "Codice o nome miscela…"
+msgstr "Batch code or mixture name…"
+
+#: stoic_eln/templates/preps/list.html:34
+#, fuzzy
+msgid "tutte"
+msgstr "All"
+
+#: stoic_eln/templates/preps/list.html:44
+msgid "Anno"
+msgstr "Year"
+
+#: stoic_eln/templates/preps/list.html:50
+#, fuzzy
+msgid "tutti"
+msgstr "All"
+
+#: stoic_eln/templates/reactions/_checklist.html:19
+msgid "Nessuna voce. Aggiungine una sotto."
+msgstr "No items. Add one below."
+
+#: stoic_eln/templates/reactions/_checklist.html:21
+msgid "Nessuna voce."
+msgstr "No items."
+
+#: stoic_eln/templates/reactions/_checklist.html:40
+msgid "Aggiungi una voce…"
+msgstr "Add an item…"
+
+#: stoic_eln/templates/reactions/_checklist_row.html:48
+#: stoic_eln/templates/settings/backups.html:118
+#: stoic_eln/templates/settings/backups.html:167
+msgid "Conferma"
+msgstr "Confirm"
+
+#: stoic_eln/templates/reactions/_checklist_row.html:82
+#: stoic_eln/templates/reactions/_step_card.html:49
+msgid "Sposta su"
+msgstr "Move up"
+
+#: stoic_eln/templates/reactions/_checklist_row.html:95
+#: stoic_eln/templates/reactions/_step_card.html:57
+msgid "Sposta giù"
+msgstr "Move down"
+
+#: stoic_eln/templates/reactions/_checklist_row.html:105
+msgid "Eliminare questa voce?"
+msgstr "Delete this item?"
+
+#: stoic_eln/templates/reactions/_components_table.html:24
+msgid "Proporzione"
+msgstr "Proportion"
+
+#: stoic_eln/templates/reactions/_components_table.html:78
+#: stoic_eln/templates/reactions/_step_card.html:170
+#, fuzzy
+msgid "(componente rimosso)"
+msgstr "Components"
+
+#: stoic_eln/templates/reactions/_components_table.html:94
+msgid "opz."
+msgstr "opt."
+
+#: stoic_eln/templates/reactions/_components_table.html:95
+msgid "Concentrazione target del reagente limitante nel solvente (es. 0.1 M)."
+msgstr "Target concentration of the limiting reagent in the solvent (e.g. 0.1 M)."
+
+#: stoic_eln/templates/reactions/_components_table.html:107
+msgid "Il reagente limitante ha sempre eq=1"
+msgstr "Limiting reagent always has eq=1"
+
+#: stoic_eln/templates/reactions/_components_table.html:114
+#: stoic_eln/templates/reactions/_components_table.html:129
+msgid "Eq"
+msgstr "Eq"
+
+#: stoic_eln/templates/reactions/_components_table.html:148
+msgid "Imposta come limitante"
+msgstr "Set as limiting"
+
+#: stoic_eln/templates/reactions/_components_table.html:156
+msgid "Rimuovere questo componente?"
+msgstr "Remove this component?"
+
+#: stoic_eln/templates/reactions/_components_table.html:161
+msgid "Rimuovi"
+msgstr "Remove"
+
+#: stoic_eln/templates/reactions/_components_table.html:174
+msgid "Nessun componente. Aggiungine uno per iniziare."
+msgstr "No components. Add one to start."
+
+#: stoic_eln/templates/reactions/_list_table.html:9
+#: stoic_eln/templates/reactions/_scheme_card.html:9
+msgid "Schema"
+msgstr "Scheme"
+
+#: stoic_eln/templates/reactions/_list_table.html:10
+#: stoic_eln/templates/reactions/detail.html:445
+msgid "Creata"
+msgstr "Created"
+
+#: stoic_eln/templates/reactions/_list_table.html:23
+#: stoic_eln/templates/reactions/detail.html:19
+msgid "BOZZA"
+msgstr "DRAFT"
+
+#: stoic_eln/templates/reactions/_list_table.html:61
+#: stoic_eln/templates/reactions/detail.html:49
+#: stoic_eln/templates/reactions/run_placeholder.html:2
+#: stoic_eln/templates/reactions/run_placeholder.html:15
+msgid "Esegui run"
+msgstr "Run reaction"
+
+#: stoic_eln/templates/reactions/_list_table.html:63
+msgid "Esegui"
+msgstr "Run"
+
+#: stoic_eln/templates/reactions/_list_table.html:83
+#: stoic_eln/templates/reactions/detail.html:80
+#: stoic_eln/templates/reactions/detail.html:478
+msgid "Disattivare questa reazione?"
+msgstr "Deactivate this reaction?"
+
+#: stoic_eln/templates/reactions/_list_table.html:113
+#, python-format
+msgid "Nessuna reazione corrisponde a '%(q)s'."
+msgstr "No substance matches '%(q)s'."
+
+#: stoic_eln/templates/reactions/_list_table.html:114
+msgid "Nessuna reazione nel database."
+msgstr "No substances in the catalogue."
+
+#: stoic_eln/templates/reactions/_list_table.html:120
+msgid "Crea la prima reazione"
+msgstr "Create the first reaction"
+
+#: stoic_eln/templates/reactions/_scheme_card.html:11
+msgid "SMILES manuale"
+msgstr "manual SMILES"
+
+#: stoic_eln/templates/reactions/_scheme_card.html:13
+msgid "derivato dai componenti"
+msgstr "derived from components"
+
+#: stoic_eln/templates/reactions/_scheme_card.html:37
+#: stoic_eln/templates/reactions/_scheme_card.html:50
+msgid "(senza SMILES)"
+msgstr "(without SMILES)"
+
+#: stoic_eln/templates/reactions/_scheme_card.html:76
+msgid "SMILES generato"
+msgstr "SMILES generated"
+
+#: stoic_eln/templates/reactions/_scheme_card.html:83
+msgid ""
+"Aggiungi un materiale di partenza (o reattivo limitante) e almeno un "
+"prodotto per visualizzare lo schema."
+msgstr "Add starting material and products to display the scheme."
+
+#: stoic_eln/templates/reactions/_scheme_card.html:87
+msgid "Componenti attuali:"
+msgstr "Components"
+
+#: stoic_eln/templates/reactions/_scheme_card.html:101
+msgid "Schema SMILES manuale (opzionale)"
+msgstr "Manual SMILES scheme (optional)"
+
+#: stoic_eln/templates/reactions/_scheme_card.html:109
+msgid ""
+"Sintassi SMILES estesa: SM1.SM2>reagenti>prodotti oppure SM>>prodotto. "
+"Lasciare vuoto per derivazione automatica."
+msgstr "Extended SMILES syntax: SM1.SM2>reagents>products or SM>>product. Leave empty for automatic derivation."
+
+#: stoic_eln/templates/reactions/_step_card.html:63
+msgid "Eliminare questo passo e tutti i suoi componenti?"
+msgstr "Delete this step and all its components?"
+
+#: stoic_eln/templates/reactions/_step_card.html:66
+msgid "Elimina passo"
+msgstr "Delete step"
+
+#: stoic_eln/templates/reactions/_step_card.html:88
+#: stoic_eln/templates/reactions/_step_card.html:93
+#: stoic_eln/templates/reactions/detail.html:614
+#: stoic_eln/templates/runs/detail.html:526
+msgid "Workup"
+msgstr "Workup"
+
+#: stoic_eln/templates/reactions/_step_card.html:88
+#: stoic_eln/templates/reactions/_step_card.html:93
+#: stoic_eln/templates/reactions/detail.html:615
+#: stoic_eln/templates/runs/detail.html:526
+msgid "Estrazione"
+msgstr "Extraction"
+
+#: stoic_eln/templates/reactions/_step_card.html:88
+#: stoic_eln/templates/reactions/_step_card.html:93
+#: stoic_eln/templates/reactions/detail.html:616
+#: stoic_eln/templates/runs/detail.html:527
+msgid "Purificazione"
+msgstr "Purification"
+
+#: stoic_eln/templates/reactions/_step_card.html:88
+#: stoic_eln/templates/reactions/_step_card.html:93
+#: stoic_eln/templates/reactions/detail.html:617
+#: stoic_eln/templates/runs/detail.html:527
+msgid "Analisi"
+msgstr "Analysis"
+
+#: stoic_eln/templates/reactions/_step_card.html:97
+msgid "Riferimento per i ratio"
+msgstr "Reference for ratios"
+
+#: stoic_eln/templates/reactions/_step_card.html:146
+msgid "Ratio"
+msgstr "Reactivate"
+
+#: stoic_eln/templates/reactions/_step_card.html:176
+#: stoic_eln/templates/runs/detail.html:612
+msgid "ad lib."
+msgstr "q.s."
+
+#: stoic_eln/templates/reactions/_step_card.html:203
+msgid "mL fissi"
+msgstr "fixed mL"
+
+#: stoic_eln/templates/reactions/_step_card.html:204
+msgid "g fissi"
+msgstr "fixed g"
+
+#: stoic_eln/templates/reactions/_step_card.html:205
+#: stoic_eln/templates/reactions/_step_card.html:364
+#, fuzzy
+msgid "quanto basta"
+msgstr "Ordered quantity"
+
+#: stoic_eln/templates/reactions/_step_card.html:222
+msgid "Rimuovere?"
+msgstr "Remove"
+
+#: stoic_eln/templates/reactions/_step_card.html:238
+msgid "Nessun componente in questo passo."
+msgstr "No components in this step."
+
+#: stoic_eln/templates/reactions/_step_card.html:245
+#: stoic_eln/templates/reactions/detail.html:242
+#: stoic_eln/templates/runs/detail.html:508
+#: stoic_eln/templates/runs/detail.html:690
+msgid "Check list"
+msgstr "Checklist"
+
+#: stoic_eln/templates/reactions/_step_card.html:253
+#: stoic_eln/templates/reactions/detail.html:255
+#: stoic_eln/templates/runs/detail.html:502
+#: stoic_eln/templates/runs/detail.html:684
+msgid "Procedimento"
+msgstr "Procedure"
+
+#: stoic_eln/templates/reactions/_step_card.html:257
+msgid ""
+"es. Spegnere con NH4Cl saturo, separare le fasi, estrarre la fase acquosa"
+" con EtOAc x 3, riunire le fasi organiche, lavare con brine, anidrificare"
+" su Na2SO4 e concentrare a secco."
+msgstr "e.g. Quench with sat. NH4Cl, separate the phases, extract the aqueous phase with EtOAc × 3, combine the organic phases, wash with brine, dry over Na2SO4 and concentrate to dryness."
+
+#: stoic_eln/templates/reactions/_step_card.html:281
+msgid "Aggiungi componente al passo"
+msgstr "Add component to step"
+
+#: stoic_eln/templates/reactions/_step_card.html:286
+#: stoic_eln/templates/reactions/detail.html:506
+#, fuzzy
+msgid "Tipo di componente"
+msgstr "derived from components"
+
+#: stoic_eln/templates/reactions/_step_card.html:294
+#: stoic_eln/templates/reactions/detail.html:514
+#, fuzzy
+msgid "Sostanza pura"
+msgstr "Substance"
+
+#: stoic_eln/templates/reactions/_step_card.html:306
+msgid ""
+"Per cromatografie usa una miscela (es. EtOAc/PE 5:2) e seleziona 'quanto "
+"basta' come quantità."
+msgstr "For chromatography use a mixture (e.g. EtOAc/PE 5:2) and select 'quantum satis' as the quantity."
+
+#: stoic_eln/templates/reactions/_step_card.html:369
+msgid ""
+"'quanto basta' (free): la quantità non è specificata nel template — la "
+"registri al Run. Tipico per eluenti di cromatografia."
+msgstr "'quantum satis' (free): the quantity isn't specified in the template — you log it at Run time. Typical for chromatography eluents."
+
+#: stoic_eln/templates/reactions/detail.html:28
+msgid "Stai modificando una bozza."
+msgstr "You are editing a draft."
+
+#: stoic_eln/templates/reactions/detail.html:29
+msgid ""
+"Le modifiche non sono visibili agli altri finché non premi 'Pubblica' in "
+"fondo alla pagina."
+msgstr "Changes are not visible to others until you press 'Publish' at the bottom of the page."
+
+#: stoic_eln/templates/reactions/detail.html:38
+msgid "Visualizzazione: solo lettura."
+msgstr "View only: read-only mode."
+
+#: stoic_eln/templates/reactions/detail.html:40
+msgid "Solo i supervisori possono modificare i template."
+msgstr "Only supervisors can edit templates."
+
+#: stoic_eln/templates/reactions/detail.html:64
+msgid "Duplica"
+msgstr "Duplicate"
+
+#: stoic_eln/templates/reactions/detail.html:72
+#: stoic_eln/templates/reactions/versions.html:2
+msgid "Versioni"
+msgstr "Versions"
+
+#: stoic_eln/templates/reactions/detail.html:95
+msgid "Reazione disattivata."
+msgstr "Reaction deactivated."
+
+#: stoic_eln/templates/reactions/detail.html:118
+msgid "Codice template"
+msgstr "Template code"
+
+#: stoic_eln/templates/reactions/detail.html:130
+msgid ""
+"A-Z, 0-9, trattini. Max 8 caratteri. Nessun punto: la versione (.1, .2, "
+"...) viene aggiunta automaticamente al salvataggio."
+msgstr "A-Z, 0-9, hyphens. Max 8 characters. No dot: the version (.1, .2, ...) is appended automatically on save."
+
+#: stoic_eln/templates/reactions/detail.html:134
+msgid "Famiglia"
+msgstr "Family"
+
+#: stoic_eln/templates/reactions/detail.html:145
+msgid "es. Suzuki coupling on aryl bromide"
+msgstr "e.g. Suzuki coupling on aryl bromide"
+
+#: stoic_eln/templates/reactions/detail.html:158
+msgid "breve scopo della reazione"
+msgstr "short purpose of the reaction"
+
+#: stoic_eln/templates/reactions/detail.html:169
+msgid "Temp. (°C)"
+msgstr "Temp. (°C)"
+
+#: stoic_eln/templates/reactions/detail.html:262
+msgid ""
+"es. Sciogliere il SM in DCM anidro sotto Ar, raffreddare a 0 °C, "
+"aggiungere il reagente goccia a goccia, lasciare 12 h a temperatura "
+"ambiente."
+msgstr "e.g. Dissolve the SM in anhydrous DCM under Ar, cool to 0 °C, add the reagent dropwise, leave for 12 h at room temperature."
+
+#: stoic_eln/templates/reactions/detail.html:275
+msgid "Workup / Estrazioni / Purificazioni"
+msgstr "Workup / Extractions / Purifications"
+
+#: stoic_eln/templates/reactions/detail.html:279
+msgid "Aggiungi passo"
+msgstr "Add step"
+
+#: stoic_eln/templates/reactions/detail.html:290
+msgid "Nessun passo. Aggiungi un workup, un'estrazione, o una purificazione."
+msgstr "No steps. Add a workup, extraction, or purification."
+
+#: stoic_eln/templates/reactions/detail.html:334
+#: stoic_eln/templates/runs/stats.html:9
+msgid "Statistiche template"
+msgstr "Template statistics"
+
+#: stoic_eln/templates/reactions/detail.html:336
+#: stoic_eln/templates/reactions/stats.html:17
+#, python-format
+msgid "%(n)d run completati"
+msgstr "%(n)d completed runs"
+
+#: stoic_eln/templates/reactions/detail.html:341
+#: stoic_eln/templates/settings/audit_log.html:126
+msgid "Dettagli"
+msgstr "Details"
+
+#: stoic_eln/templates/reactions/detail.html:348
+#: stoic_eln/templates/reactions/stats.html:57
+msgid "Costo medio"
+msgstr "Avg cost"
+
+#: stoic_eln/templates/reactions/detail.html:356
+msgid "range:"
+msgstr "range:"
+
+#: stoic_eln/templates/reactions/detail.html:361
+#: stoic_eln/templates/reactions/stats.html:72
+msgid "Costo medio per run"
+msgstr "Avg cost per run"
+
+#: stoic_eln/templates/reactions/detail.html:369
+msgid "resa media:"
+msgstr "avg yield:"
+
+#: stoic_eln/templates/reactions/detail.html:374
+#: stoic_eln/templates/runs/stats.html:66
+msgid "Ultimo run"
+msgstr "Last run"
+
+#: stoic_eln/templates/reactions/detail.html:396
+msgid "Trend"
+msgstr "Trend"
+
+#: stoic_eln/templates/reactions/detail.html:396
+msgid "nel tempo (run cronologici)"
+msgstr "over time (chronological runs)"
+
+#: stoic_eln/templates/reactions/detail.html:410
+#: stoic_eln/templates/runs/detail.html:737
+#: stoic_eln/templates/substances/detail.html:321
+msgid "Commenti"
+msgstr "Comments"
+
+#: stoic_eln/templates/reactions/detail.html:433
+msgid "schede tecniche, protocolli, riferimenti"
+msgstr "datasheets, protocols, references"
+
+#: stoic_eln/templates/reactions/detail.html:448
+msgid "Aggiornata"
+msgstr "Updated"
+
+#: stoic_eln/templates/reactions/detail.html:455
+msgid "Tutte le modifiche non salvate andranno perse. Procedere?"
+msgstr "All unsaved changes will be lost. Continue?"
+
+#: stoic_eln/templates/reactions/detail.html:522
+#, fuzzy
+msgid "Miscela (soluzione)"
+msgstr "Scheme (optional)"
+
+#: stoic_eln/templates/reactions/detail.html:537
+msgid "Solo sostanze. I lotti specifici si scelgono al Run."
+msgstr "Substances only. Specific batches are picked at Run time."
+
+#: stoic_eln/templates/reactions/detail.html:549
+msgid "es. 'HCl 1N': il sistema calcolerà le moli dalla concentrazione × volume."
+msgstr "e.g. 'HCl 1N': the system will compute moles from concentration × volume."
+
+#: stoic_eln/templates/reactions/detail.html:555
+msgid "Materiale di partenza (limitante)"
+msgstr "Starting material (limiting)"
+
+#: stoic_eln/templates/reactions/detail.html:576
+msgid "Per i ruoli non-solventi"
+msgstr "For non-solvent roles"
+
+#: stoic_eln/templates/reactions/detail.html:582
+msgid "Solo per i solventi"
+msgstr "Only for solvents"
+
+#: stoic_eln/templates/reactions/detail.html:602
+msgid "Nuovo passo"
+msgstr "New step"
+
+#: stoic_eln/templates/reactions/detail.html:609
+msgid "es. Workup acquoso, Cromatografia su silice"
+msgstr "e.g. Aqueous workup, Silica chromatography"
+
+#: stoic_eln/templates/reactions/detail.html:624
+msgid "Crea passo"
+msgstr "Create step"
+
+#: stoic_eln/templates/reactions/form.html:2
+msgid "Modifica reazione"
+msgstr "Identification"
+
+#: stoic_eln/templates/reactions/form.html:48
+msgid "Condizioni"
+msgstr "Conditions"
+
+#: stoic_eln/templates/reactions/form.html:70
+msgid "Schema (opzionale)"
+msgstr "Scheme (optional)"
+
+#: stoic_eln/templates/reactions/form.html:72
+msgid ""
+"Se non specificato, lo schema viene derivato automaticamente dai "
+"componenti."
+msgstr "If not specified, the scheme is derived automatically from the components."
+
+#: stoic_eln/templates/reactions/form.html:73
+msgid "Sintassi SMILES estesa:"
+msgstr "Extended SMILES syntax:"
+
+#: stoic_eln/templates/reactions/form.html:74
+msgid "oppure"
+msgstr "or"
+
+#: stoic_eln/templates/reactions/form.html:108
+msgid ""
+"Dopo aver salvato la reazione, potrai aggiungere i componenti (sostanze +"
+" ruoli + stechiometria) dalla pagina di dettaglio."
+msgstr "After saving the reaction, you can add components (substances + roles + stoichiometry) from the detail page."
+
+#: stoic_eln/templates/reactions/list.html:8
+#, python-format
+msgid "%(n)d reazioni"
+msgstr "Reactions"
+
+#: stoic_eln/templates/reactions/list.html:28
+msgid "Cerca per codice, titolo, sostanza, CAS, fonte…"
+msgstr "Search by code, title, substance, CAS, source…"
+
+#: stoic_eln/templates/reactions/run_placeholder.html:23
+msgid "Esecuzione di un Run"
+msgstr "Run execution"
+
+#: stoic_eln/templates/reactions/run_placeholder.html:25
+msgid "Template:"
+msgstr "Template:"
+
+#: stoic_eln/templates/reactions/run_placeholder.html:31
+msgid "In arrivo nella Settimana 4"
+msgstr "Coming in Week 4"
+
+#: stoic_eln/templates/reactions/run_placeholder.html:33
+msgid "Questa funzionalità è ancora in sviluppo. Permetterà di:"
+msgstr "This feature is still under development. It will allow you to:"
+
+#: stoic_eln/templates/reactions/run_placeholder.html:36
+msgid "Scegliere la scala (mmol del limitante)"
+msgstr "Choose the scale (mmol of limiting reagent)"
+
+#: stoic_eln/templates/reactions/run_placeholder.html:37
+msgid "Selezionare i lotti specifici dall'inventario"
+msgstr "Select specific batches from inventory"
+
+#: stoic_eln/templates/reactions/run_placeholder.html:38
+msgid "Calcolare automaticamente le quantità reali"
+msgstr "Automatically compute actual amounts"
+
+#: stoic_eln/templates/reactions/run_placeholder.html:39
+msgid "Registrare il run e dedurre l'inventario"
+msgstr "Register the run and deduct inventory"
+
+#: stoic_eln/templates/reactions/run_placeholder.html:40
+msgid "Inserire la resa e generare il codice del run"
+msgstr "Enter the yield and generate the run code"
+
+#: stoic_eln/templates/reactions/run_placeholder.html:47
+msgid "Torna alla reazione"
+msgstr "Back to reaction"
+
+#: stoic_eln/templates/reactions/stats.html:2
+#: stoic_eln/templates/reactions/stats.html:9
+#: stoic_eln/templates/runs/list.html:8 stoic_eln/templates/runs/stats.html:2
+msgid "Statistiche"
+msgstr "Statistics"
+
+#: stoic_eln/templates/reactions/stats.html:16
+msgid "Aggregato sulle versioni:"
+msgstr "Aggregated over versions:"
+
+#: stoic_eln/templates/reactions/stats.html:22
+msgid "Torna al template"
+msgstr "Back to template"
+
+#: stoic_eln/templates/reactions/stats.html:31
+msgid "Nessun run completato per questo template."
+msgstr "No completed runs for this template."
+
+#: stoic_eln/templates/reactions/stats.html:46
+#, python-format
+msgid "%(n)d con costo"
+msgstr "%(n)d with cost"
+
+#: stoic_eln/templates/reactions/stats.html:48
+msgid "tutti con dati di costo"
+msgstr "all with cost data"
+
+#: stoic_eln/templates/reactions/stats.html:87
+#: stoic_eln/templates/runs/stats.html:65
+msgid "Resa media"
+msgstr "Avg yield"
+
+#: stoic_eln/templates/reactions/stats.html:99
+msgid "Trend nel tempo"
+msgstr "Trend over time"
+
+#: stoic_eln/templates/reactions/stats.html:104
+msgid "del prodotto (cumulativo)"
+msgstr "of product (cumulative)"
+
+#: stoic_eln/templates/reactions/stats.html:110
+#: stoic_eln/templates/reactions/stats.html:141
+#: stoic_eln/templates/runs/list.html:23
+msgid "Resa"
+msgstr "Yield"
+
+#: stoic_eln/templates/reactions/stats.html:116
+msgid "Costo totale per run"
+msgstr "Total cost per run"
+
+#: stoic_eln/templates/reactions/stats.html:128
+msgid "Tutti i run"
+msgstr "All runs"
+
+#: stoic_eln/templates/reactions/stats.html:130
+msgid "ordine cronologico"
+msgstr "chronological order"
+
+#: stoic_eln/templates/reactions/stats.html:139
+#: stoic_eln/templates/runs/list.html:25
+#: stoic_eln/templates/substances/sds.html:20
+msgid "Data"
+msgstr "Date"
+
+#: stoic_eln/templates/reactions/versions.html:17
+msgid "Versioni precedenti"
+msgstr "Previous versions"
+
+#: stoic_eln/templates/reactions/versions.html:23
+msgid "Versioni di"
+msgstr "Versions of"
+
+#: stoic_eln/templates/reactions/versions.html:28
+msgid "Nessuna versione trovata."
+msgstr "No versions found."
+
+#: stoic_eln/templates/reactions/versions.html:38
+msgid "Versione"
+msgstr "Version"
+
+#: stoic_eln/templates/reactions/versions.html:39
+#: stoic_eln/templates/runs/detail.html:2
+#: stoic_eln/templates/runs/stats.html:62
+msgid "Run"
+msgstr "Runs"
+
+#: stoic_eln/templates/reactions/versions.html:41
+msgid "Pubblicato il"
+msgstr "Published on"
+
+#: stoic_eln/templates/reactions/versions.html:60
+msgid "archiviata"
+msgstr "archived"
+
+#: stoic_eln/templates/reactions/versions.html:62
+msgid "corrente"
+msgstr "current"
+
+#: stoic_eln/templates/reactions/versions.html:64
+msgid "bozza"
+msgstr "draft"
+
+#: stoic_eln/templates/reactions/versions.html:80
+msgid "Torna alle reazioni"
+msgstr "Back to reactions"
+
+#: stoic_eln/templates/runs/_substance_card.html:15
+msgid "Mostra/nascondi scheda"
+msgstr "Show/hide details"
+
+#: stoic_eln/templates/runs/_substance_card.html:44
+msgid "MP:"
+msgstr "MP:"
+
+#: stoic_eln/templates/runs/_substance_card.html:47
+msgid "BP:"
+msgstr "BP:"
+
+#: stoic_eln/templates/runs/_substance_card.html:50
+msgid "Densità:"
+msgstr "Density:"
+
+#: stoic_eln/templates/runs/_substance_card.html:54
+msgid "Stato:"
+msgstr "State:"
+
+#: stoic_eln/templates/runs/_substance_card.html:55
+#: stoic_eln/templates/substances/_list_table.html:49
+#: stoic_eln/templates/substances/detail.html:105
+msgid "solido"
+msgstr "solid"
+
+#: stoic_eln/templates/runs/_substance_card.html:55
+#: stoic_eln/templates/substances/_list_table.html:50
+#: stoic_eln/templates/substances/detail.html:106
+msgid "liquido"
+msgstr "liquid"
+
+#: stoic_eln/templates/runs/_substance_card.html:55
+#: stoic_eln/templates/substances/_list_table.html:51
+#: stoic_eln/templates/substances/detail.html:107
+msgid "gas"
+msgstr "gas"
+
+#: stoic_eln/templates/runs/_substance_card.html:63
+msgid "Pittogrammi GHS:"
+msgstr "GHS pictograms:"
+
+#: stoic_eln/templates/runs/_substance_card.html:73
+msgid "Frasi H:"
+msgstr "H phrases:"
+
+#: stoic_eln/templates/runs/_substance_card.html:83
+msgid "Frasi P:"
+msgstr "P phrases:"
+
+#: stoic_eln/templates/runs/_substance_card.html:94
+msgid "Apri scheda completa"
+msgstr "Open full details"
+
+#: stoic_eln/templates/runs/detail.html:32
+msgid "Run in preparazione."
+msgstr "Run in setup."
+
+#: stoic_eln/templates/runs/detail.html:33
+msgid ""
+"Imposta scala, scegli i lotti, inserisci i pesi reali, poi premi 'Avvia "
+"esecuzione'."
+msgstr "Set scale, pick batches, enter real weights, then press 'Start execution'."
+
+#: stoic_eln/templates/runs/detail.html:40
+msgid "Run in esecuzione."
+msgstr "Run in progress."
+
+#: stoic_eln/templates/runs/detail.html:41
+msgid ""
+"Inventario aggiornato. Spunta le voci della check list e completa al "
+"termine."
+msgstr "Inventory updated. Tick the checklist items and finish when done."
+
+#: stoic_eln/templates/runs/detail.html:48
+#, python-format
+msgid "Run completato il %(d)s."
+msgstr "Run completed on %(d)s."
+
+#: stoic_eln/templates/runs/detail.html:50
+msgid "Resa:"
+msgstr "Yield:"
+
+#: stoic_eln/templates/runs/detail.html:65
+#: stoic_eln/templates/runs/list.html:19 stoic_eln/templates/runs/stats.html:61
+msgid "Template"
+msgstr "Template"
+
+#: stoic_eln/templates/runs/detail.html:79
+msgid "Scala del limitante"
+msgstr "Scale (limiting reagent)"
+
+#: stoic_eln/templates/runs/detail.html:90
+msgid "es. 5"
+msgstr "e.g. 5"
+
+#: stoic_eln/templates/runs/detail.html:96
+msgid "Aggiorna"
+msgstr "Update"
+
+#: stoic_eln/templates/runs/detail.html:99
+msgid "Equivale a"
+msgstr "Equivalent to"
+
+#: stoic_eln/templates/runs/detail.html:101
+msgid "del limitante"
+msgstr "of the limiting reagent"
+
+#: stoic_eln/templates/runs/detail.html:125
+msgid "Costo materiali"
+msgstr "Materials cost"
+
+#: stoic_eln/templates/runs/detail.html:134
+msgid "Costo diretto"
+msgstr "Direct cost"
+
+#: stoic_eln/templates/runs/detail.html:136
+msgid "Materiali acquistati esternamente, consumati in questo run"
+msgstr "Externally purchased materials, consumed in this run"
+
+#: stoic_eln/templates/runs/detail.html:142
+msgid "solo materie prime acquistate"
+msgstr "purchased raw materials only"
+
+#: stoic_eln/templates/runs/detail.html:163
+msgid "Costo cumulativo"
+msgstr "Cumulative cost"
+
+#: stoic_eln/templates/runs/detail.html:165
+msgid ""
+"Costo totale per arrivare al prodotto, inclusi gli intermedi sintetizzati"
+" internamente"
+msgstr "Total cost to reach the product, including internally synthesised intermediates"
+
+#: stoic_eln/templates/runs/detail.html:172
+#, python-format
+msgid "di cui %(c)s di intermedi"
+msgstr "of which %(c)s from intermediates"
+
+#: stoic_eln/templates/runs/detail.html:174
+msgid "nessun intermedio interno consumato"
+msgstr "no internal intermediate consumed"
+
+#: stoic_eln/templates/runs/detail.html:197
+#, python-format
+msgid "Dettaglio %(n)d voci"
+msgstr "%(n)d-line breakdown"
+
+#: stoic_eln/templates/runs/detail.html:201
+#, python-format
+msgid "%(n)d senza prezzo"
+msgstr "%(n)d without price"
+
+#: stoic_eln/templates/runs/detail.html:227
+msgid "Lotto sintetizzato in un run precedente"
+msgstr "Lot synthesized in a previous run"
+
+#: stoic_eln/templates/runs/detail.html:228
+msgid "intermedio"
+msgstr "intermediate"
+
+#: stoic_eln/templates/runs/detail.html:246
+msgid "Lotto non assegnato a questo componente"
+msgstr "Lot not assigned to this component"
+
+#: stoic_eln/templates/runs/detail.html:247
+msgid "no lotto"
+msgstr "no lot"
+
+#: stoic_eln/templates/runs/detail.html:251
+msgid "Lotto senza prezzo registrato"
+msgstr "Lot without registered price"
+
+#: stoic_eln/templates/runs/detail.html:252
+msgid "no prezzo"
+msgstr "no price"
+
+#: stoic_eln/templates/runs/detail.html:262
+msgid "Totale reazione principale:"
+msgstr "Main reaction total:"
+
+#: stoic_eln/templates/runs/detail.html:272
+msgid "Totale workup/passi:"
+msgstr "Workup/steps total:"
+
+#: stoic_eln/templates/runs/detail.html:289
+msgid ""
+"Costo materiali non disponibile: nessun lotto assegnato ai componenti, "
+"oppure i lotti non hanno prezzo registrato."
+msgstr "Materials cost not available: no batches assigned to components, or the batches have no recorded price."
+
+#: stoic_eln/templates/runs/detail.html:304
+msgid "Calcolato"
+msgstr "Calculated"
+
+#: stoic_eln/templates/runs/detail.html:305
+#: stoic_eln/templates/runs/detail.html:551
+msgid "Reale"
+msgstr "Actual"
+
+#: stoic_eln/templates/runs/detail.html:369
+msgid "— scegli lotto —"
+msgstr "— choose lot —"
+
+#: stoic_eln/templates/runs/detail.html:439
+msgid "dopo l'avvio"
+msgstr "after start"
+
+#: stoic_eln/templates/runs/detail.html:467
+msgid "Reazione principale"
+msgstr "Description / rationale"
+
+#: stoic_eln/templates/runs/detail.html:490
+msgid "Condizioni:"
+msgstr "Conditions"
+
+#: stoic_eln/templates/runs/detail.html:517
+msgid "Nessun dato di procedimento nel template."
+msgstr "No procedure data in the template."
+
+#: stoic_eln/templates/runs/detail.html:550
+msgid "Suggerito"
+msgstr "Suggested"
+
+#: stoic_eln/templates/runs/detail.html:588
+msgid "scegli lotto…"
+msgstr "pick lot…"
+
+#: stoic_eln/templates/runs/detail.html:622
+msgid "libera"
+msgstr "free"
+
+#: stoic_eln/templates/runs/detail.html:652
+msgid "inserisci"
+msgstr "enter"
+
+#: stoic_eln/templates/runs/detail.html:705
+msgid "Note di esecuzione"
+msgstr "Execution notes"
+
+#: stoic_eln/templates/runs/detail.html:719
+msgid "Note post-mortem"
+msgstr "Post-mortem notes"
+
+#: stoic_eln/templates/runs/detail.html:719
+msgid "link NMR, lessons learned, ecc."
+msgstr "NMR links, lessons learned, etc."
+
+#: stoic_eln/templates/runs/detail.html:725
+msgid "Salva note"
+msgstr "Save notes"
+
+#: stoic_eln/templates/runs/detail.html:760
+msgid "NMR, HPLC, foto, dati strumentali"
+msgstr "NMR, HPLC, photos, instrument data"
+
+#: stoic_eln/templates/runs/detail.html:772
+msgid "Creato:"
+msgstr "Created:"
+
+#: stoic_eln/templates/runs/detail.html:773
+msgid "Avviato:"
+msgstr "Started:"
+
+#: stoic_eln/templates/runs/detail.html:779
+msgid "Apri PDF sintetico in una nuova scheda"
+msgstr "Open summary PDF in a new tab"
+
+#: stoic_eln/templates/runs/detail.html:780
+msgid "PDF sintesi"
+msgstr "PDF summary"
+
+#: stoic_eln/templates/runs/detail.html:784
+msgid "Apri PDF completo (protocollo) in una nuova scheda"
+msgstr "Open full protocol PDF in a new tab"
+
+#: stoic_eln/templates/runs/detail.html:785
+msgid "PDF completo"
+msgstr "PDF full"
+
+#: stoic_eln/templates/runs/detail.html:791
+msgid "Eliminare questa bozza di run?"
+msgstr "Delete this draft run?"
+
+#: stoic_eln/templates/runs/detail.html:794
+msgid "Elimina bozza"
+msgstr "Delete draft"
+
+#: stoic_eln/templates/runs/detail.html:801
+msgid "Avvia esecuzione"
+msgstr "Start execution"
+
+#: stoic_eln/templates/runs/detail.html:812
+msgid "Completa run"
+msgstr "Complete run"
+
+#: stoic_eln/templates/runs/detail.html:824
+msgid "Confermare run fallito?"
+msgstr "Confirm failed run?"
+
+#: stoic_eln/templates/runs/detail.html:828
+msgid "Non hai inserito il peso di nessun prodotto."
+msgstr "You haven't entered any product weight."
+
+#: stoic_eln/templates/runs/detail.html:829
+msgid ""
+"Se procedi, il run sarà registrato come <strong>fallito</strong> (resa "
+"zero) e nessun prodotto verrà aggiunto all'inventario."
+msgstr "If you proceed, the run will be logged as <strong>failed</strong> (zero yield) and no product will be added to inventory."
+
+#: stoic_eln/templates/runs/detail.html:830
+msgid "Vuoi continuare oppure tornare indietro a inserire i pesi dei prodotti?"
+msgstr "Continue, or go back to enter product weights?"
+
+#: stoic_eln/templates/runs/detail.html:834
+msgid "Torna a inserire i pesi"
+msgstr "Go back and enter weights"
+
+#: stoic_eln/templates/runs/detail.html:837
+msgid "Sì, registra come fallito"
+msgstr "Yes, mark as failed"
+
+#: stoic_eln/templates/runs/list.html:22
+msgid "Scala"
+msgstr "Scale"
+
+#: stoic_eln/templates/runs/list.html:78
+msgid "Nessun run ancora eseguito."
+msgstr "No runs executed yet."
+
+#: stoic_eln/templates/runs/stats.html:2
+msgid "Tutti i template"
+msgstr "All templates"
+
+#: stoic_eln/templates/runs/stats.html:12
+msgid "Panoramica costi e rese su tutti i template del laboratorio."
+msgstr "Cost and yield overview across all lab templates."
+
+#: stoic_eln/templates/runs/stats.html:27
+msgid "Template attivi"
+msgstr "Active templates"
+
+#: stoic_eln/templates/runs/stats.html:35
+msgid "Run completati totali"
+msgstr "Total completed runs"
+
+#: stoic_eln/templates/runs/stats.html:43
+msgid "Costo totale stimato"
+msgstr "Estimated total cost"
+
+#: stoic_eln/templates/runs/stats.html:48
+msgid "media costo × n. run, per ogni template"
+msgstr "avg cost × n. runs, per template"
+
+#: stoic_eln/templates/runs/stats.html:56
+msgid "Confronto template"
+msgstr "Template comparison"
+
+#: stoic_eln/templates/runs/stats.html:63
+msgid "medio per run"
+msgstr "avg per run"
+
+#: stoic_eln/templates/runs/stats.html:64
+msgid "medio"
+msgstr "avg"
+
+#: stoic_eln/templates/runs/stats.html:67
+msgid "ultimo"
+msgstr "latest"
+
+#: stoic_eln/templates/runs/stats.html:117
+msgid "Apri ultimo run"
+msgstr "Open last run"
+
+#: stoic_eln/templates/runs/stats.html:132
+msgid "Nessun run completato ancora."
+msgstr "No runs completed yet."
+
+#: stoic_eln/templates/settings/audit_log.html:12
+msgid "Tutti gli eventi tracciati: chi ha fatto cosa, quando, su che entità."
+msgstr "All tracked events: who did what, when, on which entity."
+
+#: stoic_eln/templates/settings/audit_log.html:16
+#: stoic_eln/templates/settings/currency.html:13
+msgid "Indietro"
+msgstr "Back"
+
+#: stoic_eln/templates/settings/audit_log.html:28
+msgid "azione, entità, dettagli…"
+msgstr "action, entity, details…"
+
+#: stoic_eln/templates/settings/audit_log.html:31
+#: stoic_eln/templates/settings/audit_log.html:123
+#: stoic_eln/templates/settings/new_user.html:76
+#: stoic_eln/templates/settings/users.html:26
+#: stoic_eln/templates/settings/users.html:58
+msgid "Utente"
+msgstr "User"
+
+#: stoic_eln/templates/settings/audit_log.html:42
+#: stoic_eln/templates/settings/audit_log.html:124
+msgid "Azione"
+msgstr "Action"
+
+#: stoic_eln/templates/settings/audit_log.html:44
+#: stoic_eln/templates/settings/audit_log.html:56
+msgid "Tutte"
+msgstr "All"
+
+#: stoic_eln/templates/settings/audit_log.html:54
+#: stoic_eln/templates/settings/audit_log.html:125
+msgid "Entità"
+msgstr "Entity"
+
+#: stoic_eln/templates/settings/audit_log.html:67
+msgid "Da"
+msgstr "From"
+
+#: stoic_eln/templates/settings/audit_log.html:73
+msgid "A"
+msgstr "To"
+
+#: stoic_eln/templates/settings/audit_log.html:84
+msgid "Reset filtri"
+msgstr "Reset filters"
+
+#: stoic_eln/templates/settings/audit_log.html:97
+#, python-format
+msgid "%(total)d eventi · pagina %(page)d/%(pages)d"
+msgstr "%(total)d events · page %(page)d/%(pages)d"
+
+#: stoic_eln/templates/settings/audit_log.html:101
+msgid "Nessun evento corrisponde ai filtri."
+msgstr "No events match filters."
+
+#: stoic_eln/templates/settings/audit_log.html:122
+msgid "Data e ora"
+msgstr "Date and time"
+
+#: stoic_eln/templates/settings/audit_log.html:127
+msgid "IP"
+msgstr "Type"
+
+#: stoic_eln/templates/settings/audit_log.html:144
+msgid "(sistema)"
+msgstr "(system)"
+
+#: stoic_eln/templates/settings/audit_log.html:163
+msgid "mostra JSON"
+msgstr "show JSON"
+
+#: stoic_eln/templates/settings/audit_log.html:217
+msgid "Nessun evento corrisponde ai filtri impostati."
+msgstr "No events match the current filters."
+
+#: stoic_eln/templates/settings/backups.html:2
+#: stoic_eln/templates/settings/backups.html:7
+#: stoic_eln/templates/settings/index.html:114
+msgid "Crittografia e backup"
+msgstr "Encryption & backups"
+
+#: stoic_eln/templates/settings/backups.html:8
+msgid "Snapshot del database compressi e gestiti automaticamente."
+msgstr "Compressed database snapshots, managed automatically."
+
+#: stoic_eln/templates/settings/backups.html:27
+msgid "DB live cifrato (SQLCipher)"
+msgstr "Live DB encrypted (SQLCipher)"
+
+#: stoic_eln/templates/settings/backups.html:29
+msgid "Il file"
+msgstr "The file"
+
+#: stoic_eln/templates/settings/backups.html:30
+msgid ""
+"è cifrato a livello di pagina con AES-256-CBC + HMAC-SHA512. Chi accede "
+"al filesystem senza la passphrase vede dati opachi."
+msgstr "is encrypted at the page level with AES-256-CBC + HMAC-SHA512. Anyone accessing the filesystem without the passphrase sees opaque data."
+
+#: stoic_eln/templates/settings/backups.html:35
+#, fuzzy
+msgid "Per disattivare:"
+msgstr "Deactivate"
+
+#: stoic_eln/templates/settings/backups.html:37
+msgid "(richiede Stoic fermo)."
+msgstr "(requires Stoic to be stopped)."
+
+#: stoic_eln/templates/settings/backups.html:40
+msgid "DB live in chiaro"
+msgstr "Live DB in plaintext"
+
+#: stoic_eln/templates/settings/backups.html:42
+msgid ""
+"Il database del laboratorio è memorizzato in chiaro su disco. La "
+"cifratura dei backup (sopra) protegge i file in"
+msgstr "The lab database is stored in plaintext on disk. Backup encryption (above) protects files in"
+
+#: stoic_eln/templates/settings/backups.html:45
+msgid "ma chi ha accesso a"
+msgstr "but anyone with access to"
+
+#: stoic_eln/templates/settings/backups.html:47
+msgid "può aprirlo con qualunque client SQLite."
+msgstr "can open it with any SQLite client."
+
+#: stoic_eln/templates/settings/backups.html:51
+msgid ""
+"Per attivare la cifratura del DB live serve prima una passphrase "
+"configurata (sezione sotto)."
+msgstr "To enable live DB encryption, first configure a passphrase (section below)."
+
+#: stoic_eln/templates/settings/backups.html:56
+msgid "sqlcipher3 non installato."
+msgstr "sqlcipher3 not installed."
+
+#: stoic_eln/templates/settings/backups.html:57
+#, fuzzy
+msgid "Esegui:"
+msgstr "Run"
+
+#: stoic_eln/templates/settings/backups.html:61
+#, fuzzy
+msgid "Attivabile via CLI:"
+msgstr "Displayed total:"
+
+#: stoic_eln/templates/settings/backups.html:63
+#, fuzzy
+msgid "Ferma Stoic"
+msgstr "Format"
+
+#: stoic_eln/templates/settings/backups.html:64
+msgid "sul terminale di"
+msgstr "on the terminal of"
+
+#: stoic_eln/templates/settings/backups.html:66
+#, fuzzy
+msgid "Riavvia"
+msgstr "Reactivate"
+
+#: stoic_eln/templates/settings/backups.html:70
+msgid ""
+"La passphrase è la stessa dei backup, quindi una sola cosa da ricordare. "
+"Il DB live cifrato è protetto contro filesystem compromessi o accessi non"
+" autorizzati al disco."
+msgstr "The passphrase is the same as for backups, so there's only one thing to remember. The encrypted live DB is protected against compromised filesystems or unauthorised disk access."
+
+#: stoic_eln/templates/settings/backups.html:93
+msgid "Crittografia attiva"
+msgstr "Encryption active"
+
+#: stoic_eln/templates/settings/backups.html:95
+msgid "I backup vengono cifrati con AES-256-GCM. La passphrase è in"
+msgstr "Backups are encrypted with AES-256-GCM. The passphrase is in"
+
+#: stoic_eln/templates/settings/backups.html:100
+msgid "Cambia o disabilita"
+msgstr "Change or disable"
+
+#: stoic_eln/templates/settings/backups.html:108
+#: stoic_eln/templates/settings/backups.html:230
+#, fuzzy
+msgid "Attenzione:"
+msgstr "Action"
+
+#: stoic_eln/templates/settings/backups.html:109
+msgid "Cambiare la passphrase rende illeggibili tutti i backup cifrati esistenti."
+msgstr "Changing the passphrase makes all existing encrypted backups unreadable."
+
+#: stoic_eln/templates/settings/backups.html:114
+msgid "Nuova passphrase (min 12 char)"
+msgstr "New passphrase (min 12 chars)"
+
+#: stoic_eln/templates/settings/backups.html:121
+#, fuzzy
+msgid "Cambia passphrase"
+msgstr "Change password"
+
+#: stoic_eln/templates/settings/backups.html:134
+msgid "Disabilita: capisco che i prossimi backup saranno in chiaro"
+msgstr "Disable: I understand future backups will be in plaintext"
+
+#: stoic_eln/templates/settings/backups.html:139
+#, fuzzy
+msgid "Disattiva crittografia"
+msgstr "Deactivate lot"
+
+#: stoic_eln/templates/settings/backups.html:146
+msgid "Crittografia non attiva"
+msgstr "Encryption not active"
+
+#: stoic_eln/templates/settings/backups.html:148
+msgid ""
+"I backup sono salvati in chiaro. Per dati di laboratorio vivamente "
+"raccomandato attivare la crittografia: chiunque abbia accesso a"
+msgstr "Backups are saved in plaintext. For lab data, enabling encryption is strongly recommended: anyone with access to"
+
+#: stoic_eln/templates/settings/backups.html:151
+msgid "può leggere il contenuto del database."
+msgstr "can read the database contents."
+
+#: stoic_eln/templates/settings/backups.html:159
+#, fuzzy
+msgid "Passphrase (min 12 caratteri)"
+msgstr "Password required (min 6 chars)."
+
+#: stoic_eln/templates/settings/backups.html:175
+#, fuzzy
+msgid "Attiva"
+msgstr "Reactivate"
+
+#: stoic_eln/templates/settings/backups.html:180
+msgid "Conserva la passphrase in un posto sicuro."
+msgstr "Keep the passphrase in a safe place."
+
+#: stoic_eln/templates/settings/backups.html:181
+msgid ""
+"Se la perdi, i backup cifrati diventano irrecuperabili. Anthropic, Stoic "
+"e chiunque altro non potrà aiutarti a recuperarli."
+msgstr "If you lose it, encrypted backups become unrecoverable. Anthropic, Stoic, and anyone else cannot help you recover them."
+
+#: stoic_eln/templates/settings/backups.html:201
+msgid "Sorgente della passphrase"
+msgstr "Passphrase source"
+
+#: stoic_eln/templates/settings/backups.html:203
+msgid ""
+"Da dove Stoic legge la passphrase quando si avvia. La scelta determina il"
+" livello di protezione contro furto del filesystem."
+msgstr "Where Stoic reads the passphrase from when it starts. The choice determines the level of protection against filesystem theft."
+
+#: stoic_eln/templates/settings/backups.html:223
+msgid "Salva (richiede riavvio)"
+msgstr "Save (requires restart)"
+
+#: stoic_eln/templates/settings/backups.html:231
+msgid ""
+"Hai scelto la modalità 'prompt' (passphrase solo in RAM) ma il file "
+"instance/backup.key esiste ancora su disco. Finché c'è, chi prende il "
+"filesystem può estrarla. Eliminalo per attivare davvero il modo "
+"passphrase-only."
+msgstr "You chose 'prompt' mode (passphrase in RAM only) but the file instance/backup.key still exists on disk. As long as it does, whoever takes the filesystem can extract it. Delete it to truly enable passphrase-only mode."
+
+#: stoic_eln/templates/settings/backups.html:243
+msgid "Confermo: ho memorizzato la passphrase, posso eliminare il file"
+msgstr "I confirm: I've memorised the passphrase, the file can be deleted"
+
+#: stoic_eln/templates/settings/backups.html:248
+msgid "Elimina instance/backup.key"
+msgstr "Delete instance/backup.key"
+
+#: stoic_eln/templates/settings/backups.html:262
+#, fuzzy
+msgid "Configurazione"
+msgstr "Conditions"
+
+#: stoic_eln/templates/settings/backups.html:274
+msgid "Backup automatici attivi"
+msgstr "Automatic backups active"
+
+#: stoic_eln/templates/settings/backups.html:280
+msgid "Ora (UTC)"
+msgstr "Hour (UTC)"
+
+#: stoic_eln/templates/settings/backups.html:286
+msgid "Minuto"
+msgstr "Minute"
+
+#: stoic_eln/templates/settings/backups.html:296
+msgid "Conserva ultimi (giorni)"
+msgstr "Keep last (days)"
+
+#: stoic_eln/templates/settings/backups.html:304
+msgid "+ uno a settimana per (settimane)"
+msgstr "+ one per week for (weeks)"
+
+#: stoic_eln/templates/settings/backups.html:314
+#, fuzzy
+msgid "Cartella di destinazione"
+msgstr "Create the first reaction"
+
+#: stoic_eln/templates/settings/backups.html:321
+#, fuzzy
+msgid "Relativa a"
+msgstr "Reactivate"
+
+#: stoic_eln/templates/settings/backups.html:321
+msgid ", o assoluta."
+msgstr ", or absolute."
+
+#: stoic_eln/templates/settings/backups.html:322
+#, fuzzy
+msgid "Attualmente:"
+msgstr "Current:"
+
+#: stoic_eln/templates/settings/backups.html:327
+#, fuzzy
+msgid "Salva configurazione"
+msgstr "Save thresholds"
+
+#: stoic_eln/templates/settings/backups.html:339
+msgid "Esegui backup ora"
+msgstr "Run backup now"
+
+#: stoic_eln/templates/settings/backups.html:343
+msgid "Forza un backup immediato e applica la retention configurata."
+msgstr "Force an immediate backup and apply the configured retention."
+
+#: stoic_eln/templates/settings/backups.html:353
+msgid "Backup esistenti"
+msgstr "Existing backups"
+
+#: stoic_eln/templates/settings/backups.html:362
+#, fuzzy
+msgid "Data e ora (UTC)"
+msgstr "Date and time"
+
+#: stoic_eln/templates/settings/backups.html:363
+#, fuzzy
+msgid "Dimensione"
+msgstr "Version"
+
+#: stoic_eln/templates/settings/backups.html:364
+#, fuzzy
+msgid "Azioni"
+msgstr "Reactions"
+
+#: stoic_eln/templates/settings/backups.html:375
+msgid "Cifrato AES-256-GCM"
+msgstr "Encrypted AES-256-GCM"
+
+#: stoic_eln/templates/settings/backups.html:391
+#: stoic_eln/templates/settings/backups.html:457
+msgid "Ripristina"
+msgstr "Restore"
+
+#: stoic_eln/templates/settings/backups.html:409
+#, fuzzy
+msgid "Nessun backup ancora. Esegui il primo."
+msgstr "No runs executed yet."
+
+#: stoic_eln/templates/settings/backups.html:427
+msgid "Ripristina backup"
+msgstr "Restore backup"
+
+#: stoic_eln/templates/settings/backups.html:431
+msgid "Stai per sostituire il database attuale con il backup:"
+msgstr "You are about to replace the current database with the backup:"
+
+#: stoic_eln/templates/settings/backups.html:434
+msgid ""
+"Verrà prima creato un backup di sicurezza del DB attuale (pre-restore), e"
+" il file della live DB verrà rinominato con suffisso"
+msgstr "A safety backup of the current DB will be created first (pre-restore), and the live DB file will be renamed with the suffix"
+
+#: stoic_eln/templates/settings/backups.html:437
+msgid " così non perdi nulla irreversibilmente."
+msgstr " so nothing is lost irreversibly."
+
+#: stoic_eln/templates/settings/backups.html:440
+#, fuzzy
+msgid "Importante:"
+msgstr "Import"
+
+#: stoic_eln/templates/settings/backups.html:441
+msgid ""
+"Dopo il ripristino devi riavviare Stoic perché le modifiche abbiano "
+"effetto."
+msgstr "After the restore you need to restart Stoic for the changes to take effect."
+
+#: stoic_eln/templates/settings/backups.html:448
+msgid "Sì, ripristina questo backup"
+msgstr "Yes, restore this backup"
+
+#: stoic_eln/templates/settings/backups.html:472
+#, fuzzy
+msgid "Elimina backup"
+msgstr "Delete draft"
+
+#: stoic_eln/templates/settings/backups.html:476
+#, fuzzy, python-format
+msgid "Eliminare definitivamente il file:"
+msgstr "Permanently delete \"%(f)s\"?"
+
+#: stoic_eln/templates/settings/backups.html:478
+#, fuzzy
+msgid "Questa operazione non è reversibile."
+msgstr "This reaction is not a draft."
+
+#: stoic_eln/templates/settings/currency.html:2
+#: stoic_eln/templates/settings/currency.html:7
+#: stoic_eln/templates/settings/index.html:77
+msgid "Valuta"
+msgstr "Currency"
+
+#: stoic_eln/templates/settings/currency.html:9
+msgid ""
+"La valuta del laboratorio: usata per tutti i costi (lotti, ordini, run, "
+"statistiche)."
+msgstr "The lab's currency: used for all costs (batches, orders, runs, statistics)."
+
+#: stoic_eln/templates/settings/currency.html:21
+msgid "Codice attuale"
+msgstr "Current code"
+
+#: stoic_eln/templates/settings/currency.html:25
+msgid "Visualizzazione"
+msgstr "Display"
+
+#: stoic_eln/templates/settings/currency.html:35
+msgid "Scegli da elenco"
+msgstr "Pick from list"
+
+#: stoic_eln/templates/settings/currency.html:40
+msgid "scegli…"
+msgstr "pick…"
+
+#: stoic_eln/templates/settings/currency.html:50
+msgid "oppure inserisci codice ISO"
+msgstr "or enter ISO code"
+
+#: stoic_eln/templates/settings/currency.html:66
+msgid ""
+"Il codice deve essere ISO 4217 a 3 lettere (es. EUR, USD, JPY, UZS, "
+"ZMW…). Per le valute con simbolo riconosciuto verrà mostrato il simbolo "
+"(€, $, £, ¥, ₹…), altrimenti il codice stesso."
+msgstr "The code must be ISO 4217 (3 letters: EUR, USD, JPY, UZS, ZMW…). For currencies with a recognised symbol, the symbol is shown (€, $, £, ¥, ₹…); otherwise the code itself."
+
+#: stoic_eln/templates/settings/currency.html:73
+msgid "Esempi di formattazione"
+msgstr "Formatting examples"
+
+#: stoic_eln/templates/settings/currency.html:76
+msgid "Costo di un lotto"
+msgstr "Lot cost"
+
+#: stoic_eln/templates/settings/currency.html:80
+msgid "Costo unitario"
+msgstr "Unit cost"
+
+#: stoic_eln/templates/settings/currency.html:84
+msgid "Totale ordine"
+msgstr "Order total"
+
+#: stoic_eln/templates/settings/index.html:7
+msgid "Configurazione del laboratorio"
+msgstr "Lab configuration"
+
+#: stoic_eln/templates/settings/index.html:19
+#: stoic_eln/templates/settings/run_code.html:2
+#: stoic_eln/templates/settings/run_code.html:10
+#: stoic_eln/templates/settings/run_code.html:15
+msgid "Codice dei Run"
+msgstr "Run code"
+
+#: stoic_eln/templates/settings/index.html:22
+msgid "Formato e progressività dei codici delle reazioni eseguite (Run)."
+msgstr "Format and progressivity of executed reaction codes (Run)."
+
+#: stoic_eln/templates/settings/index.html:25
+#: stoic_eln/templates/settings/index.html:46
+msgid "Formato attuale:"
+msgstr "Current format:"
+
+#: stoic_eln/templates/settings/index.html:27
+#: stoic_eln/templates/settings/index.html:48
+msgid "Esempio:"
+msgstr "Example:"
+
+#: stoic_eln/templates/settings/index.html:40
+#: stoic_eln/templates/settings/prep_code.html:2
+#: stoic_eln/templates/settings/prep_code.html:10
+#: stoic_eln/templates/settings/prep_code.html:15
+#, fuzzy
+msgid "Codice delle preparazioni"
+msgstr "Back to reactions"
+
+#: stoic_eln/templates/settings/index.html:43
+#, fuzzy
+msgid "Formato e progressività dei codici delle miscele preparate."
+msgstr "Format and progressivity of executed reaction codes (Run)."
+
+#: stoic_eln/templates/settings/index.html:64
+msgid "Gestisci ruoli e permessi degli utenti."
+msgstr "Manage user roles and permissions."
+
+#: stoic_eln/templates/settings/index.html:80
+msgid "Codice ISO e simbolo per la moneta usata in tutti i costi e prezzi."
+msgstr "ISO code and symbol for the currency used in all costs and prices."
+
+#: stoic_eln/templates/settings/index.html:83
+msgid "Attuale:"
+msgstr "Current:"
+
+#: stoic_eln/templates/settings/index.html:101
+msgid "Storico di tutti gli eventi tracciati: chi ha fatto cosa, quando."
+msgstr "History of all tracked events: who did what, when."
+
+#: stoic_eln/templates/settings/index.html:117
+msgid ""
+"Cifratura del database, backup automatici notturni, configurazione di "
+"orario e retention, ripristino."
+msgstr "Database encryption, nightly automatic backups, schedule and retention settings, restore."
+
+#: stoic_eln/templates/settings/new_user.html:2
+#: stoic_eln/templates/settings/new_user.html:13
+#: stoic_eln/templates/settings/users.html:19
+msgid "Nuovo utente"
+msgstr "New user"
+
+#: stoic_eln/templates/settings/new_user.html:17
+msgid "Crea nuovo utente"
+msgstr "Create new user"
+
+#: stoic_eln/templates/settings/new_user.html:20
+msgid ""
+"Stoic non ha self-signup: gli utenti vengono creati qui da un "
+"amministratore. Comunica username e password all'utente, che potrà "
+"cambiarla dopo il primo accesso in Profilo → Cambia password."
+msgstr "Stoic has no self-signup: users are created here by an administrator. Share the username and password with the user, who can change it after first login at Profile → Change password."
+
+#: stoic_eln/templates/settings/new_user.html:36
+msgid "Identificativo per il login. Lettere/cifre, niente spazi."
+msgstr "Login identifier. Letters/digits, no spaces."
+
+#: stoic_eln/templates/settings/new_user.html:40
+msgid "Nome completo"
+msgstr "run completed"
+
+#: stoic_eln/templates/settings/new_user.html:48
+msgid "Codice operatore"
+msgstr "Operator code"
+
+#: stoic_eln/templates/settings/new_user.html:53
+msgid "Sigla 1-10 caratteri usata nel codice dei run (es. MR-SUZ.1-2026-001)."
+msgstr "1-10 char tag used in run codes (e.g. MR-SUZ.1-2026-001)."
+
+#: stoic_eln/templates/settings/new_user.html:57
+msgid "Email"
+msgstr "Actual"
+
+#: stoic_eln/templates/settings/new_user.html:62
+msgid "Opzionale."
+msgstr "Optional."
+
+#: stoic_eln/templates/settings/new_user.html:66
+msgid "Lingua"
+msgstr "Language"
+
+#: stoic_eln/templates/settings/new_user.html:77
+#: stoic_eln/templates/settings/users.html:27
+#: stoic_eln/templates/settings/users.html:59
+msgid "Supervisore"
+msgstr "Supervisor"
+
+#: stoic_eln/templates/settings/new_user.html:78
+#: stoic_eln/templates/settings/users.html:28
+#: stoic_eln/templates/settings/users.html:60
+msgid "Amministratore"
+msgstr "Administrator"
+
+#: stoic_eln/templates/settings/new_user.html:81
+msgid ""
+"Utente: esegue run, non modifica template. Supervisore: crea/modifica "
+"reazioni e sostanze. Amministratore: tutto."
+msgstr "User: runs experiments, doesn't modify templates. Supervisor: creates/edits reactions and substances. Administrator: everything."
+
+#: stoic_eln/templates/settings/new_user.html:87
+msgid "Gruppo predefinito"
+msgstr "Default group"
+
+#: stoic_eln/templates/settings/new_user.html:89
+msgid "nessuno (usa il default del lab)"
+msgstr "none (use lab default)"
+
+#: stoic_eln/templates/settings/new_user.html:100
+msgid "Password temporanea"
+msgstr "Temporary password"
+
+#: stoic_eln/templates/settings/new_user.html:103
+msgid "Minimo 6 caratteri. L'utente la cambierà al primo accesso."
+msgstr "Minimum 6 characters. User will change it at first login."
+
+#: stoic_eln/templates/settings/new_user.html:107
+msgid "Conferma password"
+msgstr "Confirm password"
+
+#: stoic_eln/templates/settings/new_user.html:121
+msgid "Crea utente"
+msgstr "Create user"
+
+#: stoic_eln/templates/settings/prep_code.html:17
+#, fuzzy
+msgid ""
+"Configura come vengono generati i codici delle miscele preparate (es. HCl"
+" 6N → HCL6N-2026-001)."
+msgstr "Configure how the executed reaction codes are generated."
+
+#: stoic_eln/templates/settings/prep_code.html:25
+#: stoic_eln/templates/settings/run_code.html:25
+msgid "Formato del codice"
+msgstr "Code format"
+
+#: stoic_eln/templates/settings/prep_code.html:28
+#: stoic_eln/templates/settings/run_code.html:28
+msgid "Stringa di formato con i placeholder seguenti:"
+msgstr "Format string with the following placeholders:"
+
+#: stoic_eln/templates/settings/prep_code.html:31
+msgid "slug del nome miscela (es. HCl 6N → HCL6N, max 16 caratteri)"
+msgstr "slug of the mixture name (e.g. HCl 6N → HCL6N, max 16 chars)"
+
+#: stoic_eln/templates/settings/prep_code.html:32
+#: stoic_eln/templates/settings/run_code.html:33
+msgid "anno corrente (es. 2026)"
+msgstr "current year (e.g. 2026)"
+
+#: stoic_eln/templates/settings/prep_code.html:33
+#: stoic_eln/templates/settings/run_code.html:34
+#, python-brace-format
+msgid "numero sequenziale (puoi usare {seq:03d} per zero-padding)"
+msgstr "sequence number (use {seq:03d} for zero-padding)"
+
+#: stoic_eln/templates/settings/prep_code.html:48
+#: stoic_eln/templates/settings/run_code.html:49
+msgid "Default:"
+msgstr "Default:"
+
+#: stoic_eln/templates/settings/prep_code.html:53
+#: stoic_eln/templates/settings/run_code.html:54
+msgid "Anteprima:"
+msgstr "Preview:"
+
+#: stoic_eln/templates/settings/prep_code.html:56
+#, fuzzy
+msgid "Esempio con: miscela=HCL6N, anno=2026, seq=1"
+msgstr "Example with: operator=RX, template=TEM1, year=2026, seq=1"
+
+#: stoic_eln/templates/settings/prep_code.html:63
+#: stoic_eln/templates/settings/run_code.html:64
+msgid "Progressività della sequenza"
+msgstr "Sequence progressivity"
+
+#: stoic_eln/templates/settings/prep_code.html:66
+#: stoic_eln/templates/settings/run_code.html:67
+#, python-brace-format
+msgid "Su quale base si incrementa il numero {seq}?"
+msgstr "On what basis does {seq} increment?"
+
+#: stoic_eln/templates/settings/prep_code.html:73
+#: stoic_eln/templates/settings/run_code.html:74
+msgid "Laboratorio (globale)"
+msgstr "Lab (global)"
+
+#: stoic_eln/templates/settings/prep_code.html:75
+#, fuzzy
+msgid ""
+"Tutte le preparazioni del laboratorio condividono la stessa numerazione "
+"per anno."
+msgstr "All lab Runs share the same numbering per year."
+
+#: stoic_eln/templates/settings/prep_code.html:76
+msgid "Esempio: HCL6N-2026-001, HCL1N-2026-002, ELUENTEA-2026-003."
+msgstr "Example: HCL6N-2026-001, HCL1N-2026-002, ELUENTEA-2026-003."
+
+#: stoic_eln/templates/settings/prep_code.html:85
+#, fuzzy
+msgid "Per miscela"
+msgstr "Per template"
+
+#: stoic_eln/templates/settings/prep_code.html:87
+#, fuzzy
+msgid "Ogni miscela ha la sua serie indipendente per anno."
+msgstr "Each template has its own series per year."
+
+#: stoic_eln/templates/settings/prep_code.html:88
+msgid "Esempio: HCL6N-2026-001, HCL6N-2026-002, HCL1N-2026-001."
+msgstr "Example: HCL6N-2026-001, HCL6N-2026-002, HCL1N-2026-001."
+
+#: stoic_eln/templates/settings/run_code.html:17
+msgid "Configura come vengono generati i codici delle reazioni eseguite."
+msgstr "Configure how the executed reaction codes are generated."
+
+#: stoic_eln/templates/settings/run_code.html:31
+msgid "codice operatore (es. RX, CG)"
+msgstr "operator code (e.g. RX, CG)"
+
+#: stoic_eln/templates/settings/run_code.html:32
+msgid "codice mnemonico del template (es. SUZ, TEM1)"
+msgstr "template mnemonic code (e.g. SUZ, TEM1)"
+
+#: stoic_eln/templates/settings/run_code.html:57
+msgid "Esempio con: operatore=RX, template=TEM1, anno=2026, seq=1"
+msgstr "Example with: operator=RX, template=TEM1, year=2026, seq=1"
+
+#: stoic_eln/templates/settings/run_code.html:76
+msgid "Tutti i Run del laboratorio condividono la stessa numerazione per anno."
+msgstr "All lab Runs share the same numbering per year."
+
+#: stoic_eln/templates/settings/run_code.html:85
+msgid "Per operatore"
+msgstr "Per operator"
+
+#: stoic_eln/templates/settings/run_code.html:87
+msgid "Ogni operatore ha la sua serie indipendente per anno."
+msgstr "Each operator has their own series per year."
+
+#: stoic_eln/templates/settings/run_code.html:96
+msgid "Per template"
+msgstr "Per template"
+
+#: stoic_eln/templates/settings/run_code.html:98
+msgid "Ogni template ha la sua serie indipendente per anno."
+msgstr "Each template has its own series per year."
+
+#: stoic_eln/templates/settings/run_code.html:107
+msgid "Per coppia operatore + template"
+msgstr "Per operator+template pair"
+
+#: stoic_eln/templates/settings/run_code.html:109
+msgid "Ogni operatore ha una serie indipendente per ogni template."
+msgstr "Each operator has an independent series per template."
+
+#: stoic_eln/templates/settings/users.html:24
+msgid "Ruoli"
+msgstr "Roles"
+
+#: stoic_eln/templates/settings/users.html:26
+msgid "può vedere le reazioni ed eseguire run, ma non modifica i template."
+msgstr "can view reactions and run them, but cannot edit templates."
+
+#: stoic_eln/templates/settings/users.html:27
+msgid ""
+"può creare, modificare ed eliminare reazioni e sostanze. Non può gestire "
+"utenti, impostazioni o audit log."
+msgstr "can create, edit and delete reactions and substances. Cannot manage users, settings or the audit log."
+
+#: stoic_eln/templates/settings/users.html:28
+msgid "permessi completi: utenti, impostazioni di laboratorio, audit log."
+msgstr "full permissions: users, lab settings, audit log."
+
+#: stoic_eln/templates/settings/users.html:39
+msgid "Codice op."
+msgstr "Op. code"
+
+#: stoic_eln/templates/settings/users.html:42
+msgid "Ultimo accesso"
+msgstr "Last login"
+
+#: stoic_eln/templates/settings/users.html:64
+msgid "Aggiorna ruolo"
+msgstr "Update role"
+
+#: stoic_eln/templates/settings/users.html:92
+msgid ""
+"Non puoi cambiare il tuo ruolo. Per creare un nuovo utente, usa il "
+"bottone in alto a destra."
+msgstr "You can't change your own role. To create a new user, use the button in the top-right."
+
+#: stoic_eln/templates/substances/_list_table.html:8
+msgid "Struttura"
+msgstr "Structure"
+
+#: stoic_eln/templates/substances/_list_table.html:11
+#: stoic_eln/templates/substances/detail.html:68
+#: stoic_eln/templates/substances/import_preview.html:56
+msgid "MW"
+msgstr "MW"
+
+#: stoic_eln/templates/substances/_list_table.html:88
+#, python-format
+msgid "Nessuna sostanza corrisponde a '%(q)s'."
+msgstr "No substance matches '%(q)s'."
+
+#: stoic_eln/templates/substances/_list_table.html:90
+msgid "Nessuna sostanza nel catalogo."
+msgstr "No substances in the catalogue."
+
+#: stoic_eln/templates/substances/_list_table.html:95
+msgid "Importa la prima da PubChem"
+msgstr "Import the first one from PubChem"
+
+#: stoic_eln/templates/substances/detail.html:25
+msgid "SDS"
+msgstr "SDS"
+
+#: stoic_eln/templates/substances/detail.html:36
+msgid ""
+"Questa sostanza è disattivata. Non può essere usata in nuove reazioni, ma"
+" i run storici la mantengono visibile."
+msgstr "This substance is deactivated. It cannot be used in new reactions, but historical runs keep it visible."
+
+#: stoic_eln/templates/substances/detail.html:100
+#: stoic_eln/templates/substances/form.html:74
+#: stoic_eln/templates/substances/sds.html:41
+msgid "Proprietà fisiche"
+msgstr "Physical properties"
+
+#: stoic_eln/templates/substances/detail.html:112
+#: stoic_eln/templates/substances/import_preview.html:81
+#: stoic_eln/templates/substances/sds.html:44
+msgid "Densità"
+msgstr "Density"
+
+#: stoic_eln/templates/substances/detail.html:118
+#: stoic_eln/templates/substances/import_preview.html:73
+msgid "MP"
+msgstr "MP"
+
+#: stoic_eln/templates/substances/detail.html:124
+#: stoic_eln/templates/substances/import_preview.html:77
+msgid "BP"
+msgstr "BP"
+
+#: stoic_eln/templates/substances/detail.html:137
+#: stoic_eln/templates/substances/form.html:102
+msgid "Sicurezza (GHS)"
+msgstr "Safety (GHS)"
+
+#: stoic_eln/templates/substances/detail.html:151
+#: stoic_eln/templates/substances/import_preview.html:105
+msgid "Frasi H"
+msgstr "H phrases"
+
+#: stoic_eln/templates/substances/detail.html:164
+#: stoic_eln/templates/substances/import_preview.html:115
+msgid "Frasi P"
+msgstr "P phrases"
+
+#: stoic_eln/templates/substances/detail.html:185
+msgid "Lotti in magazzino"
+msgstr "Lots in inventory"
+
+#: stoic_eln/templates/substances/detail.html:192
+msgid "Aggiungi lotto"
+msgstr "Add lot"
+
+#: stoic_eln/templates/substances/detail.html:207
+msgid "Costo/unità"
+msgstr "Cost/unit"
+
+#: stoic_eln/templates/substances/detail.html:217
+msgid "inattivo"
+msgstr "inactive"
+
+#: stoic_eln/templates/substances/detail.html:242
+msgid "Nessun lotto in magazzino."
+msgstr "No lots in warehouse."
+
+#: stoic_eln/templates/substances/detail.html:244
+msgid "Aggiungi il primo lotto"
+msgstr "Add the first lot"
+
+#: stoic_eln/templates/substances/detail.html:256
+msgid "Soglia basso stock"
+msgstr "Low-stock threshold"
+
+#: stoic_eln/templates/substances/detail.html:258
+msgid ""
+"Sotto questa quantità totale la sostanza apparirà negli avvisi della "
+"Dashboard."
+msgstr "Below this total quantity the substance will appear in Dashboard alerts."
+
+#: stoic_eln/templates/substances/detail.html:268
+msgid "Soglia (g) — per solidi"
+msgstr "Threshold (g) — for solids"
+
+#: stoic_eln/templates/substances/detail.html:274
+#: stoic_eln/templates/substances/detail.html:284
+msgid "lascia vuoto per nessun avviso"
+msgstr "leave empty for no alert"
+
+#: stoic_eln/templates/substances/detail.html:278
+msgid "Soglia (mL) — per liquidi"
+msgstr "Threshold (mL) — for liquids"
+
+#: stoic_eln/templates/substances/detail.html:288
+msgid "Salva soglie"
+msgstr "Save thresholds"
+
+#: stoic_eln/templates/substances/detail.html:293
+msgid "sotto soglia"
+msgstr "low stock"
+
+#: stoic_eln/templates/substances/detail.html:295
+msgid "ok"
+msgstr "ok"
+
+#: stoic_eln/templates/substances/detail.html:326
+msgid "avvertenze, precauzioni, osservazioni d'uso"
+msgstr "warnings, precautions, usage notes"
+
+#: stoic_eln/templates/substances/detail.html:345
+msgid "scheda di sicurezza, certificato d'analisi"
+msgstr "safety datasheet, certificate of analysis"
+
+#: stoic_eln/templates/substances/detail.html:356
+msgid "Disattivare questa sostanza?"
+msgstr "Deactivate this substance?"
+
+#: stoic_eln/templates/substances/detail.html:359
+msgid "Disattiva sostanza"
+msgstr "Deactivate substance"
+
+#: stoic_eln/templates/substances/form.html:2
+msgid "Modifica sostanza"
+msgstr "Edit substance"
+
+#: stoic_eln/templates/substances/form.html:2
+#: stoic_eln/templates/substances/form.html:18
+#: stoic_eln/templates/substances/form.html:27
+#: stoic_eln/templates/substances/list.html:15
+msgid "Nuova sostanza"
+msgstr "New substance"
+
+#: stoic_eln/templates/substances/form.html:68
+msgid "Usato per detect duplicati. 27 caratteri tipo ABCDEFGHIJKLMN-OPQRSTUVWX-Y."
+msgstr "Used to detect duplicates. 27 chars like ABCDEFGHIJKLMN-OPQRSTUVWX-Y."
+
+#: stoic_eln/templates/substances/form.html:129
+#: stoic_eln/templates/substances/form.html:134
+msgid "Codici separati da virgola."
+msgstr "Comma-separated codes."
+
+#: stoic_eln/templates/substances/import_preview.html:2
+msgid "Anteprima import"
+msgstr "Import preview"
+
+#: stoic_eln/templates/substances/import_preview.html:15
+msgid "Anteprima"
+msgstr "Preview"
+
+#: stoic_eln/templates/substances/import_preview.html:22
+msgid "Risultato PubChem"
+msgstr "PubChem result"
+
+#: stoic_eln/templates/substances/import_preview.html:28
+msgid "Questa sostanza esiste già nel catalogo:"
+msgstr "This substance already exists in the catalog:"
+
+#: stoic_eln/templates/substances/import_preview.html:50
+msgid "IUPAC"
+msgstr "IUPAC"
+
+#: stoic_eln/templates/substances/import_preview.html:69
+msgid "Proprietà"
+msgstr "Properties"
+
+#: stoic_eln/templates/substances/import_preview.html:90
+msgid "Sicurezza"
+msgstr "Safety"
+
+#: stoic_eln/templates/substances/import_preview.html:100
+msgid "Nessun pittogramma GHS trovato in PubChem."
+msgstr "No GHS pictograms found in PubChem."
+
+#: stoic_eln/templates/substances/import_preview.html:132
+msgid ""
+"Dati incompleti? Dopo l'import puoi modificare la sostanza per aggiungere"
+" campi mancanti."
+msgstr "Incomplete data? After import you can edit the substance to add missing fields."
+
+#: stoic_eln/templates/substances/import_preview.html:137
+msgid "Cerca un altro composto"
+msgstr "Search another compound"
+
+#: stoic_eln/templates/substances/import_search.html:2
+#: stoic_eln/templates/substances/import_search.html:12
+#: stoic_eln/templates/substances/import_search.html:18
+#: stoic_eln/templates/substances/list.html:12
+msgid "Importa da PubChem"
+msgstr "Import from PubChem"
+
+#: stoic_eln/templates/substances/import_search.html:20
+msgid "Cerca per nome, numero CAS, SMILES, InChI, InChIKey, o CID PubChem."
+msgstr "Search by name, CAS number, SMILES, InChI, InChIKey, or PubChem CID."
+
+#: stoic_eln/templates/substances/import_search.html:52
+msgid "Esempi di ricerca"
+msgstr "Search examples"
+
+#: stoic_eln/templates/substances/list.html:8
+#, python-format
+msgid "%(n)d sostanze nel catalogo"
+msgstr "%(n)d substances in catalogue"
+
+#: stoic_eln/templates/substances/list.html:28
+msgid "Cerca per nome, IUPAC, CAS, formula, lotto…"
+msgstr "Search by name, IUPAC, CAS, formula, batch…"
+
+#: stoic_eln/templates/substances/sds.html:8
+msgid "Torna alla scheda"
+msgstr "Back to detail"
+
+#: stoic_eln/templates/substances/sds.html:11
+msgid "Stampa"
+msgstr "Print"
+
+#: stoic_eln/templates/substances/sds.html:17
+msgid "Scheda di Sicurezza"
+msgstr "Safety Data Sheet"
+
+#: stoic_eln/templates/substances/sds.html:20
+msgid "Generato dal laboratorio"
+msgstr "Generated by the lab"
+
+#: stoic_eln/templates/substances/sds.html:31
+msgid "Peso molecolare"
+msgstr "Molecular weight"
+
+#: stoic_eln/templates/substances/sds.html:47
+msgid "Punto di fusione"
+msgstr "Melting point"
+
+#: stoic_eln/templates/substances/sds.html:50
+msgid "Punto di ebollizione"
+msgstr "Boiling point"
+
+#: stoic_eln/templates/substances/sds.html:57
+msgid "Pericoli e classificazione GHS"
+msgstr "Hazards and GHS classification"
+
+#: stoic_eln/templates/substances/sds.html:67
+msgid "Indicazioni di pericolo (Frasi H)"
+msgstr "Hazard statements (H phrases)"
+
+#: stoic_eln/templates/substances/sds.html:71
+#: stoic_eln/templates/substances/sds.html:80
+msgid "(testo non disponibile)"
+msgstr "(text not available)"
+
+#: stoic_eln/templates/substances/sds.html:76
+msgid "Consigli di prudenza (Frasi P)"
+msgstr "Precautionary statements (P phrases)"
+
+#: stoic_eln/templates/substances/sds.html:95
+msgid ""
+"Documento generato automaticamente. Verificare sempre la SDS ufficiale "
+"del fornitore prima dell'uso."
+msgstr "Automatically generated document. Always check the supplier's official SDS before use."
+
+#~ msgid "Reazione %(code)s creata."
+#~ msgstr "Reaction %(code)s created."
+
+#~ msgid "Reazione aggiornata."
+#~ msgstr "Reaction updated."
+
+#~ msgid "Anteprima quantità calcolata su:"
+#~ msgstr ""
+
+#~ msgid "Scala (mmol):"
+#~ msgstr "Scale (mmol):"
+
+#~ msgid "mmol"
+#~ msgstr ""
+
+#~ msgid "g"
+#~ msgstr ""
+
+#~ msgid "mL"
+#~ msgstr ""
+
+#~ msgid "Limit."
+#~ msgstr "Limit."
+
+#~ msgid "Nessun componente. Aggiungi materiali di partenza, reagenti e prodotti."
+#~ msgstr "No components. Add starting materials, reagents, and products."
+
+#~ msgid "Descrizione"
+#~ msgstr "Location"
+
+#~ msgid ""
+#~ "es. Spegnere con NH4Cl sat., estrarre"
+#~ " con EtOAc x 3, lavare con "
+#~ "brine, anidrificare su Na2SO4, concentrare "
+#~ "a secco"
+#~ msgstr ""
+
+#~ msgid "Aggiungi componente allo step"
+#~ msgstr "Add lot"
+
+#~ msgid "Temperatura"
+#~ msgstr "Temperature"
+
+#~ msgid "Metadati"
+#~ msgstr "Metadata"
+
+#~ msgid "Fonte"
+#~ msgstr "Supplier"
+
+#~ msgid "Componenti e stechiometria"
+#~ msgstr "Components and stoichiometry"
+
+#~ msgid "Procedura"
+#~ msgstr "Procedure"
+
+#~ msgid "Check list reazione"
+#~ msgstr "Create the first reaction"
+
+#~ msgid "verifiche da fare prima/durante l'esecuzione"
+#~ msgstr "checks to perform before/during execution"
+
+#~ msgid "Step successivi"
+#~ msgstr "Subsequent steps"
+
+#~ msgid "Descrivi le operazioni dello step."
+#~ msgstr "Describe the step operations."
+
+#~ msgid "Crea step"
+#~ msgstr "Date"
+
+#~ msgid ""
+#~ "Compila almeno uno dei campi quantità"
+#~ " — gli altri vengono calcolati "
+#~ "automaticamente."
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Sintassi SMILES estesa: SM1.SM2>reagenti>prodotti"
+#~ " oppure SM>>prodotto. Lasciare vuoto per"
+#~ " derivazione automatica."
+#~ msgstr ""
+
+#~ msgid "descrizione della reazione principale"
+#~ msgstr "Scheme (optional)"
+
+#~ msgid ""
+#~ "es. Sciogliere il SM in DCM anidro"
+#~ " sotto Ar, raffreddare a 0 °C, "
+#~ "aggiungere il reagente goccia a goccia,"
+#~ " lasciare 12 h a temperatura "
+#~ "ambiente, controllare consumo del SM via"
+#~ " TLC."
+#~ msgstr ""
+
+#~ msgid "ogni passo ha componenti, procedimento e check list propri"
+#~ msgstr ""
+
+#~ msgid "Disattiva reazione"
+#~ msgstr "inactive"
+
+#~ msgid "Scala (mmol del limitante)"
+#~ msgstr "Scale (mmol of limiting reagent)"
+
+#~ msgid "Resa non valida."
+#~ msgstr "Invalid yield."
+
+#~ msgid "resa (g)"
+#~ msgstr "yield (g)"
+
+#~ msgid "A-Z, 0-9, trattini. Max 8 caratteri."
+#~ msgstr "A-Z, 0-9, hyphens. Max 8 characters."
+
+#~ msgid ""
+#~ "Le modifiche non sono visibili agli "
+#~ "altri finché non premi 'Salva' in "
+#~ "fondo alla pagina."
+#~ msgstr ""
+
+#~ msgid "Cerca per lotto, fornitore, posizione, sostanza, CAS…"
+#~ msgstr ""
+
+#~ msgid "Mostra inattivi"
+#~ msgstr "Show inactive"
+
+#~ msgid "Stoic ELN — Lab notebook, refactored."
+#~ msgstr ""
+
+#~ msgid "Settimana 1 di 6"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Le fondamenta dell'app sono in piedi:"
+#~ " autenticazione, internazionalizzazione, tema "
+#~ "chiaro/scuro."
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Le funzioni vere (sostanze, magazzino, "
+#~ "reazioni, run) arrivano nelle prossime "
+#~ "settimane."
+#~ msgstr ""
+
+#~ msgid "Ordine già aperto per questa sostanza"
+#~ msgstr "Order already open for this substance"
+
+#~ msgid "ordine aperto"
+#~ msgstr "open order"
+
+#~ msgid "€/mol di prodotto:"
+#~ msgstr "€/mol of product:"
+
+#~ msgid "€/u"
+#~ msgstr ""
+
+#~ msgid "€/mol"
+#~ msgstr ""
+
+#~ msgid "Costo totale (€)"
+#~ msgstr "Total cost (€)"
+
+#~ msgid "Costo effettivo (€)"
+#~ msgstr "Actual cost (€)"
+
+#~ msgid "Costo €"
+#~ msgstr "Cost €"
+
+#~ msgid "€/g"
+#~ msgstr ""
+
+#~ msgid "no €"
+#~ msgstr "no €"
+
+#~ msgid ""
+#~ "Non puoi cambiare il tuo ruolo. "
+#~ "Per creare nuovi utenti, vedi la "
+#~ "pagina di registrazione."
+#~ msgstr ""
+
+#~ msgid "accesso"
+#~ msgstr "login"
+
+#~ msgid "uscita"
+#~ msgstr "logout"
+
+#~ msgid "accesso fallito"
+#~ msgstr "login failed"
+
+#~ msgid "bozza creata"
+#~ msgstr "draft created"
+
+#~ msgid "bozza eliminata"
+#~ msgstr "draft discarded"
+
+#~ msgid "reazione duplicata"
+#~ msgstr "reaction duplicated"
+
+#~ msgid "pubblicato"
+#~ msgstr "published"
+
+#~ msgid "inizio modifica"
+#~ msgstr "edit started"
+
+#~ msgid "modifica annullata"
+#~ msgstr "edit cancelled"
+
+#~ msgid "archiviato"
+#~ msgstr "archived"
+
+#~ msgid "riattivato"
+#~ msgstr "reactivated"
+
+#~ msgid "creato"
+#~ msgstr "created"
+
+#~ msgid "aggiornato"
+#~ msgstr "updated"
+
+#~ msgid "eliminato"
+#~ msgstr "deleted"
+
+#~ msgid "consultato"
+#~ msgstr "viewed"
+
+#~ msgid "lotto creato"
+#~ msgstr "lot created"
+
+#~ msgid "lotto aggiornato"
+#~ msgstr "lot updated"
+
+#~ msgid "lotto disattivato"
+#~ msgstr "lot deactivated"
+
+#~ msgid "ordine pianificato"
+#~ msgstr "order planned"
+
+#~ msgid "ordine aggiornato"
+#~ msgstr "order updated"
+
+#~ msgid "ordine confermato"
+#~ msgstr "order placed"
+
+#~ msgid "ordine ricevuto"
+#~ msgstr "order received"
+
+#~ msgid "ordine annullato"
+#~ msgstr "order cancelled"
+
+#~ msgid "ordini bulk"
+#~ msgstr "bulk orders"
+
+#~ msgid "settaggi spesa"
+#~ msgstr "shopping settings"
+
+#~ msgid "run creato"
+#~ msgstr "run created"
+
+#~ msgid "run avviato"
+#~ msgstr "run started"
+
+#~ msgid "run completato"
+#~ msgstr "run completed"
+
+#~ msgid "run annullato"
+#~ msgstr "run cancelled"
+
+#~ msgid "lotto su run"
+#~ msgstr "lot on run"
+
+#~ msgid "quantità run"
+#~ msgstr "run quantity"
+
+#~ msgid "PDF run scaricato"
+#~ msgstr "run PDF downloaded"
+
+#~ msgid "impostazioni aggiornate"
+#~ msgstr "settings updated"
+

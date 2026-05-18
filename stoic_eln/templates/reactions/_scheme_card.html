@@ -1,0 +1,114 @@
+{# Reaction scheme card (Settimana 6 patch 8.2)
+   Extracted as a partial so HTMX swaps that update components can also
+   refresh the scheme. Included from reactions/detail.html and from
+   reactions/_components_table.html (so any HTMX response that returns
+   _components_table also re-renders this card via OOB swap). #}
+{% set scheme = reaction.derive_scheme() %}
+<div class="card mb-3" id="reaction-scheme-card"{% if oob %} hx-swap-oob="outerHTML"{% endif %}>
+  <div class="card-header">
+    <strong>{{ _("Schema") }}</strong>
+    {% if reaction.scheme_smiles %}
+    <span class="text-muted small ms-2">{{ _("SMILES manuale") }}</span>
+    {% else %}
+    <span class="text-muted small ms-2">{{ _("derivato dai componenti") }}</span>
+    {% endif %}
+  </div>
+  <div class="card-body">
+    {% if scheme %}
+      {% if scheme.smiles and scheme.canvas_safe %}
+      <div class="reaction-scheme-wrapper text-center">
+        <svg id="reaction-scheme-{{ reaction.id }}"
+             data-smiles="{{ scheme.smiles }}"
+             data-above-arrow-label="{{ scheme.above_arrow_label }}"
+             class="reaction-scheme"
+             xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+      {% endif %}
+
+      {% set left_no_smi = scheme.left | rejectattr('smiles') | list %}
+      {% set agents_no_smi = scheme.agents | rejectattr('smiles') | list %}
+      {% set right_no_smi = scheme.right | rejectattr('smiles') | list %}
+      {% if left_no_smi or agents_no_smi or right_no_smi %}
+      <div class="d-flex justify-content-around align-items-center small mt-2">
+        <div class="text-start" style="min-width: 25%">
+          {% for c in left_no_smi %}
+          <div class="border border-dashed rounded px-2 py-1 mb-1 d-inline-block">
+            <strong>{{ c.name }}</strong>
+            <div class="text-muted small">{{ _("(senza SMILES)") }}</div>
+          </div>
+          {% endfor %}
+        </div>
+        <div class="text-center" style="min-width: 25%">
+          {% for c in agents_no_smi %}
+          <span class="badge text-bg-light border me-1">{{ c.name }}</span>
+          {% endfor %}
+        </div>
+        <div class="text-end" style="min-width: 25%">
+          {% for c in right_no_smi %}
+          <div class="border border-dashed rounded px-2 py-1 mb-1 d-inline-block">
+            <strong>{{ c.name }}</strong>
+            <div class="text-muted small">{{ _("(senza SMILES)") }}</div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      {% if scheme.solvents or scheme.conditions %}
+      <div class="text-center small text-muted mt-2 pt-2 border-top">
+        {% if scheme.solvents %}
+          <div>
+            <strong>{{ _("Solvente") }}:</strong>
+            {% for s in scheme.solvents %}
+              {{ s.name }}{% if s.concentration_M is not none %} ({{ '%g'|format(s.concentration_M) }} M){% endif %}
+              {%- if not loop.last %}, {% endif -%}
+            {% endfor %}
+          </div>
+        {% endif %}
+        {% if scheme.conditions %}
+          <div>{{ scheme.conditions }}</div>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      {% if scheme.smiles %}
+      <details class="small text-muted mt-2">
+        <summary style="cursor:pointer">{{ _("SMILES generato") }}</summary>
+        <code class="d-block mt-1" style="word-break:break-all">{{ scheme.smiles }}</code>
+      </details>
+      {% endif %}
+
+    {% else %}
+      <p class="text-muted text-center py-4 mb-0">
+        {{ _("Aggiungi un materiale di partenza (o reattivo limitante) e almeno un prodotto per visualizzare lo schema.") }}
+      </p>
+      {% if reaction.components %}
+      <p class="text-muted text-center small mb-0">
+        {{ _("Componenti attuali:") }}
+        {% for c in reaction.components %}
+          <span class="badge text-bg-light border me-1">{{ c.substance.name if c.substance else '?' }}
+            <span class="text-muted">({{ c.role }})</span>
+          </span>
+        {% endfor %}
+      </p>
+      {% endif %}
+    {% endif %}
+
+    {% if is_draft %}
+    <div class="mt-3">
+      <details>
+        <summary class="small text-muted" style="cursor:pointer">
+          {{ _("Schema SMILES manuale (opzionale)") }}
+        </summary>
+        <input type="text" name="scheme_smiles"
+               form="reaction-header-form"
+               class="form-control form-control-sm font-monospace mt-2 auto-save-field"
+               value="{{ reaction.scheme_smiles or '' }}"
+               placeholder="es. CCO.CC(=O)Cl>>CCOC(=O)C"
+               data-field-name="scheme_smiles">
+        <small class="text-muted">{{ _("Sintassi SMILES estesa: SM1.SM2>reagenti>prodotti oppure SM>>prodotto. Lasciare vuoto per derivazione automatica.") }}</small>
+      </details>
+    </div>
+    {% endif %}
+  </div>
+</div>

@@ -1,0 +1,68 @@
+.PHONY: help install dev test lint format run init-db clean translations ensure-schema
+
+# Auto-detect venv binaries. If .venv exists, use its binaries directly so
+# you don't need to `source .venv/bin/activate` first. Otherwise fall back
+# to whatever's on PATH.
+VENV_BIN := $(shell test -d .venv && echo .venv/bin/)
+FLASK    := $(VENV_BIN)flask
+PYTHON   := $(VENV_BIN)python
+PYTEST   := $(VENV_BIN)pytest
+RUFF     := $(VENV_BIN)ruff
+PYBABEL  := $(VENV_BIN)pybabel
+PIP      := $(VENV_BIN)pip
+
+help:
+	@echo "Stoic ELN — development commands"
+	@echo ""
+	@echo "  make install        Install the project (with dev dependencies)"
+	@echo "  make init-db        Create the database and admin user"
+	@echo "  make ensure-schema  Create any tables added by recent patches"
+	@echo "  make run            Start the development server"
+	@echo "  make test           Run the test suite"
+	@echo "  make lint           Run ruff linter"
+	@echo "  make format         Auto-format code with ruff"
+	@echo "  make translations   Compile .po files into .mo"
+	@echo "  make clean          Remove caches and build artifacts"
+
+install:
+	$(PIP) install -e ".[dev]"
+
+init-db:
+	$(PYTHON) scripts/init_db.py
+
+init-db-reset:
+	$(PYTHON) scripts/init_db.py --reset
+
+ensure-schema:
+	$(FLASK) --app stoic_eln ensure-schema
+
+run:
+	$(FLASK) --app stoic_eln run --debug --port 5001
+
+test:
+	$(PYTEST)
+
+lint:
+	$(RUFF) check .
+
+format:
+	$(RUFF) format .
+	$(RUFF) check . --fix
+
+translations:
+	$(PYBABEL) compile -d stoic_eln/translations
+
+translations-extract:
+	# Pass `.` (project root) — babel.cfg's patterns are relative to it,
+	# so passing `stoic_eln/` truncates the search and silently misses
+	# new strings.
+	$(PYBABEL) extract -F babel.cfg -o messages.pot .
+	$(PYBABEL) update -i messages.pot -d stoic_eln/translations
+
+clean:
+	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
+	find . -type d -name .pytest_cache -exec rm -rf {} + 2>/dev/null || true
+	find . -type d -name .ruff_cache -exec rm -rf {} + 2>/dev/null || true
+	find . -type d -name .mypy_cache -exec rm -rf {} + 2>/dev/null || true
+	find . -type d -name "*.egg-info" -exec rm -rf {} + 2>/dev/null || true
+	rm -f messages.pot

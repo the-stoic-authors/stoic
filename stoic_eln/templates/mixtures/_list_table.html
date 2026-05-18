@@ -1,0 +1,95 @@
+{% if mixtures %}
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead>
+        <tr>
+          <th>{{ _("Nome") }}</th>
+          <th>{{ _("Tipo") }}</th>
+          <th>{{ _("Concentrazione") }}</th>
+          <th>{{ _("Componenti") }}</th>
+          <th>{{ _("GHS") }}</th>
+          <th class="text-end">{{ _("Lotti") }}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in mixtures %}
+        <tr {% if not m.is_active %}class="text-muted"{% endif %}>
+          <td>
+            <a href="{{ url_for('mixtures.detail', mixture_id=m.id) }}" class="fw-semibold text-decoration-none">
+              {{ m.name }}
+            </a>
+            {% if not m.is_active %}
+              <span class="badge text-bg-secondary ms-1">{{ _("disattivata") }}</span>
+            {% endif %}
+          </td>
+          <td>
+            {% set kind_labels = {
+              "solution": _("Soluzione"),
+              "eluent": _("Eluente"),
+              "buffer": _("Tampone"),
+              "reagent_mix": _("Miscela reagenti"),
+              "other": _("Altro"),
+            } %}
+            <span class="badge text-bg-light">{{ kind_labels.get(m.kind, m.kind) }}</span>
+          </td>
+          <td>
+            {% if m.primary_concentration is not none and m.primary_concentration_unit %}
+              <code>{{ "%g"|format(m.primary_concentration) }} {{ m.primary_concentration_unit }}</code>
+            {% else %}
+              <span class="text-muted">—</span>
+            {% endif %}
+          </td>
+          <td class="small">
+            {% if m.components %}
+              {% for c in m.components[:3] %}
+                {{ c.substance.name }}{% if not loop.last %}, {% endif %}
+              {% endfor %}
+              {% if m.components|length > 3 %}<span class="text-muted">…+{{ m.components|length - 3 }}</span>{% endif %}
+            {% else %}
+              <span class="text-muted">—</span>
+            {% endif %}
+          </td>
+          <td>
+            <div class="ghs-row">
+            {% for code in m.effective_pictograms %}
+              <img src="{{ url_for('static', filename='img/ghs/' + code + '.svg') }}"
+                   data-ghs-code="{{ code }}"
+                   alt="{{ code }}" title="{{ code }}" class="ghs-icon-sm">
+            {% endfor %}
+            </div>
+          </td>
+          <td class="text-end">{{ m.inventory_items|selectattr('is_active')|list|length }}</td>
+          <td class="text-end">
+            <a href="{{ url_for('mixtures.detail', mixture_id=m.id) }}"
+               class="btn btn-sm btn-link">
+              <i data-lucide="arrow-right"></i>
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="card">
+  <div class="card-body text-center py-5">
+    <i data-lucide="beaker" class="text-muted mb-3" style="width: 48px; height: 48px;"></i>
+    <p class="text-muted mb-3">
+      {% if q %}
+        {{ _("Nessuna miscela corrisponde a '%(q)s'.", q=q) }}
+      {% else %}
+        {{ _("Nessuna miscela nel catalogo.") }}
+      {% endif %}
+    </p>
+    {% if not q %}
+    <a href="{{ url_for('mixtures.create') }}" class="btn btn-primary">
+      <i data-lucide="plus"></i> {{ _("Crea la prima miscela") }}
+    </a>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+<script>if (window.lucide) lucide.createIcons();</script>

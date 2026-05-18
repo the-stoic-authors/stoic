@@ -1,0 +1,782 @@
+# English translations for Stoic ELN.
+msgid ""
+msgstr ""
+"Project-Id-Version: stoic-eln 2.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-05-02 19:49+0000\n"
+"PO-Revision-Date: 2026-05-02 00:00+0000\n"
+"Last-Translator: \n"
+"Language: en\n"
+"Language-Team: English\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+#: stoic_eln/blueprints/auth/routes.py:51
+msgid "Username o password non corretti."
+msgstr "Incorrect username or password."
+
+#: stoic_eln/blueprints/auth/routes.py:62
+msgid "Il tuo account non è attivo. Contatta un amministratore."
+msgstr ""
+
+#: stoic_eln/blueprints/auth/routes.py:89
+msgid "Sei stato disconnesso."
+msgstr "You have been signed out."
+
+#: stoic_eln/blueprints/auth/routes.py:99
+msgid "La password attuale non è corretta."
+msgstr ""
+
+#: stoic_eln/blueprints/auth/routes.py:110
+msgid "Password aggiornata correttamente."
+msgstr ""
+
+#: stoic_eln/blueprints/inventory/routes.py:113
+#, python-format
+msgid "Lotto aggiunto a '%(name)s'."
+msgstr "Lot added to '%(name)s'."
+
+#: stoic_eln/blueprints/inventory/routes.py:151
+msgid "Lotto aggiornato."
+msgstr "Lot updated."
+
+#: stoic_eln/blueprints/inventory/routes.py:168
+msgid "Lotto disattivato."
+msgstr "Lot deactivated."
+
+#: stoic_eln/blueprints/inventory/routes.py:181
+msgid "Lotto riattivato."
+msgstr "Lot reactivated."
+
+#: stoic_eln/blueprints/substances/routes.py:183
+#, python-format
+msgid "Esiste già una sostanza con questo InChIKey: %(name)s"
+msgstr ""
+
+#: stoic_eln/blueprints/substances/routes.py:192
+#, python-format
+msgid "Sostanza '%(name)s' creata."
+msgstr "Substance '%(name)s' created."
+
+#: stoic_eln/blueprints/substances/routes.py:230
+#, python-format
+msgid "InChIKey già usato dalla sostanza '%(name)s'"
+msgstr ""
+
+#: stoic_eln/blueprints/substances/routes.py:247
+#, python-format
+msgid "Sostanza '%(name)s' aggiornata."
+msgstr "Substance '%(name)s' updated."
+
+#: stoic_eln/blueprints/substances/routes.py:262
+#, python-format
+msgid "Sostanza '%(name)s' disattivata."
+msgstr "Substance '%(name)s' deactivated."
+
+#: stoic_eln/blueprints/substances/routes.py:275
+#, python-format
+msgid "Sostanza '%(name)s' riattivata."
+msgstr "Substance '%(name)s' reactivated."
+
+#: stoic_eln/blueprints/substances/routes.py:325
+#, python-format
+msgid "Nessun risultato trovato per '%(q)s'."
+msgstr "No results found for '%(q)s'."
+
+#: stoic_eln/blueprints/substances/routes.py:327
+#, python-format
+msgid "Errore PubChem: %(err)s"
+msgstr "PubChem error: %(err)s"
+
+#: stoic_eln/blueprints/substances/routes.py:380
+msgid "Token CSRF mancante. Riprova."
+msgstr "Missing CSRF token. Retry."
+
+#: stoic_eln/blueprints/substances/routes.py:385
+msgid "Sessione scaduta. Cerca di nuovo."
+msgstr "Session expired. Search again."
+
+#: stoic_eln/blueprints/substances/routes.py:395
+#, python-format
+msgid "Sostanza già presente: '%(name)s'"
+msgstr ""
+
+#: stoic_eln/blueprints/substances/routes.py:429
+#, python-format
+msgid "Importata da PubChem: '%(name)s'"
+msgstr "Imported from PubChem: '%(name)s'"
+
+#: stoic_eln/templates/base.html:48
+msgid "Laboratorio"
+msgstr "Laboratory"
+
+#: stoic_eln/templates/base.html:52 stoic_eln/templates/main/dashboard.html:2
+msgid "Dashboard"
+msgstr "Dashboard"
+
+#: stoic_eln/templates/base.html:56 stoic_eln/templates/main/dashboard.html:35
+msgid "Reazioni"
+msgstr "Reactions"
+
+#: stoic_eln/templates/base.html:57
+msgid "Settimana 3"
+msgstr "Week 3"
+
+#: stoic_eln/templates/base.html:61
+msgid "Storico run"
+msgstr "Run history"
+
+#: stoic_eln/templates/base.html:66 stoic_eln/templates/inventory/form.html:10
+#: stoic_eln/templates/main/dashboard.html:21
+#: stoic_eln/templates/substances/detail.html:11
+#: stoic_eln/templates/substances/form.html:10
+#: stoic_eln/templates/substances/import_preview.html:10
+#: stoic_eln/templates/substances/import_search.html:10
+#: stoic_eln/templates/substances/list.html:2
+#: stoic_eln/templates/substances/list.html:7
+msgid "Sostanze"
+msgstr "Substances"
+
+#: stoic_eln/templates/base.html:69 stoic_eln/templates/inventory/list.html:2
+#: stoic_eln/templates/inventory/list.html:7
+msgid "Magazzino"
+msgstr "Warehouse"
+
+#: stoic_eln/templates/base.html:73
+msgid "Inventario"
+msgstr "Inventory"
+
+#: stoic_eln/templates/base.html:77
+msgid "Admin"
+msgstr "Admin"
+
+#: stoic_eln/templates/base.html:80
+msgid "Utenti"
+msgstr "Users"
+
+#: stoic_eln/templates/base.html:84
+msgid "Report"
+msgstr ""
+
+#: stoic_eln/templates/base.html:88
+msgid "Audit log"
+msgstr "Audit log"
+
+#: stoic_eln/templates/base.html:92
+msgid "Impostazioni"
+msgstr "Settings"
+
+#: stoic_eln/templates/base.html:119
+msgid "Tema"
+msgstr ""
+
+#: stoic_eln/templates/base.html:132 stoic_eln/templates/base.html:225
+msgid "Sistema"
+msgstr "System"
+
+#: stoic_eln/templates/base.html:138 stoic_eln/templates/base.html:219
+msgid "Chiaro"
+msgstr ""
+
+#: stoic_eln/templates/base.html:144 stoic_eln/templates/base.html:222
+msgid "Scuro"
+msgstr ""
+
+#: stoic_eln/templates/auth/change_password.html:2
+#: stoic_eln/templates/auth/change_password.html:9
+#: stoic_eln/templates/base.html:176
+msgid "Cambia password"
+msgstr "Change password"
+
+#: stoic_eln/templates/base.html:182
+msgid "Logout"
+msgstr "Logout"
+
+#: stoic_eln/templates/auth/change_password.html:11
+msgid "La nuova password deve essere lunga almeno 8 caratteri."
+msgstr ""
+
+#: stoic_eln/templates/auth/change_password.html:42
+#: stoic_eln/templates/inventory/form.html:122
+#: stoic_eln/templates/substances/form.html:148
+#: stoic_eln/templates/substances/import_search.html:44
+msgid "Annulla"
+msgstr "Cancel"
+
+#: stoic_eln/templates/auth/login.html:3
+msgid "Accedi"
+msgstr "Sign in"
+
+#: stoic_eln/templates/errors/404.html:2
+msgid "Pagina non trovata"
+msgstr "Page not found"
+
+#: stoic_eln/templates/errors/404.html:7 stoic_eln/templates/errors/404.html:15
+msgid "La pagina che stai cercando non esiste."
+msgstr ""
+
+#: stoic_eln/templates/errors/404.html:8 stoic_eln/templates/errors/500.html:8
+msgid "Torna alla dashboard"
+msgstr "Back to the dashboard"
+
+#: stoic_eln/templates/errors/404.html:16
+#: stoic_eln/templates/errors/500.html:16
+msgid "Torna alla home"
+msgstr ""
+
+#: stoic_eln/templates/errors/500.html:2
+msgid "Errore interno"
+msgstr "Internal error"
+
+#: stoic_eln/templates/errors/500.html:7 stoic_eln/templates/errors/500.html:15
+msgid "Si è verificato un errore. Riprova più tardi."
+msgstr ""
+
+#: stoic_eln/templates/inventory/_list_table.html:7
+msgid "Sostanza"
+msgstr ""
+
+#: stoic_eln/templates/inventory/_list_table.html:8
+#: stoic_eln/templates/substances/detail.html:184
+msgid "Lotto"
+msgstr "Batch"
+
+#: stoic_eln/templates/inventory/_list_table.html:9
+#: stoic_eln/templates/substances/detail.html:185
+msgid "Fornitore"
+msgstr "Supplier"
+
+#: stoic_eln/templates/inventory/_list_table.html:10
+#: stoic_eln/templates/substances/detail.html:186
+msgid "Posizione"
+msgstr "Location"
+
+#: stoic_eln/templates/inventory/_list_table.html:11
+#: stoic_eln/templates/substances/detail.html:187
+msgid "Iniziale"
+msgstr "Initial"
+
+#: stoic_eln/templates/inventory/_list_table.html:12
+#: stoic_eln/templates/substances/detail.html:188
+msgid "Residuo"
+msgstr "Remaining"
+
+#: stoic_eln/templates/inventory/_list_table.html:13
+msgid "Costo/u"
+msgstr "Cost/u"
+
+#: stoic_eln/templates/inventory/_list_table.html:14
+#: stoic_eln/templates/substances/detail.html:190
+msgid "Acquistato"
+msgstr "Purchased"
+
+#: stoic_eln/templates/inventory/_list_table.html:26
+#: stoic_eln/templates/substances/detail.html:199
+msgid "inattivo"
+msgstr "inactive"
+
+#: stoic_eln/templates/inventory/_list_table.html:56
+#, python-format
+msgid "Nessun lotto corrisponde a '%(q)s'."
+msgstr "No lot matches '%(q)s'."
+
+#: stoic_eln/templates/inventory/_list_table.html:57
+msgid "Nessun lotto in magazzino. Aggiungi un lotto da una sostanza."
+msgstr "No lots in warehouse. Add a lot from a substance."
+
+#: stoic_eln/templates/inventory/form.html:2
+#: stoic_eln/templates/inventory/form.html:16
+#: stoic_eln/templates/inventory/form.html:24
+msgid "Modifica lotto"
+msgstr "Edit lot"
+
+#: stoic_eln/templates/inventory/form.html:2
+#: stoic_eln/templates/inventory/form.html:16
+msgid "Nuovo lotto"
+msgstr "New lot"
+
+#: stoic_eln/templates/inventory/form.html:25
+msgid "Nuovo lotto di"
+msgstr "New lot of"
+
+#: stoic_eln/templates/inventory/form.html:53
+#: stoic_eln/templates/substances/_list_table.html:14
+msgid "Quantità"
+msgstr ""
+
+#: stoic_eln/templates/inventory/form.html:55
+msgid ""
+"Compila la coppia coerente con lo stato fisico (g per solidi, mL per "
+"liquidi)."
+msgstr ""
+
+#: stoic_eln/templates/inventory/form.html:69
+msgid "Lascia vuoto per usare la quantità iniziale."
+msgstr ""
+
+#: stoic_eln/templates/inventory/form.html:79
+msgid "Logistica"
+msgstr "Logistics"
+
+#: stoic_eln/templates/inventory/form.html:115
+msgid "Disattivare questo lotto?"
+msgstr "Deactivate this lot?"
+
+#: stoic_eln/templates/inventory/form.html:116
+msgid "Disattiva lotto"
+msgstr "Deactivate lot"
+
+#: stoic_eln/templates/inventory/list.html:8
+#, python-format
+msgid "%(n)d lotti"
+msgstr "%(n)d lots"
+
+#: stoic_eln/templates/inventory/list.html:12
+msgid "Catalogo sostanze"
+msgstr "Substance catalogue"
+
+#: stoic_eln/templates/inventory/list.html:25
+msgid "Cerca per lotto, fornitore, posizione, sostanza, CAS…"
+msgstr ""
+
+#: stoic_eln/templates/inventory/list.html:45
+msgid "Mostra inattivi"
+msgstr "Show inactive"
+
+#: stoic_eln/templates/main/dashboard.html:6
+msgid "Benvenuto"
+msgstr "Welcome"
+
+#: stoic_eln/templates/main/dashboard.html:7
+msgid "Stoic ELN — Lab notebook, refactored."
+msgstr ""
+
+#: stoic_eln/templates/main/dashboard.html:11
+msgid "Settimana 1 di 6"
+msgstr ""
+
+#: stoic_eln/templates/main/dashboard.html:12
+msgid ""
+"Le fondamenta dell'app sono in piedi: autenticazione, "
+"internazionalizzazione, tema chiaro/scuro."
+msgstr ""
+
+#: stoic_eln/templates/main/dashboard.html:13
+msgid ""
+"Le funzioni vere (sostanze, magazzino, reazioni, run) arrivano nelle "
+"prossime settimane."
+msgstr ""
+
+#: stoic_eln/templates/main/dashboard.html:28
+#: stoic_eln/templates/substances/detail.html:173
+msgid "Lotti in magazzino"
+msgstr "Lots in warehouse"
+
+#: stoic_eln/templates/main/dashboard.html:42
+msgid "Run completati"
+msgstr ""
+
+#: stoic_eln/templates/substances/_list_table.html:7
+#: stoic_eln/templates/substances/import_preview.html:48
+#: stoic_eln/templates/substances/sds.html:27
+msgid "Nome"
+msgstr "Name"
+
+#: stoic_eln/templates/substances/_list_table.html:8
+#: stoic_eln/templates/substances/detail.html:51
+#: stoic_eln/templates/substances/import_preview.html:52
+msgid "CAS"
+msgstr "CAS"
+
+#: stoic_eln/templates/substances/_list_table.html:9
+#: stoic_eln/templates/substances/detail.html:54
+#: stoic_eln/templates/substances/import_preview.html:54
+#: stoic_eln/templates/substances/sds.html:30
+msgid "Formula"
+msgstr "Formula"
+
+#: stoic_eln/templates/substances/_list_table.html:10
+#: stoic_eln/templates/substances/detail.html:57
+#: stoic_eln/templates/substances/import_preview.html:56
+msgid "MW"
+msgstr "MW"
+
+#: stoic_eln/templates/substances/_list_table.html:11
+#: stoic_eln/templates/substances/detail.html:92
+#: stoic_eln/templates/substances/import_preview.html:71
+msgid "Stato"
+msgstr "State"
+
+#: stoic_eln/templates/substances/_list_table.html:12
+msgid "GHS"
+msgstr ""
+
+#: stoic_eln/templates/substances/_list_table.html:13
+msgid "Lotti"
+msgstr "Lots"
+
+#: stoic_eln/templates/substances/_list_table.html:26
+msgid "disattivata"
+msgstr "inactive"
+
+#: stoic_eln/templates/substances/_list_table.html:29
+#: stoic_eln/templates/substances/detail.html:98
+msgid "solvente"
+msgstr "solvent"
+
+#: stoic_eln/templates/substances/_list_table.html:36
+#: stoic_eln/templates/substances/detail.html:94
+msgid "solido"
+msgstr "solid"
+
+#: stoic_eln/templates/substances/_list_table.html:37
+#: stoic_eln/templates/substances/detail.html:95
+msgid "liquido"
+msgstr "liquid"
+
+#: stoic_eln/templates/substances/_list_table.html:38
+#: stoic_eln/templates/substances/detail.html:96
+msgid "gas"
+msgstr "gas"
+
+#: stoic_eln/templates/substances/_list_table.html:74
+#, python-format
+msgid "Nessuna sostanza corrisponde a '%(q)s'."
+msgstr "No substance matches '%(q)s'."
+
+#: stoic_eln/templates/substances/_list_table.html:76
+msgid "Nessuna sostanza nel catalogo."
+msgstr "No substances in the catalogue."
+
+#: stoic_eln/templates/substances/_list_table.html:81
+msgid "Importa la prima da PubChem"
+msgstr "Import the first one from PubChem"
+
+#: stoic_eln/templates/substances/detail.html:25
+msgid "SDS"
+msgstr ""
+
+#: stoic_eln/templates/substances/detail.html:28
+#: stoic_eln/templates/substances/form.html:16
+#: stoic_eln/templates/substances/form.html:26
+msgid "Modifica"
+msgstr "Edit"
+
+#: stoic_eln/templates/substances/detail.html:36
+msgid ""
+"Questa sostanza è disattivata. Non può essere usata in nuove reazioni, ma"
+" i run storici la mantengono visibile."
+msgstr ""
+
+#: stoic_eln/templates/substances/detail.html:39
+msgid "Riattiva"
+msgstr "Reactivate"
+
+#: stoic_eln/templates/substances/detail.html:48
+#: stoic_eln/templates/substances/form.html:34
+#: stoic_eln/templates/substances/import_preview.html:46
+#: stoic_eln/templates/substances/sds.html:25
+msgid "Identificazione"
+msgstr "Identification"
+
+#: stoic_eln/templates/substances/detail.html:63
+msgid "SMILES"
+msgstr ""
+
+#: stoic_eln/templates/substances/detail.html:66
+msgid "InChI"
+msgstr ""
+
+#: stoic_eln/templates/substances/detail.html:69
+msgid "InChIKey"
+msgstr ""
+
+#: stoic_eln/templates/substances/detail.html:89
+#: stoic_eln/templates/substances/form.html:74
+#: stoic_eln/templates/substances/sds.html:41
+msgid "Proprietà fisiche"
+msgstr ""
+
+#: stoic_eln/templates/substances/detail.html:101
+#: stoic_eln/templates/substances/import_preview.html:81
+#: stoic_eln/templates/substances/sds.html:44
+msgid "Densità"
+msgstr ""
+
+#: stoic_eln/templates/substances/detail.html:107
+#: stoic_eln/templates/substances/import_preview.html:73
+msgid "MP"
+msgstr "MP"
+
+#: stoic_eln/templates/substances/detail.html:113
+#: stoic_eln/templates/substances/import_preview.html:77
+msgid "BP"
+msgstr "BP"
+
+#: stoic_eln/templates/substances/detail.html:126
+#: stoic_eln/templates/substances/form.html:102
+msgid "Sicurezza (GHS)"
+msgstr "Safety (GHS)"
+
+#: stoic_eln/templates/substances/detail.html:139
+#: stoic_eln/templates/substances/import_preview.html:104
+msgid "Frasi H"
+msgstr "H phrases"
+
+#: stoic_eln/templates/substances/detail.html:152
+#: stoic_eln/templates/substances/import_preview.html:114
+msgid "Frasi P"
+msgstr "P phrases"
+
+#: stoic_eln/templates/substances/detail.html:175
+msgid "Aggiungi lotto"
+msgstr "Add lot"
+
+#: stoic_eln/templates/substances/detail.html:189
+msgid "Costo/unità"
+msgstr ""
+
+#: stoic_eln/templates/substances/detail.html:224
+msgid "Nessun lotto in magazzino."
+msgstr "No lots in warehouse."
+
+#: stoic_eln/templates/substances/detail.html:226
+msgid "Aggiungi il primo lotto"
+msgstr "Add the first lot"
+
+#: stoic_eln/templates/substances/detail.html:237
+#: stoic_eln/templates/substances/sds.html:88
+msgid "Note"
+msgstr "Notes"
+
+#: stoic_eln/templates/substances/detail.html:249
+msgid "Disattivare questa sostanza?"
+msgstr "Deactivate this substance?"
+
+#: stoic_eln/templates/substances/detail.html:252
+msgid "Disattiva sostanza"
+msgstr "Deactivate substance"
+
+#: stoic_eln/templates/substances/form.html:2
+msgid "Modifica sostanza"
+msgstr "Edit substance"
+
+#: stoic_eln/templates/substances/form.html:2
+#: stoic_eln/templates/substances/form.html:18
+#: stoic_eln/templates/substances/form.html:27
+#: stoic_eln/templates/substances/list.html:15
+msgid "Nuova sostanza"
+msgstr "New substance"
+
+#: stoic_eln/templates/substances/form.html:68
+msgid "Usato per detect duplicati. 27 caratteri tipo ABCDEFGHIJKLMN-OPQRSTUVWX-Y."
+msgstr "Used to detect duplicates. 27 chars like ABCDEFGHIJKLMN-OPQRSTUVWX-Y."
+
+#: stoic_eln/templates/substances/form.html:105
+msgid "Pittogrammi GHS"
+msgstr "GHS pictograms"
+
+#: stoic_eln/templates/substances/form.html:128
+#: stoic_eln/templates/substances/form.html:133
+msgid "Codici separati da virgola."
+msgstr "Comma-separated codes."
+
+#: stoic_eln/templates/substances/import_preview.html:2
+msgid "Anteprima import"
+msgstr "Import preview"
+
+#: stoic_eln/templates/substances/import_preview.html:13
+msgid "Importa"
+msgstr "Import"
+
+#: stoic_eln/templates/substances/import_preview.html:15
+msgid "Anteprima"
+msgstr "Preview"
+
+#: stoic_eln/templates/substances/import_preview.html:22
+msgid "Risultato PubChem"
+msgstr "PubChem result"
+
+#: stoic_eln/templates/substances/import_preview.html:28
+msgid "Questa sostanza esiste già nel catalogo:"
+msgstr ""
+
+#: stoic_eln/templates/substances/import_preview.html:50
+msgid "IUPAC"
+msgstr ""
+
+#: stoic_eln/templates/substances/import_preview.html:69
+msgid "Proprietà"
+msgstr ""
+
+#: stoic_eln/templates/substances/import_preview.html:90
+msgid "Sicurezza"
+msgstr "Safety"
+
+#: stoic_eln/templates/substances/import_preview.html:99
+msgid "Nessun pittogramma GHS trovato in PubChem."
+msgstr "No GHS pictograms found in PubChem."
+
+#: stoic_eln/templates/substances/import_preview.html:131
+msgid ""
+"Dati incompleti? Dopo l'import puoi modificare la sostanza per aggiungere"
+" campi mancanti."
+msgstr ""
+
+#: stoic_eln/templates/substances/import_preview.html:136
+msgid "Cerca un altro composto"
+msgstr "Search another compound"
+
+#: stoic_eln/templates/substances/import_search.html:2
+#: stoic_eln/templates/substances/import_search.html:12
+#: stoic_eln/templates/substances/import_search.html:18
+#: stoic_eln/templates/substances/list.html:12
+msgid "Importa da PubChem"
+msgstr "Import from PubChem"
+
+#: stoic_eln/templates/substances/import_search.html:20
+msgid "Cerca per nome, numero CAS, SMILES, InChI, InChIKey, o CID PubChem."
+msgstr "Search by name, CAS number, SMILES, InChI, InChIKey, or PubChem CID."
+
+#: stoic_eln/templates/substances/import_search.html:52
+msgid "Esempi di ricerca"
+msgstr "Search examples"
+
+#: stoic_eln/templates/substances/list.html:8
+#, python-format
+msgid "%(n)d sostanze nel catalogo"
+msgstr "%(n)d substances in catalogue"
+
+#: stoic_eln/templates/substances/list.html:28
+msgid "Cerca per nome, IUPAC, CAS, formula, lotto…"
+msgstr ""
+
+#: stoic_eln/templates/substances/list.html:48
+msgid "Mostra disattivate"
+msgstr "Show inactive"
+
+#: stoic_eln/templates/substances/sds.html:8
+msgid "Torna alla scheda"
+msgstr "Back to detail"
+
+#: stoic_eln/templates/substances/sds.html:11
+msgid "Stampa"
+msgstr "Print"
+
+#: stoic_eln/templates/substances/sds.html:17
+msgid "Scheda di Sicurezza"
+msgstr "Safety Data Sheet"
+
+#: stoic_eln/templates/substances/sds.html:20
+msgid "Generato dal laboratorio"
+msgstr "Generated by the lab"
+
+#: stoic_eln/templates/substances/sds.html:20
+msgid "Data"
+msgstr "Date"
+
+#: stoic_eln/templates/substances/sds.html:28
+msgid "Nome IUPAC"
+msgstr "IUPAC name"
+
+#: stoic_eln/templates/substances/sds.html:31
+msgid "Peso molecolare"
+msgstr "Molecular weight"
+
+#: stoic_eln/templates/substances/sds.html:43
+msgid "Stato fisico"
+msgstr "Physical state"
+
+#: stoic_eln/templates/substances/sds.html:47
+msgid "Punto di fusione"
+msgstr "Melting point"
+
+#: stoic_eln/templates/substances/sds.html:50
+msgid "Punto di ebollizione"
+msgstr "Boiling point"
+
+#: stoic_eln/templates/substances/sds.html:57
+msgid "Pericoli e classificazione GHS"
+msgstr "Hazards and GHS classification"
+
+#: stoic_eln/templates/substances/sds.html:67
+msgid "Indicazioni di pericolo (Frasi H)"
+msgstr "Hazard statements (H phrases)"
+
+#: stoic_eln/templates/substances/sds.html:71
+#: stoic_eln/templates/substances/sds.html:80
+msgid "(testo non disponibile)"
+msgstr "(text not available)"
+
+#: stoic_eln/templates/substances/sds.html:76
+msgid "Consigli di prudenza (Frasi P)"
+msgstr "Precautionary statements (P phrases)"
+
+#: stoic_eln/templates/substances/sds.html:95
+msgid ""
+"Documento generato automaticamente. Verificare sempre la SDS ufficiale "
+"del fornitore prima dell'uso."
+msgstr ""
+
+# ─── Navigation
+# ──────────────────────────────────────────────────────────────
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# ─── Auth
+# ─────────────────────────────────────────────────────────────────────
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# ─── Header / topbar
+# ─────────────────────────────────────────────────────────
+
+
+
+
+# ─── Dashboard
+# ────────────────────────────────────────────────────────────────
+
+
+
+
+
+
+
+# ─── Errors
+# ───────────────────────────────────────────────────────────────────
+
+
+
+
+
+

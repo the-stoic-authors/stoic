@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Report") }} — Stoic{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h1 class="mb-4">{{ _("Report") }}</h1>
+
+  <div class="row g-3">
+    <div class="col-md-6">
+      <a href="{{ url_for('reports.spending') }}"
+         class="card text-decoration-none h-100">
+        <div class="card-body">
+          <h5 class="card-title">
+            <i data-lucide="receipt"></i> {{ _("Spese") }}
+          </h5>
+          <p class="card-text small text-muted mb-0">
+            {{ _("Visualizza la spesa totale per acquisti di reagenti, raggruppata per settimana, mese, trimestre o anno.") }}
+          </p>
+        </div>
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

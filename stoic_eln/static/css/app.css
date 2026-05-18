@@ -1,0 +1,943 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   Stoic ELN — Application stylesheet
+   Light/dark theme via Bootstrap data-bs-theme + custom CSS variables
+   ───────────────────────────────────────────────────────────────────────── */
+
+:root,
+[data-bs-theme="light"] {
+  /* Brand colors */
+  --stoic-primary: #1F3864;
+  --stoic-primary-hover: #2a4a82;
+  --stoic-accent: #2ABFBF;
+  --stoic-accent-hover: #34d4d4;
+
+  /* Logo colors (from SVG asset) */
+  --stoic-logo-fg: #0f1131;
+  --stoic-logo-accent: #0a9ca7;
+
+  /* Surfaces */
+  --stoic-header-bg: #1F3864;
+  --stoic-header-fg: #ffffff;
+  --stoic-sidebar-bg: #f8f9fa;
+  --stoic-sidebar-fg: #2c3e50;
+  --stoic-sidebar-section: #6c757d;
+  --stoic-sidebar-active-bg: #e8f0fe;
+  --stoic-sidebar-active-fg: #1F3864;
+
+  /* Content */
+  --stoic-content-bg: #ffffff;
+  --stoic-card-bg: #ffffff;
+  --stoic-card-border: #dee2e6;
+
+  /* Auth */
+  --stoic-auth-bg: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%);
+  --stoic-auth-card-bg: #ffffff;
+
+  /* Bootstrap primary override */
+  --bs-primary: var(--stoic-primary);
+  --bs-primary-rgb: 31, 56, 100;
+}
+
+[data-bs-theme="dark"] {
+  --stoic-primary: #4a6fa5;
+  --stoic-primary-hover: #5b85c1;
+  --stoic-accent: #2ABFBF;
+  --stoic-accent-hover: #4ce3e3;
+
+  /* Logo: navy parts become white in dark, teal stays teal */
+  --stoic-logo-fg: #f0f3f7;
+  --stoic-logo-accent: #2ABFBF;
+
+  --stoic-header-bg: #0f1f3d;
+  --stoic-header-fg: #f0f3f7;
+  --stoic-sidebar-bg: #1a1d23;
+  --stoic-sidebar-fg: #c8cdd4;
+  --stoic-sidebar-section: #6c757d;
+  --stoic-sidebar-active-bg: #2c3e50;
+  --stoic-sidebar-active-fg: #4a90e2;
+
+  --stoic-content-bg: #14161b;
+  --stoic-card-bg: #1e2128;
+  --stoic-card-border: #2c3038;
+
+  --stoic-auth-bg: linear-gradient(135deg, #14161b 0%, #1a1d23 100%);
+  --stoic-auth-card-bg: #1e2128;
+
+  --bs-primary: var(--stoic-primary);
+  --bs-primary-rgb: 74, 111, 165;
+}
+
+/* ─── Body & layout ────────────────────────────────────────────────────────── */
+body {
+  background-color: var(--stoic-content-bg);
+  color: var(--bs-body-color);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ─── Sidebar ─────────────────────────────────────────────────────────────── */
+.app-sidebar {
+  width: 240px;
+  background-color: var(--stoic-sidebar-bg);
+  color: var(--stoic-sidebar-fg);
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--stoic-card-border);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.app-brand {
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  border-bottom: 1px solid var(--stoic-card-border);
+  /* Drive currentColor in inline SVG mark */
+  color: var(--stoic-logo-fg);
+}
+
+/* Toggle button to collapse/expand the sidebar. Sits at the right
+   end of the brand row and stays visible (as just the open-icon)
+   when the sidebar is collapsed. */
+.sidebar-toggle {
+  margin-left: auto;
+  background: transparent;
+  border: none;
+  color: var(--stoic-sidebar-fg);
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  line-height: 0;       /* tighten around the icon */
+  transition: background 0.15s, color 0.15s;
+}
+.sidebar-toggle:hover {
+  background: rgba(0,0,0,0.06);
+  color: var(--stoic-primary);
+}
+[data-bs-theme="dark"] .sidebar-toggle:hover {
+  background: rgba(255,255,255,0.08);
+}
+.sidebar-toggle i {
+  width: 18px;
+  height: 18px;
+}
+/* Show only the "close" icon when expanded, "open" icon when
+   collapsed. The default state (expanded) hides .icon-collapsed. */
+.sidebar-toggle .icon-collapsed { display: none; }
+.sidebar-collapsed .sidebar-toggle .icon-expanded { display: none; }
+.sidebar-collapsed .sidebar-toggle .icon-collapsed { display: inline-block; }
+
+/* Square mark (the geometric symbol) — used in sidebar/auth topbar */
+.brand-mark-img {
+  width: 32px;
+  height: 32px;
+  display: block;
+  flex-shrink: 0;
+}
+
+/* Login card lockup — full horizontal logo */
+.login-lockup {
+  display: block;
+  width: 100%;
+  max-width: 360px;
+  height: auto;
+  margin: 0 auto 0.5rem;
+  /* Drive currentColor in inline SVG */
+  color: var(--stoic-logo-fg);
+}
+
+.brand-text {
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+.brand-accent {
+  color: var(--stoic-accent);
+}
+
+.app-nav {
+  padding: 0.75rem 0;
+  flex: 1;
+}
+
+.nav-section-label {
+  padding: 0.75rem 1.5rem 0.25rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--stoic-sidebar-section);
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 1.5rem;
+  color: var(--stoic-sidebar-fg);
+  text-decoration: none;
+  border-left: 3px solid transparent;
+  transition: background 0.15s, border-color 0.15s;
+}
+.nav-item:hover:not(.disabled) {
+  background-color: rgba(0,0,0,0.04);
+  color: var(--stoic-primary);
+}
+[data-bs-theme="dark"] .nav-item:hover:not(.disabled) {
+  background-color: rgba(255,255,255,0.04);
+}
+.nav-item.active {
+  background-color: var(--stoic-sidebar-active-bg);
+  color: var(--stoic-sidebar-active-fg);
+  border-left-color: var(--stoic-accent);
+  font-weight: 600;
+}
+.nav-item.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+/* Sidebar nav-item icons: target both <i> (pre-render) and <svg>
+   (post-lucide createIcons() swap). Both shapes need fixed
+   dimensions and flex-shrink:0 so the text label below always
+   starts at the same X coordinate regardless of icon kind. Also
+   covers the filled (fill=currentColor) custom icons in
+   lucide_custom_icons.js, which would otherwise inherit their
+   intrinsic 24×24 from the SVG root attributes. */
+.nav-item i,
+.nav-item svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.app-sidebar-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--stoic-card-border);
+  font-size: 0.75rem;
+}
+
+/* ─── Collapsed sidebar ──────────────────────────────────────────
+   Triggered by ``.sidebar-collapsed`` on <body> (set + persisted
+   by the JS in base.html). Shrinks the sidebar to icon-only width
+   (~64 px) and hides every label and section header. Tooltips use
+   the title attribute of <a class="nav-item"> if present — for now
+   the icons themselves carry the meaning. */
+.sidebar-collapsed .app-sidebar {
+  width: 64px;
+}
+.sidebar-collapsed .brand-text,
+.sidebar-collapsed .nav-item span,
+.sidebar-collapsed .nav-section-label,
+.sidebar-collapsed .app-sidebar-footer {
+  display: none;
+}
+/* Center icons & toggle button when collapsed. In collapsed mode
+   we HIDE the logo mark and use the toggle button as the single
+   focal point at the top of the sidebar: clicking it re-expands.
+   This avoids the visual collision of "toggle absolutely positioned
+   over the logo" that we had before. */
+.sidebar-collapsed .app-brand {
+  padding: 0.75rem 0;
+  justify-content: center;
+  gap: 0;
+  position: relative;
+}
+.sidebar-collapsed .brand-mark-img {
+  display: none;
+}
+.sidebar-collapsed .sidebar-toggle {
+  margin: 0 auto;
+  position: static;
+  padding: 0.5rem;
+}
+.sidebar-collapsed .sidebar-toggle i {
+  width: 22px;
+  height: 22px;
+}
+.sidebar-collapsed .nav-item {
+  justify-content: center;
+  padding: 0.625rem 0;
+  border-left: 3px solid transparent;
+}
+.sidebar-collapsed .nav-item.active {
+  border-left-color: var(--stoic-accent);
+}
+
+/* ─── Main column ─────────────────────────────────────────────────────────── */
+.app-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.app-header {
+  height: 56px;
+  background-color: var(--stoic-header-bg);
+  color: var(--stoic-header-fg);
+  display: flex;
+  align-items: center;
+  padding: 0 1.5rem;
+  gap: 1rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.app-header-title {
+  font-weight: 600;
+  flex: 1;
+}
+
+.app-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.app-header-actions .btn-link {
+  color: var(--stoic-header-fg);
+  text-decoration: none;
+}
+.app-header-actions .btn-link:hover {
+  color: var(--stoic-accent);
+}
+.app-header-actions i {
+  width: 18px;
+  height: 18px;
+}
+
+.flash-area {
+  padding: 1rem 1.5rem 0;
+}
+.flash-area:empty {
+  display: none;
+}
+
+.app-content {
+  flex: 1;
+  padding: 1.5rem;
+}
+
+/* ─── Cards ───────────────────────────────────────────────────────────────── */
+.card {
+  background-color: var(--stoic-card-bg);
+  border-color: var(--stoic-card-border);
+}
+
+/* ─── KPI cards on dashboard ──────────────────────────────────────────────── */
+.kpi-card {
+  background-color: var(--stoic-card-bg);
+  border: 1px solid var(--stoic-card-border);
+  border-radius: 8px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  height: 100%;                   /* fill row height — sibling cards
+                                     align even when one has a sub-label
+                                     (e.g. "€ 340 totali") */
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.kpi-card .kpi-label {            /* push label to bottom so values line up */
+  margin-top: auto;
+}
+.kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+.kpi-icon {
+  color: var(--stoic-accent);
+}
+.kpi-icon i {
+  width: 28px;
+  height: 28px;
+}
+.kpi-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--stoic-primary);
+  line-height: 1;
+}
+.kpi-label {
+  color: var(--bs-secondary-color);
+  font-size: 0.875rem;
+}
+
+/* ─── Auth (login) layout ─────────────────────────────────────────────────── */
+.auth-shell {
+  min-height: 100vh;
+  background: var(--stoic-auth-bg);
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+}
+
+.auth-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: var(--stoic-logo-fg);
+}
+
+.auth-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.auth-topbar-actions .btn-link {
+  color: var(--bs-body-color);
+  padding: 0.4rem 0.6rem;
+  text-decoration: none;
+  border-radius: 4px;
+}
+.auth-topbar-actions .btn-link:hover {
+  background: rgba(0,0,0,0.05);
+}
+.auth-topbar-actions .btn-link.active {
+  font-weight: 700;
+  color: var(--stoic-primary);
+}
+.auth-topbar-actions i {
+  width: 18px;
+  height: 18px;
+}
+.auth-divider {
+  width: 1px;
+  height: 24px;
+  background: var(--stoic-card-border);
+  margin: 0 0.5rem;
+}
+
+.auth-flash {
+  padding: 0 2rem;
+}
+
+.auth-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem 2rem 4rem;
+}
+
+.login-card {
+  background-color: var(--stoic-auth-card-bg);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+  padding: 2.5rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.login-card-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.login-tagline {
+  color: var(--bs-secondary-color);
+  font-style: italic;
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+/* ─── Page header ─────────────────────────────────────────────────────────── */
+.page-header h1 {
+  color: var(--stoic-primary);
+  font-weight: 700;
+}
+
+/* ─── Buttons ─────────────────────────────────────────────────────────────── */
+.btn-primary {
+  --bs-btn-bg: var(--stoic-primary);
+  --bs-btn-border-color: var(--stoic-primary);
+  --bs-btn-hover-bg: var(--stoic-primary-hover);
+  --bs-btn-hover-border-color: var(--stoic-primary-hover);
+  --bs-btn-active-bg: var(--stoic-primary-hover);
+  --bs-btn-active-border-color: var(--stoic-primary-hover);
+}
+
+/* ─── Mobile responsive ───────────────────────────────────────────────────── */
+@media (max-width: 767.98px) {
+  .app-sidebar {
+    position: fixed;
+    z-index: 200;
+    transform: translateX(-100%);
+    transition: transform 0.2s ease-out;
+  }
+  .app-sidebar.open {
+    transform: translateX(0);
+    box-shadow: 4px 0 16px rgba(0,0,0,0.2);
+  }
+  .app-content {
+    padding: 1rem;
+  }
+}
+
+/* ─── Lucide icons inline-block correction ───────────────────────────────── */
+[data-lucide] {
+  display: inline-block;
+  vertical-align: middle;
+  width: 16px;
+  height: 16px;
+}
+.dropdown-item i {
+  margin-right: 0.5rem;
+}
+
+/* ─── GHS pictograms ─────────────────────────────────────────────────────── */
+.ghs-icon {
+  width: 56px;
+  height: 56px;
+  display: inline-block;
+  vertical-align: middle;
+}
+.ghs-icon-sm {
+  width: 28px;
+  height: 28px;
+  display: inline-block;
+  vertical-align: middle;
+}
+.ghs-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  align-items: center;
+}
+.ghs-pictogram {
+  /* On dark theme the white center stays white intentionally — that's the GHS spec */
+}
+
+/* GHS picker grid in the substance form */
+.ghs-picker {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background-color: var(--bs-tertiary-bg);
+  border: 1px solid var(--bs-border-color);
+  border-radius: 6px;
+}
+.ghs-check {
+  padding: 0.5rem;
+  background: var(--bs-body-bg);
+  border-radius: 4px;
+}
+.ghs-check:hover {
+  background: var(--bs-tertiary-bg);
+}
+
+/* ─── SDS printable page ─────────────────────────────────────────────────── */
+.sds-document {
+  background: white;
+  color: black;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.sds-header {
+  border-bottom: 2px solid black;
+  padding-bottom: 1rem;
+  margin-bottom: 1.5rem;
+}
+.sds-header h1 {
+  font-size: 1.5rem;
+  margin-bottom: 0.25rem;
+}
+.sds-subtitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.25rem;
+}
+.sds-meta {
+  font-size: 0.85rem;
+  color: #666;
+  margin: 0;
+}
+
+.sds-document section {
+  margin-bottom: 1.5rem;
+}
+.sds-document h2 {
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+  background: #f0f0f0;
+  padding: 0.4rem 0.6rem;
+  border-radius: 3px;
+}
+.sds-document h3 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-top: 0.75rem;
+  margin-bottom: 0.4rem;
+}
+
+.sds-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.sds-table th, .sds-table td {
+  border: 1px solid #ccc;
+  padding: 0.4rem 0.6rem;
+  text-align: left;
+  vertical-align: top;
+}
+.sds-table th {
+  background: #f8f8f8;
+  font-weight: 600;
+  width: 35%;
+}
+
+.sds-pictograms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.sds-pictogram {
+  width: 64px;
+  height: 64px;
+}
+
+.sds-footer {
+  border-top: 1px solid #ccc;
+  margin-top: 2rem;
+  padding-top: 1rem;
+}
+
+@media print {
+  /* Hide app shell elements */
+  .app-sidebar,
+  .app-header,
+  .auth-topbar,
+  .sds-no-print,
+  .alert,
+  nav.breadcrumb,
+  .breadcrumb {
+    display: none !important;
+  }
+  body, .app-shell, .app-main, .sds-page {
+    display: block;
+    background: white;
+    margin: 0;
+    padding: 0;
+  }
+  .sds-document {
+    border: none;
+    margin: 0;
+    padding: 0;
+    max-width: none;
+  }
+  /* A4 page margins */
+  @page {
+    size: A4;
+    margin: 1.5cm;
+  }
+}
+
+/* ─── Reaction components table ──────────────────────────────────────────── */
+.reaction-components th {
+  white-space: nowrap;
+  font-size: 0.85rem;
+}
+.reaction-components .stoich-input {
+  min-width: 5.5rem;
+  max-width: 7rem;
+  font-variant-numeric: tabular-nums;
+}
+.reaction-components .stoich-row[data-limiting="true"] {
+  background-color: var(--bs-warning-bg-subtle, rgba(255, 193, 7, 0.05));
+}
+
+/* ─── Reaction scheme (SVG, Settimana 6 patch 8.3) ────────────────────
+ * SmilesDrawer renders the reaction at its natural width (depends on
+ * how many components there are), and we let CSS scale it down if it
+ * doesn't fit the container. This way:
+ *   - simple reactions (~600 px wide) render fine in the card
+ *   - complex reactions (1500+ px) scale down proportionally without
+ *     getting squished
+ * No fixed aspect-ratio: we trust the SVG's intrinsic dimensions. */
+
+.reaction-scheme-wrapper {
+  /* Horizontal scroll if the reaction is too wide AND we don't want
+     to scale it down. We DO want to scale it down for legibility, so
+     overflow is hidden by default; if the user wants to see at full
+     resolution, they can open the SMILES details. */
+  overflow-x: auto;
+}
+.reaction-scheme {
+  display: block;
+  /* SmilesDrawer sets style.width/height to natural pixel values inline.
+     We force max-width:100% via !important so wide reactions (1500+ px)
+     scale down to the card width while keeping their natural aspect
+     ratio (viewBox is preserved). */
+  max-width: 100% !important;
+  width: auto !important;
+  height: auto !important;
+  margin: 0 auto;
+  background: var(--bs-body-bg);
+  border-radius: 6px;
+}
+
+/* SmilesDrawer canvases (legacy usage in substance detail card) */
+canvas[data-smiles] {
+  display: block;
+  background: var(--bs-body-bg);
+  margin: 0 auto;
+}
+
+/* ─── Step cards (workup / extraction / purification / etc.) ──────────── */
+.step-card {
+  border-left: 4px solid var(--bs-border-color);
+}
+.step-card.step-workup       { border-left-color: var(--bs-primary); }
+.step-card.step-extraction   { border-left-color: var(--bs-info); }
+.step-card.step-purification { border-left-color: var(--bs-success); }
+.step-card.step-analysis     { border-left-color: var(--bs-warning); }
+.step-card.step-other        { border-left-color: var(--bs-secondary); }
+
+.step-card .card-header {
+  background-color: transparent;
+}
+
+.step-card .step-title-edit {
+  outline: none;
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+.step-card .step-title-edit:focus {
+  background-color: var(--bs-tertiary-bg);
+}
+
+.step-components th,
+.step-components td {
+  font-size: 0.85rem;
+}
+
+/* ─── Check lists ──────────────────────────────────────────────────────── */
+.checklist .checklist-item {
+  padding: 4px 6px;
+  border-radius: 3px;
+  transition: background-color 0.15s;
+}
+.checklist .checklist-item:hover {
+  background-color: var(--bs-tertiary-bg);
+}
+.checklist .checklist-text {
+  flex-grow: 1;
+}
+.checklist .checklist-text.done {
+  text-decoration: line-through;
+  color: var(--bs-secondary-color);
+}
+.checklist .checklist-actions {
+  white-space: nowrap;
+  opacity: 0.45;
+  transition: opacity 0.15s ease;
+}
+.checklist .checklist-item:hover .checklist-actions,
+.checklist .checklist-item:focus-within .checklist-actions {
+  opacity: 1;
+}
+
+/* Schema placeholder boxes for substances without SMILES */
+.border-dashed {
+  border-style: dashed !important;
+  border-color: var(--bs-border-color) !important;
+}
+
+/* Reaction list — mini scheme preview (Settimana 6 patch 8.3, SVG) */
+.reaction-scheme-mini-wrapper {
+  /* Cap the width so the reaction doesn't overflow the column */
+  max-width: 360px;
+}
+.reaction-scheme-mini {
+  display: block;
+  max-width: 100% !important;
+  width: auto !important;
+  height: auto !important;
+  max-height: 90px;
+}
+.reaction-list-scheme {
+  padding: 0.25rem 0.5rem !important;
+  vertical-align: middle;
+}
+.reaction-row:hover {
+  background-color: var(--bs-secondary-bg-subtle, rgba(0,0,0,.04));
+}
+
+/* Substance list — small structure preview per row.
+   Single molecules are typically narrower than reaction schemes,
+   so we cap at a smaller width. Aspect-ratio is preserved by
+   SmilesDrawer which sets the SVG's viewBox to the natural content
+   bounds; we only constrain the maximum size. */
+.substance-struct-mini-wrapper {
+  max-width: 180px;
+}
+.substance-struct-mini {
+  display: block;
+  max-width: 100% !important;
+  width: auto !important;
+  height: auto !important;
+  max-height: 70px;
+}
+.substance-list-struct {
+  padding: 0.25rem 0.5rem !important;
+  vertical-align: middle;
+  width: 200px;
+}
+
+/* Visual feedback when a Run actual/lot input auto-saves via HTMX */
+.run-actual-form input[type="number"].htmx-just-saved,
+.run-actual-form select.htmx-just-saved {
+  border-color: var(--bs-success, #198754);
+  transition: border-color 0.4s ease;
+}
+
+/* Generic auto-save feedback (used in reaction draft, run actual, ...) */
+.auto-save-field.htmx-just-saved,
+input.htmx-just-saved,
+textarea.htmx-just-saved,
+select.htmx-just-saved {
+  border-color: var(--bs-success, #198754);
+  transition: border-color 0.4s ease;
+}
+
+
+/* ─── Placeholder colors (Settimana 6 patch 7) ─────────────────────
+ * Make placeholders visually distinct from typed text by using a
+ * paler color: lighter grey in light mode, darker grey in dark mode.
+ * Bootstrap's default placeholder blends too much with real input. */
+
+[data-bs-theme="light"] .form-control::placeholder,
+[data-bs-theme="light"] .form-select::placeholder,
+[data-bs-theme="light"] textarea::placeholder {
+  color: #b8b8b3 !important;
+  opacity: 1;
+}
+
+[data-bs-theme="dark"] .form-control::placeholder,
+[data-bs-theme="dark"] .form-select::placeholder,
+[data-bs-theme="dark"] textarea::placeholder {
+  color: #555 !important;
+  opacity: 1;
+}
+
+
+/* ─── Notes / commenti (Settimana 6 patch 9) ───────────────────────── */
+.note-item {
+  border-color: var(--bs-border-color) !important;
+  background: var(--bs-tertiary-bg);
+  border-radius: 0 6px 6px 0;
+}
+.note-item .note-body p:last-child {
+  margin-bottom: 0;
+}
+.note-item .note-body p {
+  margin-bottom: 0.5rem;
+}
+.note-item .note-body code {
+  background: var(--bs-secondary-bg);
+  padding: 0.1em 0.3em;
+  border-radius: 3px;
+  font-size: 0.875em;
+}
+.note-item .note-body ul,
+.note-item .note-body ol {
+  margin-bottom: 0.5rem;
+  padding-left: 1.5rem;
+}
+.note-item .note-body a {
+  word-break: break-word;
+}
+
+/* ─── Sticky list-page UI (Settimana 6 patch 11) ───────────────────────────
+   Search bar sticks to the top of the viewport (just below the app-header),
+   and the table column headers stick just below the search bar so the user
+   can scroll the table body without losing either. Pages without a search
+   bar (e.g. /runs) get only the sticky thead, attached directly to the
+   app-header.
+   The search bar height is measured at runtime by sticky_table.js and
+   exposed via --stoic-search-h; pages that don't include the JS file get
+   the safe fallback of 0 (thead sticks to the header alone).
+   ────────────────────────────────────────────────────────────────────── */
+:root {
+  --stoic-header-h: 56px;
+  --stoic-search-h: 0px;
+}
+
+.stoic-sticky-search {
+  position: sticky;
+  top: var(--stoic-header-h);
+  z-index: 30;
+  /* Page background fills behind so scrolled content can't bleed through. */
+  background-color: var(--stoic-content-bg);
+  /* Compensate the negative margin so the card visually keeps its
+     "mb-3" gap when not yet stuck. */
+  margin-top: -0.25rem;
+  padding-top: 0.25rem;
+}
+
+/* Tables marked with this class get a sticky thead. Bootstrap's
+   .table-responsive wraps the table in `overflow: auto`, which would
+   create a new scrolling context and make sticky positioning relative
+   to that wrapper instead of the viewport. We override that, accepting
+   the loss of horizontal scroll on very narrow viewports — list tables
+   in Stoic aren't wide enough to need it on desktop. */
+.stoic-sticky-thead .table-responsive {
+  overflow: visible;
+}
+
+.stoic-sticky-thead thead th {
+  position: sticky;
+  top: calc(var(--stoic-header-h) + var(--stoic-search-h));
+  z-index: 20;
+  background-color: var(--stoic-card-bg);
+  /* Bootstrap's thead bottom border becomes invisible once the row is
+     sticky (the border lives on the cell, not the row, and gets clipped).
+     A box-shadow draws a clean line that always stays visible. */
+  box-shadow: inset 0 -1px 0 var(--stoic-card-border);
+}
+
+
+/* ── Molecule depiction (PubChem import preview) ───────────────
+   We render two SVGs server-side, one for each theme, then toggle
+   visibility via CSS keyed off Bootstrap's data-bs-theme on
+   <html>. This makes the depiction follow theme changes WITHOUT
+   a page reload — matching the rest of the UI's behaviour when
+   you click the theme switcher. */
+.molecule-depiction .molecule-light,
+.molecule-depiction .molecule-dark {
+  display: none;
+}
+[data-bs-theme="light"] .molecule-depiction .molecule-light {
+  display: block;
+}
+[data-bs-theme="dark"] .molecule-depiction .molecule-dark {
+  display: block;
+}
+/* Make sure the inline SVG scales nicely inside its container. */
+.molecule-depiction svg {
+  max-width: 100%;
+  height: auto;
+}
