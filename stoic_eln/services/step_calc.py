@@ -55,10 +55,19 @@ def compute_step_component(
     """Compute the absolute quantity of a step component.
 
     Args:
-        ratio_kind: One of 'eq', 'mL_per_g', 'mL_per_mmol', 'percent_vv'.
-        ratio_value: Numeric value (e.g. 3 for "3 eq", 10 for "10 mL/g").
-        ref_quantity: The reference component's absolute quantities at scale.
+        ratio_kind: One of:
+            - 'eq': stoichiometric equivalents relative to reference
+            - 'mL_per_g': mL per gram of reference (e.g. wash volume)
+            - 'mL_per_mmol': mL per mmol of reference (e.g. solvent volume)
+            - 'percent_vv': % v/v of reference volume (e.g. acid additives)
+            - 'absolute_mL': fixed volume, independent of reference
+            - 'absolute_g': fixed mass, independent of reference
+        ratio_value: Numeric value (e.g. 3 for "3 eq", 10 for "10 mL/g",
+            30 for "30 mL absolute").
+        ref_quantity: The reference component's absolute quantities at
+            scale. Ignored for 'absolute_mL' and 'absolute_g'.
         sub_mw, sub_density: Properties of the step component substance.
+            Used to convert between mass / volume / mmol where possible.
     """
     if ratio_value is None:
         return StepQuantity()
@@ -104,6 +113,26 @@ def compute_step_component(
             out.g = out.mL * sub_density
             if sub_mw and sub_mw > 0:
                 out.mmol = out.g * 1000.0 / sub_mw
+
+    elif ratio_kind == "absolute_mL":
+        # User-fixed volume — independent of the reference. Common
+        # for steps like "wash with 30 mL water" or "extract with
+        # 20 mL EtOAc" where the volume is recipe-determined rather
+        # than stoichiometric.
+        out.mL = ratio_value
+        if sub_density and sub_density > 0:
+            out.g = out.mL * sub_density
+            if sub_mw and sub_mw > 0:
+                out.mmol = out.g * 1000.0 / sub_mw
+
+    elif ratio_kind == "absolute_g":
+        # User-fixed mass — same idea as absolute_mL but for solids
+        # ("add 2.5 g Na2SO4 as drying agent").
+        out.g = ratio_value
+        if sub_density and sub_density > 0:
+            out.mL = out.g / sub_density
+        if sub_mw and sub_mw > 0:
+            out.mmol = out.g * 1000.0 / sub_mw
 
     return out
 

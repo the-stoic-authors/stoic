@@ -254,26 +254,55 @@ def test_reactions_search_by_substance_name(client, app):
 
 
 def test_reaction_create_post(client, app):
+    """Creating a reaction is a two-step workflow:
+       (1) POST /reactions/new → spawns a blank draft
+       (2) POST /reactions/<id>/save with the header fields →
+           validates, sets template_code, promotes to published.
+
+    The old single-form-submit pattern (everything in one POST) was
+    replaced when drafts were introduced — this test covers the new
+    flow end-to-end."""
     _login(client, app)
+
+    # Step 1: spawn draft
+    resp = client.post("/reactions/new", follow_redirects=False)
+    assert resp.status_code == 302
+    # Pull the new draft id out of the redirect URL
+    # (.../reactions/<id>)
+    new_id = int(resp.headers["Location"].rstrip("/").rsplit("/", 1)[-1])
+
+    with app.app_context():
+        draft = db.session.get(Reaction, new_id)
+        assert draft is not None
+        assert draft.status == "draft"
+        # The draft is born with placeholder title
+        assert draft.title == "Nuova reazione"
+
+    # Step 2: save with real values
     resp = client.post(
-        "/reactions/new",
+        f"/reactions/{new_id}/save",
         data={
             "title": "My new reaction",
             "description": "Test rationale",
             "temperature_c": "80",
             "duration_hours": "16",
             "atmosphere": "N2",
-            "submit": "Salva",
+            "template_code": "MNR",  # required to publish
         },
         follow_redirects=False,
     )
     assert resp.status_code == 302
     with app.app_context():
-        rxn = db.session.query(Reaction).filter_by(title="My new reaction").first()
+        rxn = db.session.get(Reaction, new_id)
         assert rxn is not None
+        assert rxn.title == "My new reaction"
         assert rxn.code.startswith("RX-")
         assert rxn.temperature_c == 80.0
         assert rxn.atmosphere == "N2"
+        assert rxn.status == "published"
+        # template_code gets normalised — a fresh "MNR" becomes
+        # "MNR.1" so future revisions can claim MNR.2, MNR.3, etc.
+        assert rxn.template_code.startswith("MNR")
 
 
 def test_reaction_detail(client, app):
@@ -289,6 +318,10 @@ def test_reaction_detail(client, app):
 
 
 def test_add_component(client, app):
+    """Adding a component to a reaction template registers the
+    substance + role + equivalents. Absolute quantities
+    (g/mL/mmol) are NOT stored at template level — they're
+    computed per-run from the scale and equivalents."""
     with app.app_context():
         rxn = Reaction(code="RX-2026-0001", title="Test")
         sub = Substance(name="EtOH", smiles="CCO", molecular_weight=46.07, density=0.789)
@@ -302,9 +335,9 @@ def test_add_component(client, app):
         f"/reactions/{rid}/components/new",
         data={
             "substance_id": str(sid),
+            "mixture_id": "",  # XOR with substance_id
             "role": "starting_material",
-            "amount_g": "1.0",
-            "submit": "Aggiungi",
+            "equivalents": "1.0",
         },
         follow_redirects=False,
     )
@@ -313,17 +346,24 @@ def test_add_component(client, app):
         components = db.session.query(ReactionComponent).filter_by(reaction_id=rid).all()
         assert len(components) == 1
         c = components[0]
+        assert c.substance_id == sid
         assert c.role == "starting_material"
-        assert c.amount_g == 1.0
-        # mmol auto-derived
-        assert c.amount_mmol == pytest.approx(1.0 * 1000 / 46.07, abs=0.1)
         # First SM with no others → auto-set as limiting with eq=1
         assert c.is_limiting is True
         assert c.equivalents == 1.0
+        # Template-level: absolute quantities are intentionally None
+        assert c.amount_g is None
+        assert c.amount_mmol is None
+        assert c.amount_mL is None
 
 
 def test_add_component_with_equivalents_uses_limiting_mmol(client, app):
-    """When a 2nd component is added with eq, mmol is derived from the limiting reagent."""
+    """A second component added with equivalents persists the ratio,
+    not absolute mmol. At template level we don't materialise mmol —
+    that's a run-level computation that depends on scale_mmol.
+
+    Test: SM added first (auto-limiting, eq=1), then catalyst at
+    eq=0.05. The catalyst is NOT limiting and its eq is preserved."""
     with app.app_context():
         rxn = Reaction(code="RX-2026-0001", title="Test")
         sm = Substance(name="EtOH", smiles="CCO", molecular_weight=46.07)
@@ -333,23 +373,36 @@ def test_add_component_with_equivalents_uses_limiting_mmol(client, app):
         rid, sm_id, cat_id = rxn.id, sm.id, cat.id
 
     _login(client, app)
-    # First add SM with mmol=2 → auto-limiting
+    # First add SM → auto-limiting at eq=1
     client.post(
         f"/reactions/{rid}/components/new",
-        data={"substance_id": str(sm_id), "role": "starting_material",
-              "amount_mmol": "2.0", "submit": "Aggiungi"},
+        data={"substance_id": str(sm_id), "mixture_id": "",
+              "role": "starting_material", "equivalents": "1.0"},
     )
-    # Then add catalyst with eq=0.05 → expected mmol = 0.05 * 2 = 0.1
+    # Then add catalyst with eq=0.05
     client.post(
         f"/reactions/{rid}/components/new",
-        data={"substance_id": str(cat_id), "role": "catalyst",
-              "equivalents": "0.05", "submit": "Aggiungi"},
+        data={"substance_id": str(cat_id), "mixture_id": "",
+              "role": "catalyst", "equivalents": "0.05"},
     )
     with app.app_context():
-        components = db.session.query(ReactionComponent).filter_by(reaction_id=rid).order_by(ReactionComponent.position).all()
-        cat_c = components[1]
-        assert cat_c.equivalents == 0.05
-        assert cat_c.amount_mmol == pytest.approx(0.1, abs=0.001)
+        components = (
+            db.session.query(ReactionComponent)
+            .filter_by(reaction_id=rid)
+            .order_by(ReactionComponent.position)
+            .all()
+        )
+        assert len(components) == 2
+        sm_c, cat_c = components
+        # SM is limiting at eq=1
+        assert sm_c.is_limiting is True
+        assert sm_c.equivalents == 1.0
+        # Catalyst is non-limiting at eq=0.05
+        assert cat_c.is_limiting is False
+        assert cat_c.equivalents == pytest.approx(0.05)
+        # Template-level: no absolute amounts
+        assert cat_c.amount_mmol is None
+        assert cat_c.amount_g is None
 
 
 def test_delete_component(client, app):
@@ -372,7 +425,11 @@ def test_delete_component(client, app):
 
 
 def test_edit_component_inline(client, app):
-    """The HTMX inline-edit endpoint updates a single field and recomputes the others."""
+    """The HTMX inline-edit endpoint accepts only template-level
+    fields: equivalents, concentration_M, is_limiting.
+
+    Absolute quantities (g/mL/mmol) live at the Run level — trying
+    to edit them via this endpoint must be rejected with 400."""
     with app.app_context():
         rxn = Reaction(code="RX-2026-0001", title="Test")
         sub = Substance(name="EtOH", molecular_weight=46.07, density=0.789)
@@ -381,29 +438,36 @@ def test_edit_component_inline(client, app):
         c = ReactionComponent(
             reaction_id=rxn.id,
             substance_id=sub.id,
-            role="starting_material",
+            role="reactant",  # not starting_material, so eq is editable
             position=0,
-            amount_g=1.0,
-            amount_mmol=21.7,
-            is_limiting=True,
+            equivalents=1.0,
+            is_limiting=False,
         )
         db.session.add(c)
         db.session.commit()
         cid = c.id
 
     _login(client, app)
-    # Update g to 2.0 → mmol should auto-recompute
+
+    # Valid: edit equivalents
     resp = client.post(
         f"/reactions/components/{cid}/edit",
-        data={"field": "amount_g", "value": "2.0"},
+        data={"field": "equivalents", "value": "1.5"},
         follow_redirects=False,
     )
     assert resp.status_code in (200, 302)
     with app.app_context():
         c = db.session.get(ReactionComponent, cid)
-        assert c.amount_g == 2.0
-        assert c.amount_mmol == pytest.approx(2.0 * 1000 / 46.07, abs=0.1)
-        assert c.amount_mL == pytest.approx(2.0 / 0.789, abs=0.01)
+        assert c.equivalents == pytest.approx(1.5)
+
+    # Invalid: try to edit amount_g → 400 (run-level field, not
+    # editable at template level)
+    resp = client.post(
+        f"/reactions/components/{cid}/edit",
+        data={"field": "amount_g", "value": "2.0"},
+        follow_redirects=False,
+    )
+    assert resp.status_code == 400
 
 
 def test_only_one_limiting_per_reaction(client, app):

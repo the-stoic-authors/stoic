@@ -1,177 +1,135 @@
-# Stoic — patch 15.2.1 (seed delle 30 sostanze comuni)
+# Stoic — patch 14.6.9 (fix 6 legacy test reactions → 0 fail)
 
-Aggiunge uno script di seeding per popolare il database con 30
-reagenti standard di un laboratorio di chimica organica: solventi,
-acidi/basi inorganici, agenti disidratanti, sali da banco.
+Chiude i 6 fail nella suite di test ereditati dalla 13.5 quando
+l'architettura dei components delle reazioni è stata refactorata.
+**Suite ora 486/486 verde, 0 fail noti.**
 
-## Le 30 sostanze
+## Bug funzionale chiuso (Parte A)
 
-**Solventi alogenati (2)**:
-diclorometano, cloroformio
+`stoic_eln/services/step_calc.py` — la funzione
+`compute_step_component` ora gestisce due `ratio_kind` che erano
+**offerti nell'UI ma non implementati nel backend**:
 
-**Solventi eterei (2)**:
-etere etilico, tetraidrofurano
+- **`absolute_mL`**: volume fisso, indipendente dal reference
+  (es. "lava con 30 mL di acqua", "estrai con 20 mL EtOAc").
+  Output: `mL = ratio_value`, deriva g da density, mmol da MW.
+- **`absolute_g`**: massa fissa, stessa logica per i solidi
+  (es. "aggiungi 2.5 g di Na₂SO₄ come disidratante").
+  Output: `g = ratio_value`, deriva mL da density, mmol da MW.
 
-**Solventi esteri / chetoni / aromatici / alifatici (5)**:
-acetato di etile, acetone, toluene, esano, etere di petrolio (40–60 °C)
+Prima di questa patch: l'utente sceglieva "mL fissi" o "g fissi"
+nella tendina del template step e il calcolo non avveniva
+(StepQuantity con tutti None). Era effettivamente un bug
+half-implemented dell'UI.
 
-**Solventi alcolici (3)**:
-metanolo, etanolo assoluto, isopropanolo
+Docstring di `compute_step_component` aggiornata per elencare
+tutti i 6 ratio_kind validi: `eq`, `mL_per_g`, `mL_per_mmol`,
+`percent_vv`, `absolute_mL`, `absolute_g`.
 
-**Solventi polari aprotici (3)**:
-DMSO, DMF, acetonitrile
+## Test riscritti (Parte B)
 
-**Acidi (4)**:
-HCl gas, acido solforico 98 %, acido nitrico 65 %, acido acetico
-glaciale
+I 4 test in `tests/test_reactions.py` testavano la **vecchia**
+architettura ("amount_g salvati nel template", "field='amount_g'
+nell'edit endpoint"). L'architettura attuale (subentrata nella
+13.x) è draft-then-save + template-level equivalents only:
 
-**Basi (3)**:
-NaOH, KOH, ammoniaca 25 %
+- I template hanno `equivalents` come parametro stoichiometrico,
+  e basta. `amount_g`, `amount_mL`, `amount_mmol` sono
+  intenzionalmente `None` nei template — sono calcolati a
+  livello di Run dalla scala × equivalents.
+- `POST /reactions/new` crea un draft vuoto. Non legge form data.
+- `POST /reactions/<id>/save` accetta i field header e promuove
+  draft → published, normalizzando il `template_code` (es. "MNR"
+  diventa "MNR.1" la prima versione).
+- `POST /reactions/components/<id>/edit` accetta SOLO i field
+  template-level: `equivalents`, `concentration_M`, `is_limiting`.
+  Altri field → 400 by design.
 
-**Sali / tamponi (3)**:
-Na₂CO₃, NaHCO₃, NaCl
+### Test riscritti
 
-**Agenti disidratanti (2)**:
-Na₂SO₄ anidro, MgSO₄ anidro
+**`test_reaction_create_post`** — copre il workflow due step:
+new → save, con verifica di `status='published'` finale e
+normalizzazione di `template_code`.
 
-**Altri (3)**:
-Na₂S₂O₃, silice gel 60, acqua deionizzata
+**`test_add_component`** — verifica che dopo aggiunta:
+- `substance_id`, `role`, `equivalents` siano salvati
+- `amount_g`, `amount_mmol`, `amount_mL` siano `None`
+  (template-level, non popolati a questo livello)
+- il primo SM diventi auto-limiting con `eq=1`
 
-Totale: **30**.
+**`test_add_component_with_equivalents_uses_limiting_mmol`** —
+verifica che un secondo component (catalyst) con `eq=0.05` salvi
+proprio `0.05` come equivalents (non un mmol derivato), non sia
+limiting, e non abbia amount assoluti.
 
-## Dati inclusi per ogni sostanza
+**`test_edit_component_inline`** — verifica che:
+- editare `equivalents` su un non-limiting funzioni
+- editare `amount_g` venga rifiutato con 400 (campo run-level)
 
-- Nome italiano + nome IUPAC inglese
-- CAS, formula molecolare, peso molecolare
-- SMILES + InChI + InChIKey (eccetto miscele tipo PE)
-- Densità a 20 °C (per liquidi)
-- Stato fisico (solid / liquid / gas)
-- `is_solvent = True` per i solventi (così appaiono nei picker)
-- Punto di fusione / ebollizione
-- GHS pittogrammi + frasi H + frasi P principali (curati su SDS
-  Sigma-Aldrich/TCI, union conservativa quando differiscono)
-- PubChem CID per import incrementale futuro
-- Note specifiche quando rilevanti (es. NH₃ è in soluzione 25 %,
-  silice è 60 mesh)
+## Suite
 
-## Comportamento
+**486 passed in 135s, 0 failed, 0 skipped.**
 
-**Idempotente.** Lookup per CAS number prima, fallback per nome.
-Una sostanza già presente è skippata (non sovrascritta, così le
-modifiche manuali sono preservate).
+Prima: 480 passed, 6 failed.
+Dopo: 486 passed, 0 failed.
 
-**Dry-run supportato.** `--dry-run` mostra cosa farebbe senza
-toccare il DB. Utile per preview prima del commit.
+I 6 fail erano:
+- `test_step_calc_absolute_mL` ✓ (fix backend)
+- `test_step_calc_absolute_g` ✓ (fix backend)
+- `test_reaction_create_post` ✓ (test riscritto)
+- `test_add_component` ✓ (test riscritto)
+- `test_add_component_with_equivalents_uses_limiting_mmol` ✓ (riscritto)
+- `test_edit_component_inline` ✓ (riscritto)
 
-**Conservativo sulle frasi H/P.** Includo solo le frasi principali
-(le H3xx in generale + alcune H2xx critiche per infiammabilità).
-Le SDS reali contengono 20+ frasi a sostanza; il seed dà un
-punto di partenza ragionevole che l'utente può estendere via
-import PubChem se vuole dati più ricchi.
+## File modificati
 
-## File aggiunti
+- `stoic_eln/services/step_calc.py` — +33 righe (2 ratio_kind +
+  docstring)
+- `tests/test_reactions.py` — 4 test riscritti
 
-- `scripts/seed_common_substances.py` (~470 righe)
-- `tests/test_seed_common_substances.py` (7 test)
-
-Nessuna modifica al codice esistente, nessuna migrazione DB.
-
-## Test
-
-7 nuovi test in `tests/test_seed_common_substances.py`:
-- Inserimento su DB vuoto
-- Idempotenza
-- Dry-run senza side effect
-- Sanity check (campi obbligatori presenti)
-- Validazione RDKit di tutti i SMILES seedati
-- Spot check acqua (nome, formula, smiles)
-- Spot check NaOH (GHS05 + H290 + H314)
-
-Suite totale: **487/493** verde (+7 nuovi, 6 legacy reactions
-noti restano).
+Nessuna modifica DB, nessuna nuova dipendenza.
 
 ## Applicazione
 
 ```bash
 cd ~/Projects/stoic-eln
-tar -xzvf ~/Downloads/stoic-eln-patch15.2.1.tar.gz -C ~/Projects/
+tar -xzvf ~/Downloads/stoic-eln-patch14.6.9.tar.gz -C ~/Projects/
+
+# Commit
+git add .
+git commit -m "patch 14.6.9: fix 6 legacy reaction tests (suite 486/486 verde)"
 ```
 
-Nessun reinstall necessario (è solo uno script standalone +
-test).
+Niente da reinstallare, niente da migrare.
 
-## Uso quando vorrai "ripulire" il DB
-
-Workflow completo per passare da DB di test → DB di produzione:
+## Verifica
 
 ```bash
-cd ~/Projects/stoic-eln
-
-# 1. Backup precauzionale dello stato attuale di test
-cp instance/stoic_eln.db instance/stoic_eln.db.test-backup-$(date +%Y%m%d)
-
-# 2. Stop il server se gira
-.venv/bin/stoic stop 2>/dev/null   # ok se "not running"
-# (oppure Ctrl+C nella finestra make run)
-
-# 3. Wipe completo
-rm instance/stoic_eln.db
-
-# 4. Reinit schema vuoto
-.venv/bin/python -m flask init-db
-
-# 5. Ricrea primo admin (interattivo)
-.venv/bin/python -m flask create-user --admin
-
-# 6. Seed delle 30 sostanze
-.venv/bin/python scripts/seed_common_substances.py
-
-# 7. Verifica
-.venv/bin/stoic status
-.venv/bin/stoic start --foreground
+.venv/bin/pytest tests/ -q
 ```
 
-Apri http://127.0.0.1:5001 — vai su Sostanze → ne dovresti
-trovare 30, con pittogrammi, formule, SMILES e proprietà
-fisiche già compilati.
+Atteso: `486 passed in ~2:15`. Zero fail.
 
-## Dry-run (anteprima prima di applicare)
+## Impatto utente
 
-```bash
-.venv/bin/python scripts/seed_common_substances.py --dry-run
-```
+Funzionalmente: nel workflow di creazione di un **template di
+step** (`/reactions/<id>` editing), selezionare "mL fissi" o
+"g fissi" come tipo di ratio ora **funziona davvero** — il
+valore inserito viene usato come quantità assoluta nelle Run
+successive, indipendentemente dalla scala del run. Prima di
+questa patch il valore era ignorato silenziosamente.
 
-Mostra cosa farebbe senza toccare il DB. Sicuro su DB di
-produzione: zero side effect.
+Caso d'uso tipico: nei work-up dove la quantità di reagente è
+"di procedura" (es. "wash con 30 mL di brine") e non
+stoichiometrica.
 
-## Cosa NON viene seedato
+## Prossimi step Settimana 7
 
-- **Utenti**: solo l'admin che hai creato manualmente. Gli altri
-  utenti li aggiungi tu in Settings → Utenti.
-- **Gruppi**: il default group "L" viene creato da `init-db`;
-  altri gruppi li crei in base alla struttura del tuo lab.
-- **Lotti di inventario**: niente. Le sostanze sono catalogate
-  ma "vuote" — aggiungi i lotti reali quando arrivano in
-  laboratorio (con costo, CAS del fornitore, data di acquisto,
-  ecc.).
-- **Reazioni / preparazioni / run**: nessuna. Tu inizi a
-  registrarli quando inizi a lavorare.
-- **Miscele**: nessuna. Le crei tu (es. HCl 12N, EtOAc/PE 5:3)
-  quando le prepari.
+Con 0 fail noti, lo state è pronto per il public release:
 
-Quindi dopo il seed hai un "catalogo sostanze" pronto, e tutto
-il resto è il tuo lavoro reale che si accumula nel tempo.
-
-## Customizzazione
-
-Se vuoi aggiungere altre sostanze al seed (es. reagenti
-specifici della tua chimica), modifica
-`scripts/seed_common_substances.py`, sezione
-`COMMON_SUBSTANCES`. Aggiungi una dict per ogni sostanza
-seguendo lo stesso pattern, poi rilancia lo script:
-quelle nuove vengono aggiunte, le esistenti rispettate.
-
-Per export di sostanze esistenti dal tuo DB in formato
-"seed-style" (per condividere il tuo catalogo), può essere
-una feature futura. Per ora lo script è solo
-"insert dei 30 standard".
+- **15.3** — `install-linux.sh` per Debian/Ubuntu/Pi
+- **15.4** — Push pubblico `the-stoic-authors/stoic` + release
+  v1.0.0
+- Backlog feature (non bloccanti):
+  - "Pianifica ordine" per miscele commerciali
+  - `prep_service` mixture-as-component scarico inventario
