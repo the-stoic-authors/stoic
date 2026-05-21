@@ -4044,22 +4044,50 @@ def _extract_pdf_text(pdf_bytes: bytes) -> str:
 
     # Fallback: decompress every FlateDecode stream in the PDF and
     # concatenate the result. ReportLab writes content streams with
-    # /Filter /FlateDecode for any non-trivial page, so without this
-    # the raw bytes won't contain the visible glyphs as ASCII.
+    # /Filter /FlateDecode (sometimes wrapped in /ASCII85Decode for
+    # ASCII-safety on older PDFs), so without this the raw bytes
+    # won't contain the visible glyphs as ASCII.
     decoded_chunks: list[str] = [pdf_bytes.decode("latin-1", errors="replace")]
     # PDF stream pattern: "stream\n...bytes...\nendstream"
     # We don't fully parse the PDF — we just extract every stream
-    # body, try zlib.decompress on it, and append the result if it
-    # decompresses cleanly. False matches (non-Flate streams) just
-    # fail to decompress and are skipped.
+    # body, try the common filter combinations, and append any
+    # output that looks like recognisable text.
     for m in re.finditer(rb"stream\r?\n(.*?)\r?\nendstream", pdf_bytes, re.DOTALL):
         raw = m.group(1)
-        try:
-            inflated = zlib.decompress(raw)
-        except zlib.error:
-            continue
-        decoded_chunks.append(inflated.decode("latin-1", errors="replace"))
+
+        # Try plain Flate first.
+        for decode_attempt in (
+            lambda data: zlib.decompress(data),
+            # ASCII85 + Flate (ReportLab default for compressed
+            # streams). The stream ends with the ASCII85 EOD marker
+            # "~>"; base64.a85decode handles it natively.
+            lambda data: zlib.decompress(_ascii85_strip_and_decode(data)),
+            # Raw ASCII85 with no further decompression.
+            lambda data: _ascii85_strip_and_decode(data),
+        ):
+            try:
+                inflated = decode_attempt(raw)
+            except Exception:  # noqa: BLE001 — any decode failure → skip
+                continue
+            decoded_chunks.append(inflated.decode("latin-1", errors="replace"))
+            break
     return "\n".join(decoded_chunks)
+
+
+def _ascii85_strip_and_decode(data: bytes) -> bytes:
+    """Decode an ASCII85 stream as ReportLab writes them.
+
+    PDF ASCII85 streams may be surrounded by leading whitespace
+    and end with the ``~>`` EOD marker. ``base64.a85decode`` accepts
+    them with ``adobe=True``, which expects an optional ``<~``
+    prefix and a ``~>`` suffix.
+    """
+    import base64
+    cleaned = data.strip()
+    # ReportLab omits the leading <~ but always emits the trailing ~>
+    if not cleaned.startswith(b"<~"):
+        cleaned = b"<~" + cleaned
+    return base64.a85decode(cleaned, adobe=True)
 
 
 def test_label_pdf_includes_exp_date_at_bottom(app):
