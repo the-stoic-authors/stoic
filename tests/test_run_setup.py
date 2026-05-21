@@ -4052,7 +4052,7 @@ def _extract_pdf_text(pdf_bytes: bytes) -> str:
     # We don't fully parse the PDF — we just extract every stream
     # body, try the common filter combinations, and append any
     # output that looks like recognisable text.
-    for m in re.finditer(rb"stream\r?\n(.*?)\r?\nendstream", pdf_bytes, re.DOTALL):
+    for m in re.finditer(rb"stream\r?\n(.*?)(?:\r?\n)?endstream", pdf_bytes, re.DOTALL):
         raw = m.group(1)
 
         # Try plain Flate first.
