@@ -62,3 +62,6 @@ Thumbs.db
 
 # Patch tarballs (used during development, not part of source)
 *.tar.gz
+
+# Patch tarballs (used during development, not part of source)
+*.tar.gz
