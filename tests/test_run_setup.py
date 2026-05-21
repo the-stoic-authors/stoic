@@ -4018,13 +4018,18 @@ def test_label_pdf_l7160_skips_2d_structure(app):
 def _extract_pdf_text(pdf_bytes: bytes) -> str:
     """Pull plain text out of a PDF for assertion purposes.
 
-    Uses pdftotext if available; otherwise falls back to scanning the
-    raw stream for parenthesised string literals (good enough for the
-    ASCII glyphs ReportLab embeds with simple Helvetica).
+    Uses pdftotext if available; otherwise tries to decompress
+    FlateDecode streams in the PDF with zlib (standard library) and
+    scans the decompressed text. As a last resort, falls back to
+    scanning the raw bytes.
     """
+    import re
     import subprocess
     import tempfile
+    import zlib
 
+    # Best path: pdftotext (poppler). Highest fidelity but requires
+    # the binary to be installed.
     try:
         with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as f:
             f.write(pdf_bytes)
@@ -4035,11 +4040,26 @@ def _extract_pdf_text(pdf_bytes: bytes) -> str:
         )
         return out.decode("utf-8", errors="replace")
     except (FileNotFoundError, subprocess.CalledProcessError):
-        # Coarse fallback: PDF text is wrapped in (...)Tj inside content
-        # streams. Decompress wouldn't be trivial without a library, so
-        # we settle for substring search on the (probably uncompressed
-        # for short PDFs) raw bytes.
-        return pdf_bytes.decode("latin-1", errors="replace")
+        pass
+
+    # Fallback: decompress every FlateDecode stream in the PDF and
+    # concatenate the result. ReportLab writes content streams with
+    # /Filter /FlateDecode for any non-trivial page, so without this
+    # the raw bytes won't contain the visible glyphs as ASCII.
+    decoded_chunks: list[str] = [pdf_bytes.decode("latin-1", errors="replace")]
+    # PDF stream pattern: "stream\n...bytes...\nendstream"
+    # We don't fully parse the PDF — we just extract every stream
+    # body, try zlib.decompress on it, and append the result if it
+    # decompresses cleanly. False matches (non-Flate streams) just
+    # fail to decompress and are skipped.
+    for m in re.finditer(rb"stream\r?\n(.*?)\r?\nendstream", pdf_bytes, re.DOTALL):
+        raw = m.group(1)
+        try:
+            inflated = zlib.decompress(raw)
+        except zlib.error:
+            continue
+        decoded_chunks.append(inflated.decode("latin-1", errors="replace"))
+    return "\n".join(decoded_chunks)
 
 
 def test_label_pdf_includes_exp_date_at_bottom(app):
