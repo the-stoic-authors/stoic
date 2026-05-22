@@ -7,165 +7,166 @@ and Stoic adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-Preparing v1.0.0. Planned: cross-platform installers (macOS,
-Linux, Raspberry Pi), CI on GitHub Actions, contributor onboarding,
-first stable release.
+Path to v1.0.0. Planned (non-exhaustive):
 
-## [0.9.0] — 2026-05
+- Live remediation of any v0.9.0 bug reports surfacing once the
+  public install base grows
+- "Plan order" workflow extended from Substance to Mixture
+  (commercial mixtures like HCl 12N from Sigma)
+- `prep_service` decrement of inventory for mixture-as-component
+  preparations (e.g. preparing HCl 6N consumes a lot of HCl 12N)
+- Additional connector ecosystem (Stoic ↔ eLabFTW import/export,
+  ChemDraw/ChemAxon paste-in)
 
-First public open-source release. Stoic moves from a private project
-to a public AGPLv3 repository.
+## [0.9.0] — 2026-05-22
+
+First public open-source release. Stoic moves from a private
+single-author project to a public AGPLv3 repository at
+[github.com/the-stoic-authors/stoic](https://github.com/the-stoic-authors/stoic).
+
+### Feature surface at v0.9.0
+
+Stoic v0.9.0 is a complete, runnable Electronic Lab Notebook /
+Laboratory Inventory Management System for a small chemistry lab.
+What's in:
+
+- **Substances catalogue** with GHS pictograms, H/P phrases,
+  CAS number, SMILES, InChI, IUPAC name, density, melting/
+  boiling points, state of matter. PubChem import for one-click
+  fill-in.
+- **Inventory of lots** linked to substances and mixtures, with
+  expiry tracking, cost, supplier, batch code, location,
+  active/inactive flag, low-stock alerts.
+- **Mixtures** as first-class entities (eluents, buffers,
+  reagent solutions). Components can be substances or other
+  mixtures (HCl 6N from HCl 12N stock). Hazards propagate
+  derivatively from components with override capability.
+- **Reactions** as versioned templates: header (title, procedure,
+  temperature, duration, atmosphere, pressure), components
+  (substance OR mixture, role, equivalents), step components
+  (workup additions with ratio kinds: eq, mL/g, mL/mmol, %v/v,
+  absolute mL, absolute g). Reaction schemes rendered as SVG
+  from SMILES.
+- **Runs** of reactions at user-chosen scale, with derived
+  hazard pictograms, per-component lot picking from inventory,
+  output lot creation on successful completion.
+- **Mixture preparations** workflow: precursor lot consumption,
+  imputed cost calculation, output lot creation with derived
+  expiry (earliest among precursors), per-batch label printing.
+- **Orders** plan/order/receive workflow with auto-creation of
+  inventory lots on delivery, shopping list across pending
+  orders.
+- **Spending reports** at week / month / quarter / year buckets
+  with date-range filters and visual distribution.
+- **Encrypted backups** with AES-256-GCM and Argon2id KDF.
+  Live database optional SQLCipher encryption. Pluggable
+  passphrase sources: none, prompt, file, env var.
+- **Audit log** of all entity mutations with PDF/CSV export.
+- **PDF artifacts**: per-batch labels (Avery L7160/L7164,
+  Brother QL/Dymo thermal), per-substance SDS, per-run report,
+  audit log report.
+- **Cross-platform CLI** `stoic` for daemon installation,
+  startup, status, stop, update. macOS launchd + Linux
+  systemd-user service generation.
+- **One-shot installers** for macOS (`install-macos.sh`) and
+  Debian/Ubuntu/Raspberry Pi (`install-linux.sh`).
+- **In-app documentation viewer** at `/docs/` with 6 manuals
+  (user, admin, developer × IT/EN), sticky TOC, IT↔EN toggle.
+- **Multi-language UI** Italian (source) + English with curated
+  translation overrides (646 entries) to avoid Babel fuzzy-match
+  regressions.
+- **Test suite**: 480 tests, 100% passing on macOS Intel x86_64
+  with Python 3.12. Suite runs in ~2 minutes.
 
 ### Added
 
 - **AGPLv3 license** with full text in `LICENSE`
 - **Contributor License Agreement** (`CLA.md`) with dual-licensing
-  grant — lets contributors keep copyright while authorizing
-  potential future commercial relicensing
+  grant — contributors keep copyright while authorising potential
+  future commercial relicensing
 - **Public README** with screenshots, install instructions, feature
-  overview, and project status
+  overview, project status, contact info
 - **`CONTRIBUTING.md`** with contribution workflow, code style,
-  translation guide, test requirements, and CLA notice
-- **`pyproject.toml`** updated with AGPLv3 license, PyPI
-  classifiers, project URLs, and v0.9.0 version bump
+  translation guide, test requirements, CLA notice
+- **`pyproject.toml`** with AGPLv3 license, PyPI classifiers,
+  project URLs pointing to the public GitHub repo
 - Copyright header in `stoic_eln/__init__.py`
+- **macOS installer** (`scripts/installers/install-macos.sh`)
+  one-shot from `curl | bash`: Homebrew + python@3.12 + cairo +
+  pkg-config + clone + venv + init-db + first admin
+- **Linux installer** (`scripts/installers/install-linux.sh`)
+  same flow for Debian/Ubuntu/Raspberry Pi OS, both Intel and ARM
+- **Git init helper** (`scripts/installers/init-git-repo.sh`) for
+  setting up the local git repo with sensible defaults and the
+  canonical author identity
 
-### Changed
+### Fixed (since pre-release patches)
 
-- Version bumped from `2.0.0a1` (internal alpha numbering) to
-  `0.9.0` (preparing v1.0.0 public release)
-- Author metadata changed from individual to `The Stoic Authors`
+- **Step component absolute_mL and absolute_g** — the UI offered
+  these ratio kinds but the calculator returned `None`. Now
+  properly computes fixed mL or g amounts independent of scale
+- **PDF text extraction in test helper** for macOS Intel — added
+  zlib + ASCII85 decoding for compressed PDF streams (was
+  reading only raw bytes, which failed when the PDF was
+  compressed)
+- **Suggested expiry pre-fill** in the manual-lot form: when
+  creating a lot of a mixture, the form now pre-fills the
+  expiry date from the earliest expiry of the component lots
+- **Sidebar duplicate "Report" entry** removed; "Magazzino" → "Gestione"
+- **`ngettext` with explicit `n=...` kwarg** in the spending report
+  template (was raising KeyError when missing-cost count > 0)
 
-## [0.8.x] — 2026-05 (internal — "Settimana 6")
+### Test suite
 
-Internal pre-public iteration, captured as a series of patches
-labeled 14.0 through 14.6.3. Highlights:
+480 passed in ~2 minutes on macOS Intel. Coverage spans:
 
-### Patch 14.6.3 — Sidebar UI fixes
+- Authentication and authorisation
+- Models (substances, mixtures, lots, reactions, runs, preps,
+  orders)
+- All blueprint routes
+- Reaction step component calculation (eq, mL_per_g, mL_per_mmol,
+  percent_vv, absolute_mL, absolute_g)
+- Mixture-as-component recursion with cycle guard
+- Spending report bucketing (week/month/quarter/year) and filters
+- Encrypted backups round-trip
+- SQLCipher database encryption
+- PubChem import (real and mocked)
+- PDF generation (labels, SDS, run reports, audit log)
+- Document viewer rendering
+- I18n: Italian source + English overrides + plural forms
 
-- Replaced two custom "filled" icons (`reactions-history`,
-  `preparations-history`) with standard lucide-icons (`history`,
-  `folder-clock`) for visual consistency with the rest of the
-  sidebar
-- Fixed CSS rule to apply to both `<i>` (pre-render) and `<svg>`
-  (post-lucide createIcons swap) so icon sizing stays stable
-- Fixed collapsed-sidebar overlap: when collapsed, the logo is
-  hidden and the toggle button takes its place as the sole focal
-  point — clicking it re-expands. No more visual collision
-  between toggle and logo
+### Internal milestones rolled up into v0.9.0
 
-### Patch 14.6.2 — Reaction clone bug with mixture-based step components
+The path to v0.9.0 spanned roughly seven "weekly iterations"
+internally, each a tarball-based patch series:
 
-- Fixed `clone_for_editing()` in `services/reaction_clone.py`
-  which silently dropped `mixture_id` when cloning a
-  `ReactionStepComponent`. This caused an `IntegrityError` when
-  trying to edit any reaction with a step that used a Mixture
-  (e.g. an eluent like "EtOAc/PE 5:2" in chromatography)
-- Added two regression tests in
-  `tests/test_step_component_with_mixture.py`: one reproducing
-  the bug, one for the symmetric Substance-based case
-
-### Patch 14.6.1 — Passphrase store strings + CLI hints translations
-
-- Wrapped passphrase source labels and descriptions in
-  `lazy_gettext` (they were hardcoded Italian strings in
-  `services/passphrase_store.py`, never picked up by Babel)
-- Fixed two fuzzy-match translations: "Ferma Stoic" → "Stop
-  Stoic", "Riavvia" → "Restart"
-- 10 new entries added to the EN `OVERRIDES` dict
-
-### Patch 14.6 — Serious translation audit + in-app documentation
-
-- Discovered and fixed ~600 wrong English translations frozen
-  from old `pybabel update` fuzzy matches. Examples:
-  `Miscele→SMILES`, `Storico preparazioni→Run in setup`,
-  `Densità (g/mL)→Quantity (mL)`, `Lotto prodotto→Byproduct`
-  (semantically opposite!)
-- New `scripts/override_en_translations.py` with 646 curated
-  translations organized by UI area — sovrascrive forzatamente
-  per evitare future regressioni da fuzzy match
-- Added in-app documentation viewer at `/docs/`:
-  - User manual accessible to all logged-in users
-  - Admin and Developer manuals admin-only (403 otherwise)
-  - Markdown rendered server-side with `markdown` library
-    (fenced code, tables, TOC, sane lists)
-  - Sticky TOC sidebar with auto-generated anchors
-  - IT↔EN toggle per manual
-- Added `Documentazione` link to sidebar (visible to all)
-- 15 new tests in `tests/test_docs.py`
-
-### Patch 14.5 — Translation audit v1 + 6 manuals
-
-- Wrote 6 user/admin/developer manuals (Italian + English),
-  ~2800 lines total, in `docs/{it,en}/`
-- First-pass translation audit: 459 errors corrected
-  (149 wrong + 113 empty in Italian, 84 in Italian + 113 empty
-  in English)
-- New `scripts/heal_it_translations.py` (IT source language:
-  msgstr = msgid always) and `scripts/heal_en_translations.py`
-  (EN_FIXES dict with 220 manual translations)
-
-### Patch 14.4 — Attachments on mixtures and preparations
-
-- Extended attachments support to `Mixture` and `MixturePrep`
-  entities. The attachment system was already implemented in
-  patch 10 (polymorphic model with SHA-256 dedup); this patch
-  adds the two missing entity types to `ATTACHMENT_ENTITY_TYPES`
-  and wires up the UI in `preps/detail.html`
-
-### Patch 14.3 — Passphrase source pluggable (none / prompt / file / env)
-
-- 4 passphrase modes selectable in
-  `Settings → Encryption & backups → Passphrase source`:
-  - `none`: encryption disabled (default fresh install)
-  - `prompt`: passphrase asked on every Stoic startup, kept in
-    RAM only (max security)
-  - `file`: stored in `instance/backup.key` (default after first
-    enabling)
-  - `env`: read from `STOIC_BACKUP_PASSPHRASE` env var (for
-    systemd / Docker secrets)
-- Architectural fix: `create_app(instance_path=...)` for test
-  isolation; SQLCipher boot hook properly pushes app_context
-- CLI command `flask passphrase-test` for verifying configuration
-- Conftest fixture isolation with `tmp_path_factory.mktemp`
-
-### Patches 14.0–14.2 — Encryption infrastructure
-
-- 14.0: Automatic nightly backups via APScheduler with
-  configurable hour/minute/retention. Manual backup via
-  `flask backup`
-- 14.1: AES-256-GCM encryption for backups with Argon2id KDF.
-  Output format: `.db.gz.enc`. UI to enable/disable in Settings.
-  Encrypted backups safe to copy to untrusted cloud storage
-- 14.2: SQLCipher integration for live database encryption.
-  AES-256-CBC + HMAC-SHA512 at page level. `flask db-encrypt`
-  and `flask db-decrypt` CLI commands. Boot hook detects
-  encrypted DB and prompts for passphrase as configured
-
-## [0.7.x and earlier] — 2024-2025 (internal)
-
-Internal development iterations before the public release. Major
-milestones include:
-
-- **Settimana 5** — PDF generation: per-batch labels (Avery
-  L7160/L7164, Brother QL/Dymo thermal), per-substance SDS,
-  per-run report PDFs, audit log CSV/PDF export
-- **Settimana 4** — Orders module: plan/order/receive workflow,
-  shopping list, auto-creation of inventory lots on receipt
-- **Settimana 3** — Mixtures as first-class entities:
-  preparations from precursor lots, mixture-based reaction
-  components, eluent tracking for chromatography
+- **Settimana 1** — Core entities (User, Substance, InventoryItem,
+  Reaction, Run), Bootstrap 5 responsive layout, multi-language
+  UI scaffold, PubChem import, GHS pictograms, audit log
 - **Settimana 2** — Reaction templates with stoichiometric
   components, versioning (draft → publish → archive), embedded
   procedures, workup and checklists
-- **Settimana 1** — Core entities: User, Substance, InventoryItem,
-  Reaction, Run, with multi-language UI (IT/EN) and Bootstrap 5
-  responsive layout. PubChem import for substances. GHS
-  pictograms and H/P phrases. Audit log for all mutations
+- **Settimana 3** — Mixtures as first-class entities, preparations
+  from precursor lots, mixture-based reaction components, eluent
+  tracking for chromatography
+- **Settimana 4** — Orders module: plan/order/receive workflow,
+  shopping list, auto-creation of inventory lots on receipt
+- **Settimana 5** — PDF generation: per-batch labels, per-substance
+  SDS, per-run reports, audit log CSV/PDF export
+- **Settimana 6** — Encryption infrastructure: encrypted backups
+  (AES-256-GCM + Argon2id), SQLCipher live database encryption,
+  pluggable passphrase sources. Plus: in-app docs viewer with 6
+  manuals, full translation audit fixing ~600 wrong English
+  fuzzy-matches
+- **Settimana 7** — Public release prep: AGPLv3 + CLA, cross-platform
+  CLI (`stoic`), macOS and Linux installers, mixture-as-component
+  schema, derived expiry, cost imputation, spending report, fix
+  of 6 legacy test fails, hotfix for ASCII85+Flate PDF parsing on
+  macOS Intel. **Stoic published to GitHub.**
 
 ---
 
-*For the full per-patch development history, see the individual
-`PATCH-NOTES.md` files in the corresponding tarball releases.
-These are preserved in the project's internal archive but not
-included in the public repository.*
+For per-patch development history, see the `PATCH-NOTES.md` files
+distributed with each tarball release during the development
+phase. These predate the public repository and are not included
+in it.
