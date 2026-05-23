@@ -1039,7 +1039,12 @@ def add_step(reaction_id: int):
         details={"step_id": step.id, "kind": step.kind, "title": step.title},
     )
     flash(_("Step '%(t)s' aggiunto.", t=step.title), "success")
-    return redirect(url_for("reactions.detail", reaction_id=rxn.id))
+    # Anchor to the newly-added step so the page doesn't jump back
+    # to the top after the redirect — keeps the user in context.
+    return redirect(
+        url_for("reactions.detail", reaction_id=rxn.id)
+        + f"#step-card-{step.id}"
+    )
 
 
 @bp.route("/steps/<int:step_id>/edit", methods=["POST"])

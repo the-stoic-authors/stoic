@@ -331,6 +331,9 @@ def test_add_step_route(client, app):
         assert len(steps) == 1
         assert steps[0].kind == "workup"
         assert steps[0].title == "Workup acquoso"
+        # Redirect should include the new step's anchor, so the
+        # browser scrolls to it rather than jumping to the top.
+        assert f"#step-card-{steps[0].id}" in resp.headers["Location"]
 
 
 def test_add_step_component(client, app):
