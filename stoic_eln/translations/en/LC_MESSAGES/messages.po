@@ -93,7 +93,7 @@ msgstr "Password updated successfully."
 #: stoic_eln/templates/mixtures/prepare.html:137
 #: stoic_eln/templates/orders/receive.html:92
 msgid "Codice lotto"
-msgstr "Batch code"
+msgstr "Lot code"
 
 #: stoic_eln/blueprints/inventory/forms.py:24
 #: stoic_eln/templates/inventory/_list_table.html:36
@@ -272,7 +272,7 @@ msgstr "Primary concentration"
 #: stoic_eln/templates/reactions/_step_card.html:147
 #: stoic_eln/templates/reactions/_step_card.html:351
 msgid "Unità"
-msgstr "Unità"
+msgstr "Unit"
 
 #: stoic_eln/blueprints/mixtures/forms.py:108
 #: stoic_eln/templates/mixtures/detail.html:78
@@ -506,7 +506,7 @@ msgstr "Description / rationale"
 
 #: stoic_eln/blueprints/reactions/forms.py:49
 msgid "Procedura"
-msgstr "Procedura"
+msgstr "Procedure"
 
 #: stoic_eln/blueprints/reactions/forms.py:56
 msgid "Temperatura (°C)"
@@ -1052,19 +1052,19 @@ msgstr "Density (g/mL)"
 #: stoic_eln/blueprints/substances/forms.py:51
 #: stoic_eln/templates/substances/sds.html:43
 msgid "Stato fisico"
-msgstr "Physical state"
+msgstr "State of matter"
 
 #: stoic_eln/blueprints/substances/forms.py:54
 msgid "Solido"
-msgstr "solid"
+msgstr "Solid"
 
 #: stoic_eln/blueprints/substances/forms.py:55
 msgid "Liquido"
-msgstr "liquid"
+msgstr "Liquid"
 
 #: stoic_eln/blueprints/substances/forms.py:56
 msgid "Gas"
-msgstr "gas"
+msgstr "Gas"
 
 #: stoic_eln/blueprints/substances/forms.py:60
 msgid "Solvente (dosato in mL)"
@@ -1113,7 +1113,7 @@ msgstr "PubChem CID"
 
 #: stoic_eln/blueprints/substances/forms.py:121
 msgid "Cerca su PubChem"
-msgstr "Search on PubChem"
+msgstr "Search PubChem"
 
 #: stoic_eln/blueprints/substances/forms.py:127
 #: stoic_eln/templates/substances/import_preview.html:13
@@ -1272,7 +1272,7 @@ msgstr "Preparations history"
 #: stoic_eln/templates/base.html:105 stoic_eln/templates/inventory/list.html:2
 #: stoic_eln/templates/inventory/list.html:7
 msgid "Magazzino"
-msgstr "Storage"
+msgstr "Inventory"
 
 #: stoic_eln/templates/base.html:108 stoic_eln/templates/base.html:110
 msgid "Inventario"
@@ -1500,7 +1500,7 @@ msgstr "Cost"
 #: stoic_eln/templates/substances/detail.html:103
 #: stoic_eln/templates/substances/import_preview.html:71
 msgid "Stato"
-msgstr "State"
+msgstr "Status"
 
 #: stoic_eln/templates/inventory/_list_table.html:61
 #: stoic_eln/templates/preps/detail.html:162
@@ -1577,12 +1577,12 @@ msgstr "No lots in warehouse. Add a lot from a substance."
 #: stoic_eln/templates/inventory/form.html:43
 #: stoic_eln/templates/inventory/form.html:51
 msgid "Modifica lotto"
-msgstr "Edit batch"
+msgstr "Edit lot"
 
 #: stoic_eln/templates/inventory/form.html:2
 #: stoic_eln/templates/inventory/form.html:43
 msgid "Nuovo lotto"
-msgstr "New batch"
+msgstr "New lot"
 
 #: stoic_eln/templates/inventory/form.html:52
 msgid "Nuovo lotto di"
@@ -2108,7 +2108,7 @@ msgstr "Leave empty for a quick label (e.g. HCl 1N without tracking the exact co
 #: stoic_eln/templates/mixtures/form.html:108
 #, fuzzy
 msgid "Se non spuntato, la sicurezza è derivata automaticamente dai componenti."
-msgstr ""
+msgstr "If unchecked, hazards are derived automatically from components."
 "Se non specificato, lo schema viene derivato automaticamente dai "
 "componenti."
 
@@ -2138,7 +2138,7 @@ msgstr "Show inactive"
 #: stoic_eln/templates/mixtures/prepare.html:17
 #, fuzzy
 msgid "Prepara"
-msgstr "Procedura"
+msgstr "Prepare"
 
 #: stoic_eln/templates/mixtures/prepare.html:19
 msgid ""
@@ -2173,7 +2173,7 @@ msgstr "No structured components — auto-suggest will use only the target quant
 #: stoic_eln/templates/mixtures/prepare.html:84
 #, fuzzy
 msgid "Attenzione"
-msgstr "Action"
+msgstr "Warning"
 
 #: stoic_eln/templates/mixtures/prepare.html:101
 msgid "Target"
@@ -2208,7 +2208,7 @@ msgstr "Lot reactivated."
 #: stoic_eln/templates/mixtures/prepare.html:143
 #, fuzzy
 msgid "Lascia vuoto per generare automaticamente"
-msgstr "Lascia vuoto per usare la quantità iniziale."
+msgstr "Leave blank to generate automatically"
 
 #: stoic_eln/templates/mixtures/prepare.html:145
 msgid "Generato automaticamente in base alle impostazioni; modificalo se serve."
@@ -2637,7 +2637,7 @@ msgstr "Code"
 #: stoic_eln/templates/preps/detail.html:36
 #, fuzzy
 msgid "Quando"
-msgstr "liquid"
+msgstr "When"
 
 #: stoic_eln/templates/preps/_list_table.html:12
 #: stoic_eln/templates/preps/detail.html:41
@@ -2729,7 +2729,7 @@ msgstr "Substance"
 
 #: stoic_eln/templates/preps/detail.html:139
 msgid "Quantità prelevata"
-msgstr "Quantity drawn"
+msgstr "Quantity withdrawn"
 
 #: stoic_eln/templates/preps/detail.html:153
 #, fuzzy
@@ -4046,7 +4046,7 @@ msgstr "Delete instance/backup.key"
 #: stoic_eln/templates/settings/backups.html:262
 #, fuzzy
 msgid "Configurazione"
-msgstr "Conditions"
+msgstr "Setup"
 
 #: stoic_eln/templates/settings/backups.html:274
 msgid "Backup automatici attivi"
@@ -4827,280 +4827,23 @@ msgid ""
 "del fornitore prima dell'uso."
 msgstr "Automatically generated document. Always check the supplier's official SDS before use."
 
-#~ msgid "Reazione %(code)s creata."
-#~ msgstr "Reaction %(code)s created."
-
-#~ msgid "Reazione aggiornata."
-#~ msgstr "Reaction updated."
-
-#~ msgid "Anteprima quantità calcolata su:"
-#~ msgstr ""
-
-#~ msgid "Scala (mmol):"
-#~ msgstr "Scale (mmol):"
-
-#~ msgid "mmol"
-#~ msgstr ""
-
-#~ msgid "g"
-#~ msgstr ""
-
-#~ msgid "mL"
-#~ msgstr ""
-
-#~ msgid "Limit."
-#~ msgstr "Limit."
-
-#~ msgid "Nessun componente. Aggiungi materiali di partenza, reagenti e prodotti."
-#~ msgstr "No components. Add starting materials, reagents, and products."
-
-#~ msgid "Descrizione"
-#~ msgstr "Location"
-
-#~ msgid ""
-#~ "es. Spegnere con NH4Cl sat., estrarre"
-#~ " con EtOAc x 3, lavare con "
-#~ "brine, anidrificare su Na2SO4, concentrare "
-#~ "a secco"
-#~ msgstr ""
-
-#~ msgid "Aggiungi componente allo step"
-#~ msgstr "Add lot"
-
-#~ msgid "Temperatura"
-#~ msgstr "Temperature"
-
-#~ msgid "Metadati"
-#~ msgstr "Metadata"
-
-#~ msgid "Fonte"
-#~ msgstr "Supplier"
-
-#~ msgid "Componenti e stechiometria"
-#~ msgstr "Components and stoichiometry"
-
-#~ msgid "Procedura"
-#~ msgstr "Procedure"
-
-#~ msgid "Check list reazione"
-#~ msgstr "Create the first reaction"
-
-#~ msgid "verifiche da fare prima/durante l'esecuzione"
-#~ msgstr "checks to perform before/during execution"
-
-#~ msgid "Step successivi"
-#~ msgstr "Subsequent steps"
-
-#~ msgid "Descrivi le operazioni dello step."
-#~ msgstr "Describe the step operations."
-
-#~ msgid "Crea step"
-#~ msgstr "Date"
-
-#~ msgid ""
-#~ "Compila almeno uno dei campi quantità"
-#~ " — gli altri vengono calcolati "
-#~ "automaticamente."
-#~ msgstr ""
-
-#~ msgid ""
-#~ "Sintassi SMILES estesa: SM1.SM2>reagenti>prodotti"
-#~ " oppure SM>>prodotto. Lasciare vuoto per"
-#~ " derivazione automatica."
-#~ msgstr ""
-
-#~ msgid "descrizione della reazione principale"
-#~ msgstr "Scheme (optional)"
-
-#~ msgid ""
-#~ "es. Sciogliere il SM in DCM anidro"
-#~ " sotto Ar, raffreddare a 0 °C, "
-#~ "aggiungere il reagente goccia a goccia,"
-#~ " lasciare 12 h a temperatura "
-#~ "ambiente, controllare consumo del SM via"
-#~ " TLC."
-#~ msgstr ""
-
-#~ msgid "ogni passo ha componenti, procedimento e check list propri"
-#~ msgstr ""
-
-#~ msgid "Disattiva reazione"
-#~ msgstr "inactive"
-
-#~ msgid "Scala (mmol del limitante)"
-#~ msgstr "Scale (mmol of limiting reagent)"
-
-#~ msgid "Resa non valida."
-#~ msgstr "Invalid yield."
-
-#~ msgid "resa (g)"
-#~ msgstr "yield (g)"
-
-#~ msgid "A-Z, 0-9, trattini. Max 8 caratteri."
-#~ msgstr "A-Z, 0-9, hyphens. Max 8 characters."
-
-#~ msgid ""
-#~ "Le modifiche non sono visibili agli "
-#~ "altri finché non premi 'Salva' in "
-#~ "fondo alla pagina."
-#~ msgstr ""
-
-#~ msgid "Cerca per lotto, fornitore, posizione, sostanza, CAS…"
-#~ msgstr ""
-
-#~ msgid "Mostra inattivi"
-#~ msgstr "Show inactive"
-
-#~ msgid "Stoic ELN — Lab notebook, refactored."
-#~ msgstr ""
-
-#~ msgid "Settimana 1 di 6"
-#~ msgstr ""
-
-#~ msgid ""
-#~ "Le fondamenta dell'app sono in piedi:"
-#~ " autenticazione, internazionalizzazione, tema "
-#~ "chiaro/scuro."
-#~ msgstr ""
-
-#~ msgid ""
-#~ "Le funzioni vere (sostanze, magazzino, "
-#~ "reazioni, run) arrivano nelle prossime "
-#~ "settimane."
-#~ msgstr ""
-
-#~ msgid "Ordine già aperto per questa sostanza"
-#~ msgstr "Order already open for this substance"
-
-#~ msgid "ordine aperto"
-#~ msgstr "open order"
-
-#~ msgid "€/mol di prodotto:"
-#~ msgstr "€/mol of product:"
-
-#~ msgid "€/u"
-#~ msgstr ""
-
-#~ msgid "€/mol"
-#~ msgstr ""
-
-#~ msgid "Costo totale (€)"
-#~ msgstr "Total cost (€)"
-
-#~ msgid "Costo effettivo (€)"
-#~ msgstr "Actual cost (€)"
-
-#~ msgid "Costo €"
-#~ msgstr "Cost €"
-
-#~ msgid "€/g"
-#~ msgstr ""
-
-#~ msgid "no €"
-#~ msgstr "no €"
-
-#~ msgid ""
-#~ "Non puoi cambiare il tuo ruolo. "
-#~ "Per creare nuovi utenti, vedi la "
-#~ "pagina di registrazione."
-#~ msgstr ""
-
-#~ msgid "accesso"
-#~ msgstr "login"
-
-#~ msgid "uscita"
-#~ msgstr "logout"
-
-#~ msgid "accesso fallito"
-#~ msgstr "login failed"
-
-#~ msgid "bozza creata"
-#~ msgstr "draft created"
-
-#~ msgid "bozza eliminata"
-#~ msgstr "draft discarded"
-
-#~ msgid "reazione duplicata"
-#~ msgstr "reaction duplicated"
-
-#~ msgid "pubblicato"
-#~ msgstr "published"
-
-#~ msgid "inizio modifica"
-#~ msgstr "edit started"
-
-#~ msgid "modifica annullata"
-#~ msgstr "edit cancelled"
-
-#~ msgid "archiviato"
-#~ msgstr "archived"
-
-#~ msgid "riattivato"
-#~ msgstr "reactivated"
-
-#~ msgid "creato"
-#~ msgstr "created"
-
-#~ msgid "aggiornato"
-#~ msgstr "updated"
-
-#~ msgid "eliminato"
-#~ msgstr "deleted"
-
-#~ msgid "consultato"
-#~ msgstr "viewed"
-
-#~ msgid "lotto creato"
-#~ msgstr "lot created"
-
-#~ msgid "lotto aggiornato"
-#~ msgstr "lot updated"
-
-#~ msgid "lotto disattivato"
-#~ msgstr "lot deactivated"
-
-#~ msgid "ordine pianificato"
-#~ msgstr "order planned"
-
-#~ msgid "ordine aggiornato"
-#~ msgstr "order updated"
-
-#~ msgid "ordine confermato"
-#~ msgstr "order placed"
-
-#~ msgid "ordine ricevuto"
-#~ msgstr "order received"
-
-#~ msgid "ordine annullato"
-#~ msgstr "order cancelled"
-
-#~ msgid "ordini bulk"
-#~ msgstr "bulk orders"
-
-#~ msgid "settaggi spesa"
-#~ msgstr "shopping settings"
-
-#~ msgid "run creato"
-#~ msgstr "run created"
-
-#~ msgid "run avviato"
-#~ msgstr "run started"
-
-#~ msgid "run completato"
-#~ msgstr "run completed"
-
-#~ msgid "run annullato"
-#~ msgstr "run cancelled"
-
-#~ msgid "lotto su run"
-#~ msgstr "lot on run"
-
-#~ msgid "quantità run"
-#~ msgstr "run quantity"
-
-#~ msgid "PDF run scaricato"
-#~ msgstr "run PDF downloaded"
-
-#~ msgid "impostazioni aggiornate"
-#~ msgstr "settings updated"
+#: stoic_eln/models/order.py:193
+msgid "pianificato"
+msgstr "planned"
+
+#: stoic_eln/models/order.py:194
+msgid "ordinato"
+msgstr "ordered"
+
+#: stoic_eln/models/order.py:195
+msgid "ricevuto"
+msgstr "received"
+
+#: stoic_eln/models/order.py:196
+msgid "ricevuto parziale"
+msgstr "partially received"
+
+#: stoic_eln/models/order.py:197
+msgid "annullato"
+msgstr "cancelled"
 
