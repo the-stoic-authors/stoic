@@ -338,10 +338,13 @@ class Reaction(db.Model):
         #   - left_only_roles: always go LEFT regardless of stoichiometry
         #   - right_only_roles: always go RIGHT
         #   - over_arrow_roles: catalysts, bases, etc. — always go OVER the arrow
-        #     (they're not "co-reactants" in the chemical sense)
-        #   - reagent_role: "reagent" is ambiguous — if its eq is close to 1
-        #     (range 0.8–1.5) it's a true co-reactant and goes LEFT;
-        #     otherwise it goes OVER the arrow as an agent
+        #     (they're not "co-reactants" in the chemical sense, and are
+        #     typically sub-stoichiometric)
+        #   - reagent_role: "reagent" is a true co-reactant and ALWAYS
+        #     goes LEFT, regardless of equivalents. Even with 4 eq
+        #     excess of e.g. an amine nucleophile, it's still consumed
+        #     stoichiometrically (just in excess) and chemically belongs
+        #     with the substrate, not above the arrow.
         left_only_roles = ("starting_material", "reactant")
         right_only_roles = ("product", "byproduct")
         over_arrow_roles = ("catalyst", "ligand", "base", "acid",
@@ -359,14 +362,24 @@ class Reaction(db.Model):
             }
 
         left: list[dict] = []
-        agents: list[dict] = []
+        # agents_drawn was for "reagent" with large excess shown over the
+        # arrow, but that turned out to be wrong chemistry — reagents
+        # always belong with the substrate on the left. The list is kept
+        # so callers that expected it don't break; it's just always empty.
+        # agents_text  = "true" catalysts / bases / acids / oxidants /
+        # reductants / ligands / additives — these go ABOVE the arrow as
+        # molecular-formula text in SciFinder/Reaxys style (more compact
+        # and easier to read for sub-stoichiometric species).
+        agents_drawn: list[dict] = []
+        agents_text: list[dict] = []
         right: list[dict] = []
         solvents: list[dict] = []
 
-        # Threshold for treating a "reagent" as a true co-reactant
-        # (rather than as an agent over the arrow).
-        REAGENT_EQ_LOW = 0.8
-        REAGENT_EQ_HIGH = 1.5
+        # All true reagents (role="reagent") go LEFT regardless of
+        # equivalents — even with 4 eq excess they're still co-reactants
+        # in the chemical sense, not catalysts.
+        # The only over-the-arrow species are the explicit role-based
+        # ones (catalyst/base/ligand/etc.) which render as text labels.
 
         for c in self.components:
             d = comp_dict(c)
@@ -375,15 +388,14 @@ class Reaction(db.Model):
             elif c.role in right_only_roles:
                 right.append(d)
             elif c.role in over_arrow_roles:
-                agents.append(d)
+                # Catalysts, bases, ligands etc. → text above arrow
+                agents_text.append(d)
             elif c.role == "reagent":
-                # Stoichiometric reagent → left; sub-stoichiometric or
-                # large excess → over the arrow.
-                eq = c.equivalents
-                if eq is not None and REAGENT_EQ_LOW <= eq <= REAGENT_EQ_HIGH:
-                    left.append(d)
-                else:
-                    agents.append(d)
+                # Reagents are true co-reactants → always LEFT,
+                # drawn as structures alongside the limiting substrate.
+                # Equivalents are just a stoichiometry detail, not
+                # a positioning signal.
+                left.append(d)
             elif c.role == "solvent":
                 solvents.append({
                     "name": d["name"],
@@ -406,7 +418,7 @@ class Reaction(db.Model):
             return ".".join(i["smiles"] for i in items if i["smiles"])
 
         left_smi = smiles_join(left)
-        agent_smi = smiles_join(agents)
+        agent_smi = smiles_join(agents_drawn)
         right_smi = smiles_join(right)
 
         # SmilesDrawer can render only if both sides have at least one
@@ -441,7 +453,9 @@ class Reaction(db.Model):
         conditions = " · ".join(cond_parts)
 
         # Build a textual label for what goes above the arrow:
-        # molecular formulas of the agents (cat/base/etc.) joined with ", ".
+        # molecular formulas of the TEXT agents only (catalysts, bases,
+        # etc.). The drawn agents (reagents) appear as structures above
+        # the arrow via the SMILES string itself, not as text.
         # We prefer the stored molecular_formula; if missing, fall back
         # to the substance name. Numbers in molecular formulas are
         # converted to subscript Unicode chars for readability.
@@ -451,10 +465,39 @@ class Reaction(db.Model):
             sub_map = str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")
             return s.translate(sub_map)
 
+        # Normalize transition-metal halide formulas to chemist-readable
+        # ordering: RDKit/PubChem may give Br2Cu (Hill order); chemists
+        # write CuBr2. Apply a small set of obvious metal-first rewrites.
+        def chemist_order(formula: str) -> str:
+            """Reorder a molecular formula so the metal comes first."""
+            if not formula:
+                return formula
+            # Match patterns like "Br2Cu", "Cl3Fe", "I2Zn" → "CuBr2" etc.
+            import re as _re
+            m = _re.match(
+                r"^([A-Z][a-z]?)(\d*)([A-Z][a-z]?)(\d*)$",
+                formula,
+            )
+            if not m:
+                return formula
+            sym1, n1, sym2, n2 = m.groups()
+            # Metals that should come first (common ones in synthesis).
+            METALS_FIRST = {
+                "Li", "Na", "K", "Mg", "Ca", "Mn", "Fe", "Co", "Ni",
+                "Cu", "Zn", "Pd", "Pt", "Au", "Ag", "Ru", "Rh", "Ir",
+                "Hg", "Sn", "Al", "Ti", "Zr", "V", "Cr", "Cd", "Pb",
+            }
+            if sym2 in METALS_FIRST and sym1 not in METALS_FIRST:
+                # Swap: halide-metal → metal-halide
+                return f"{sym2}{n2}{sym1}{n1}"
+            return formula
+
         agent_labels: list[str] = []
-        for a in agents:
+        for a in agents_text:
             if a["molecular_formula"]:
-                agent_labels.append(to_subscript(a["molecular_formula"]))
+                agent_labels.append(
+                    to_subscript(chemist_order(a["molecular_formula"]))
+                )
             else:
                 agent_labels.append(a["name"])
         above_arrow_label = ", ".join(agent_labels)
@@ -463,7 +506,12 @@ class Reaction(db.Model):
             "smiles": smiles,
             "canvas_safe": canvas_safe,
             "left": left,
-            "agents": agents,
+            # Keep 'agents' key for backwards compat with the template
+            # (it merges both drawn and text agents for the "no-SMILES"
+            # fallback rendering at the bottom of the scheme card).
+            "agents": agents_drawn + agents_text,
+            "agents_drawn": agents_drawn,
+            "agents_text": agents_text,
             "right": right,
             "solvents": solvents,
             "conditions": conditions,

@@ -4847,3 +4847,63 @@ msgstr "partially received"
 msgid "annullato"
 msgstr "cancelled"
 
+#: stoic_eln/templates/reactions/_components_table.html:23
+msgid "Limitante"
+msgstr "Limiting"
+
+#: stoic_eln/templates/reactions/_components_table.html:24
+msgid "SM"
+msgstr "SM"
+
+#: stoic_eln/templates/reactions/_components_table.html:24
+msgid "Reattivo"
+msgstr "Reactant"
+
+#: stoic_eln/templates/reactions/_components_table.html:24
+msgid "Reagente"
+msgstr "Reagent"
+
+#: stoic_eln/templates/reactions/_components_table.html:25
+msgid "Catalizzatore"
+msgstr "Catalyst"
+
+#: stoic_eln/templates/reactions/_components_table.html:25
+msgid "Legante"
+msgstr "Ligand"
+
+#: stoic_eln/templates/reactions/_components_table.html:25
+msgid "Base"
+msgstr "Base"
+
+#: stoic_eln/templates/reactions/_components_table.html:25
+msgid "Acido"
+msgstr "Acid"
+
+#: stoic_eln/templates/reactions/_components_table.html:26
+msgid "Ossidante"
+msgstr "Oxidant"
+
+#: stoic_eln/templates/reactions/_components_table.html:26
+msgid "Riducente"
+msgstr "Reductant"
+
+#: stoic_eln/templates/reactions/_components_table.html:26
+msgid "Solvente"
+msgstr "Solvent"
+
+#: stoic_eln/templates/reactions/_components_table.html:27
+msgid "Additivo"
+msgstr "Additive"
+
+#: stoic_eln/templates/reactions/_components_table.html:27
+msgid "Std interno"
+msgstr "Int. std"
+
+#: stoic_eln/templates/reactions/_components_table.html:27
+msgid "Prodotto"
+msgstr "Product"
+
+#: stoic_eln/templates/reactions/_components_table.html:28
+msgid "Sottoprodotto"
+msgstr "Byproduct"
+

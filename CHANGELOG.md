@@ -18,6 +18,66 @@ Path to v1.0.0. Planned (non-exhaustive):
 - Additional connector ecosystem (Stoic ↔ eLabFTW import/export,
   ChemDraw/ChemAxon paste-in)
 
+
+## [0.9.1] — 2026-05-25
+
+Patch release with bug fixes for the reaction scheme rendering
+and the component table template. No schema or API changes.
+
+### Fixed
+
+- **Reaction scheme: reagents now drawn LEFT regardless of
+  equivalents.** Components with `role="reagent"` were
+  previously routed above the arrow as text labels when their
+  equivalents fell outside a 0.8–1.5 window. This was
+  chemically wrong: even a 4 eq excess amine in an
+  α-bromoketone amination is still a co-reactant, not a
+  catalyst, and belongs with the substrate on the left of the
+  arrow. The `0.8 ≤ eq ≤ 1.5` window has been removed; all
+  reagents now go LEFT. Only true sub-stoichiometric species
+  (catalyst, ligand, base, acid, oxidant, reductant, additive)
+  render above the arrow as molecular-formula text in
+  SciFinder/Reaxys style.
+
+- **Components table: stray Jinja comment fragment no longer
+  visible.** The Babel extraction-stub block in
+  `_components_table.html` consumed the opening `{#` of a
+  rules-of-rendering comment, leaving two orphan lines
+  ("- is_draft=True → editable inputs...") rendered as plain
+  text under the "Components" heading. The comment is now
+  properly bracketed.
+
+### Changed
+
+- `Reaction.derive_scheme()` return shape: the legacy `agents`
+  list has been split into `agents_drawn` (always empty in
+  current logic, retained for backward compatibility with
+  callers that referenced the field) and `agents_text` (the
+  list shown above the arrow as formatted molecular formulas).
+- Order status labels (`pianificato`, `ordinato`, `ricevuto`,
+  `ricevuto parziale`, `annullato`) now use `lazy_gettext` so
+  the badge text is translated at render time, not at module
+  import.
+
+### i18n
+
+- 15 reaction role badges added to the `_components_table.html`
+  Babel extraction stubs (`Limitante`, `SM`, `Reattivo`,
+  `Reagente`, `Catalizzatore`, `Legante`, `Base`, `Acido`,
+  `Ossidante`, `Riducente`, `Solvente`, `Additivo`,
+  `Std interno`, `Prodotto`, `Sottoprodotto`) and translated
+  in the EN `.po` (`Limiting`, `SM`, `Reactant`, `Reagent`,
+  `Catalyst`, `Ligand`, `Base`, `Acid`, `Oxidant`, `Reductant`,
+  `Solvent`, `Additive`, `Int. std`, `Product`, `Byproduct`).
+  These badges are picked from a Jinja dict via a runtime
+  variable (`_(badge_text)`), which `pybabel extract` cannot
+  see; the stubs make the literal strings visible to the
+  extractor without producing output.
+
+### Test suite
+
+480 tests passing on Mac Intel x86_64.
+
 ## [0.9.0] — 2026-05-22
 
 First public open-source release. Stoic moves from a private

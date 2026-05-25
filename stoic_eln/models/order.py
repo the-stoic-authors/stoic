@@ -26,6 +26,7 @@ the difference.
 from __future__ import annotations
 
 from datetime import date, datetime, timezone
+from flask_babel import lazy_gettext as _l
 from typing import TYPE_CHECKING
 
 from sqlalchemy import (
@@ -190,11 +191,11 @@ class Order(db.Model):
     def status_label_color(self) -> tuple[str, str]:
         """(label_it, bootstrap_color) for the badge."""
         return {
-            STATUS_PLANNED: ("pianificato", "secondary"),
-            STATUS_ORDERED: ("ordinato", "primary"),
-            STATUS_RECEIVED: ("ricevuto", "success"),
-            STATUS_RECEIVED_PARTIAL: ("ricevuto parziale", "warning"),
-            STATUS_CANCELLED: ("annullato", "secondary"),
+            STATUS_PLANNED: (_l("pianificato"), "secondary"),
+            STATUS_ORDERED: (_l("ordinato"), "primary"),
+            STATUS_RECEIVED: (_l("ricevuto"), "success"),
+            STATUS_RECEIVED_PARTIAL: (_l("ricevuto parziale"), "warning"),
+            STATUS_CANCELLED: (_l("annullato"), "secondary"),
         }.get(self.status, (self.status, "secondary"))
 
     @property

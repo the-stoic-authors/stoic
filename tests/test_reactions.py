@@ -138,10 +138,13 @@ def test_reaction_components_partitioning(app):
 
 
 def test_reaction_derive_scheme_smiles(app):
+    """Catalysts now render as text labels above the arrow (SciFinder
+    style), not as drawn structures. So the SMILES used by SmilesDrawer
+    contains only the LEFT and RIGHT reactants, never catalysts."""
     with app.app_context():
         rxn = Reaction(code="RX-2026-0001", title="Test")
         sm = Substance(name="EtOH", smiles="CCO")
-        cat = Substance(name="Pd", smiles="[Pd]")
+        cat = Substance(name="Pd", smiles="[Pd]", molecular_formula="Pd")
         prod = Substance(name="EtOAc", smiles="CCOC(=O)C")
         db.session.add_all([rxn, sm, cat, prod])
         db.session.flush()
@@ -153,9 +156,17 @@ def test_reaction_derive_scheme_smiles(app):
         ])
         db.session.commit()
 
-        scheme = rxn.derive_scheme_smiles()
-        # Should be SM>cat>product
-        assert scheme == "CCO>[Pd]>CCOC(=O)C"
+        scheme_smi = rxn.derive_scheme_smiles()
+        # Catalysts no longer go INSIDE the SMILES — they become text
+        # above the arrow. So we use the >> shortcut without agents.
+        assert scheme_smi == "CCO>>CCOC(=O)C"
+
+        # But the catalyst should appear in above_arrow_label as text
+        scheme = rxn.derive_scheme()
+        assert "Pd" in scheme["above_arrow_label"]
+        assert len(scheme["agents_text"]) == 1
+        assert scheme["agents_text"][0]["name"] == "Pd"
+        assert len(scheme["agents_drawn"]) == 0
 
 
 def test_reaction_derive_scheme_smiles_no_reagents(app):

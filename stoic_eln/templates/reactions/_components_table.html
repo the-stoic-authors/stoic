@@ -10,7 +10,22 @@
    Absolute quantities (g, mL, mmol) are NOT shown — they belong to the Run.
 
    Two render modes:
-     - is_draft=True  → editable inputs + star/× action buttons
+
+   ─── Babel extraction stubs ────────────────────────────────────────
+   The role badges below are picked from a Jinja dict using
+   `_(badge_text)` where badge_text is a runtime VARIABLE. pybabel
+   extract only sees literal strings inside `_(...)`, so these literal
+   role labels would never make it into messages.pot without these
+   noop _() calls. The calls below are inside an {% if false %} so they
+   produce no output but the extractor still sees them. #}
+{% if false %}
+  {{ _("Limitante") }}{{ _("SM") }}{{ _("Reattivo") }}{{ _("Reagente") }}
+  {{ _("Catalizzatore") }}{{ _("Legante") }}{{ _("Base") }}{{ _("Acido") }}
+  {{ _("Ossidante") }}{{ _("Riducente") }}{{ _("Solvente") }}
+  {{ _("Additivo") }}{{ _("Std interno") }}{{ _("Prodotto") }}
+  {{ _("Sottoprodotto") }}
+{% endif %}
+{#   - is_draft=True  → editable inputs + star/× action buttons
      - is_draft=False → printed text, no inputs, no action buttons
 #}
 

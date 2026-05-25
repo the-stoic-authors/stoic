@@ -1,6 +1,6 @@
 [project]
 name = "stoic-eln"
-version = "0.9.0"
+version = "0.9.1"
 description = "An open-source electronic lab notebook (ELN) for chemistry labs. Self-hosted, audit-ready, multi-user, AGPLv3."
 authors = [
     {name = "The Stoic Authors"}
