@@ -24,10 +24,10 @@ import os
 from pathlib import Path
 
 from flask import Flask
+from sqlalchemy import func
 
 from stoic_eln.config import Config, DevelopmentConfig, ProductionConfig, TestingConfig
 from stoic_eln.extensions import babel, csrf, db, login_manager, migrate
-from sqlalchemy import func
 
 __version__ = "0.9.0"
 
@@ -180,8 +180,7 @@ def _maybe_enable_sqlcipher(app: Flask) -> None:
     if app.config.get("TESTING") and not app.config.get("SQLCIPHER_TEST_ENABLE"):
         return
 
-    from pathlib import Path
-    from stoic_eln.services import db_crypto, backup_crypto, passphrase_store
+    from stoic_eln.services import db_crypto, passphrase_store
 
     uri = app.config.get("SQLALCHEMY_DATABASE_URI", "")
     if not uri.startswith("sqlite:///"):
@@ -551,6 +550,7 @@ def _register_cli(app: Flask) -> None:
         Idempotent: existing tables are left untouched.
         """
         from sqlalchemy import inspect as sa_inspect
+
         from stoic_eln import models  # noqa: F401  — register all metadata
 
         before = set(sa_inspect(db.engine).get_table_names())
@@ -613,7 +613,7 @@ def _register_cli(app: Flask) -> None:
                     click.echo(f"Pruned {len(deleted)} old backup(s).")
         except Exception as e:
             click.echo(f"Backup failed: {e}", err=True)
-            raise click.Abort()
+            raise click.Abort() from e
 
     @app.cli.command("backups-list")
     def backups_list_command() -> None:
@@ -644,7 +644,6 @@ def _register_cli(app: Flask) -> None:
         backups unreadable with the new key. Keep your old
         passphrase if you have old encrypted backups to restore.
         """
-        from pathlib import Path
         from stoic_eln.services import backup_crypto
 
         if len(passphrase.strip()) < 12:
@@ -688,8 +687,8 @@ def _register_cli(app: Flask) -> None:
         Idempotent: running on an already-encrypted DB is a no-op
         if the passphrase matches.
         """
-        from pathlib import Path
-        from stoic_eln.services import backup_crypto, db_crypto, backup as bkp
+        from stoic_eln.services import backup as bkp
+        from stoic_eln.services import backup_crypto, db_crypto
 
         passphrase = backup_crypto.resolve_passphrase(Path(app.instance_path))
         if not passphrase:
@@ -719,7 +718,7 @@ def _register_cli(app: Flask) -> None:
                 click.echo(f"Safety backup failed: {e}", err=True)
                 click.echo("Aborting. Re-run with --skip-backup to override.",
                            err=True)
-                raise click.Abort()
+                raise click.Abort() from e
         else:
             click.echo("(skipping safety backup as requested)")
 
@@ -752,7 +751,6 @@ def _register_cli(app: Flask) -> None:
 
         Idempotent: running on an already-plain DB is a no-op.
         """
-        from pathlib import Path
         from stoic_eln.services import backup_crypto, db_crypto
 
         passphrase = backup_crypto.resolve_passphrase(Path(app.instance_path))
@@ -778,8 +776,7 @@ def _register_cli(app: Flask) -> None:
     @app.cli.command("db-status")
     def db_status_command() -> None:
         """Show whether the live DB is plain or SQLCipher-encrypted."""
-        from pathlib import Path
-        from stoic_eln.services import db_crypto, backup_crypto
+        from stoic_eln.services import backup_crypto, db_crypto
 
         db_path = Path(app.config["SQLALCHEMY_DATABASE_URI"][len("sqlite:///"):])
         if not db_path.exists():
@@ -811,8 +808,7 @@ def _register_cli(app: Flask) -> None:
         Environment= line actually reach the process?", "is the
         prompt mode working over SSH?", etc.
         """
-        from pathlib import Path
-        from stoic_eln.services import passphrase_store, db_crypto
+        from stoic_eln.services import db_crypto, passphrase_store
 
         # Force re-resolution: clear cache so we actually exercise
         # the source rather than returning a value possibly set
@@ -848,7 +844,7 @@ def _register_cli(app: Flask) -> None:
             pp = passphrase_store.get_passphrase(instance_path, verifier=verifier)
         except passphrase_store.PassphraseUnavailable as e:
             click.echo(f"FAILED: {e}", err=True)
-            raise click.Abort()
+            raise click.Abort() from e
 
         if pp is None:
             click.echo("FAILED: no passphrase obtained from source.", err=True)
