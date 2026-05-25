@@ -75,8 +75,10 @@ def test_parse_scale_mass_uses_mw(app):
     with app.app_context():
         from stoic_eln.models.substance import Substance
         from stoic_eln.extensions import db
+
         sub = Substance(name="X", molecular_weight=100.0)
-        db.session.add(sub); db.session.commit()
+        db.session.add(sub)
+        db.session.commit()
         assert units.parse_scale_to_mmol(500, "mg", substance=sub) == pytest.approx(5.0)
         assert units.parse_scale_to_mmol(0.5, "g", substance=sub) == pytest.approx(5.0)
 
@@ -86,9 +88,10 @@ def test_parse_scale_volume_uses_density_and_mw(app):
     with app.app_context():
         from stoic_eln.models.substance import Substance
         from stoic_eln.extensions import db
-        sub = Substance(name="EtOH", molecular_weight=46.07,
-                        density=0.789, state="liquid")
-        db.session.add(sub); db.session.commit()
+
+        sub = Substance(name="EtOH", molecular_weight=46.07, density=0.789, state="liquid")
+        db.session.add(sub)
+        db.session.commit()
         # 1 mL × 0.789 g/mL = 0.789 g = 0.789/46.07 × 1000 = 17.13 mmol
         assert units.parse_scale_to_mmol(1.0, "mL", substance=sub) == pytest.approx(17.13, abs=0.05)
 
@@ -97,8 +100,10 @@ def test_parse_scale_mass_without_mw_raises(app):
     with app.app_context():
         from stoic_eln.models.substance import Substance
         from stoic_eln.extensions import db
+
         sub = Substance(name="Y", molecular_weight=None)
-        db.session.add(sub); db.session.commit()
+        db.session.add(sub)
+        db.session.commit()
         with pytest.raises(units.ScaleConversionError):
             units.parse_scale_to_mmol(500, "mg", substance=sub)
 
@@ -107,8 +112,10 @@ def test_parse_scale_volume_without_density_raises(app):
     with app.app_context():
         from stoic_eln.models.substance import Substance
         from stoic_eln.extensions import db
+
         sub = Substance(name="Y", molecular_weight=46.0, density=None)
-        db.session.add(sub); db.session.commit()
+        db.session.add(sub)
+        db.session.commit()
         with pytest.raises(units.ScaleConversionError):
             units.parse_scale_to_mmol(1.0, "mL", substance=sub)
 
@@ -128,28 +135,52 @@ def test_recompute_targets_liquid_reagent_uses_volume(app):
         # Limiting solid SM
         sm = Substance(name="SM", molecular_weight=100.0, state="solid")
         # Liquid co-reagent with density
-        liq = Substance(name="Aniline", molecular_weight=93.13,
-                        density=1.022, state="liquid")
+        liq = Substance(name="Aniline", molecular_weight=93.13, density=1.022, state="liquid")
         prod = Substance(name="Prod", molecular_weight=200.0)
-        db.session.add_all([sm, liq, prod]); db.session.flush()
+        db.session.add_all([sm, liq, prod])
+        db.session.flush()
 
         rxn = Reaction(code="RX", template_code="T", status="published", title="T")
-        db.session.add(rxn); db.session.flush()
-        db.session.add_all([
-            ReactionComponent(reaction_id=rxn.id, substance_id=sm.id,
-                              role="starting_material", position=0,
-                              is_limiting=True, equivalents=1.0),
-            ReactionComponent(reaction_id=rxn.id, substance_id=liq.id,
-                              role="reagent", position=1, equivalents=1.0),
-            ReactionComponent(reaction_id=rxn.id, substance_id=prod.id,
-                              role="product", position=2),
-        ])
+        db.session.add(rxn)
+        db.session.flush()
+        db.session.add_all(
+            [
+                ReactionComponent(
+                    reaction_id=rxn.id,
+                    substance_id=sm.id,
+                    role="starting_material",
+                    position=0,
+                    is_limiting=True,
+                    equivalents=1.0,
+                ),
+                ReactionComponent(
+                    reaction_id=rxn.id,
+                    substance_id=liq.id,
+                    role="reagent",
+                    position=1,
+                    equivalents=1.0,
+                ),
+                ReactionComponent(
+                    reaction_id=rxn.id, substance_id=prod.id, role="product", position=2
+                ),
+            ]
+        )
         db.session.commit()
 
         from stoic_eln.models.user import User
-        u = User(username="op", full_name="Op", operator_code="OP",
-                 role="user", is_admin=False, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.commit()
+
+        u = User(
+            username="op",
+            full_name="Op",
+            operator_code="OP",
+            role="user",
+            is_admin=False,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.commit()
 
         run = run_setup.create_draft(rxn, u)
         run.scale_mmol = 5.0

@@ -32,63 +32,99 @@ def _bootstrap(app):
         g = Group(name="Lab", slug="lab")
         u = User(email="t@t.it", username="t", full_name="t", password_hash="x")
         sm = Substance(name="SM", molecular_weight=100.0, state="solid")
-        etoac = Substance(name="EtOAc", molecular_weight=88.11, state="liquid",
-                          density=0.902)
-        pe = Substance(name="PE", molecular_weight=86.18, state="liquid",
-                       density=0.66)
-        db.session.add_all([g, u, sm, etoac, pe]); db.session.flush()
+        etoac = Substance(name="EtOAc", molecular_weight=88.11, state="liquid", density=0.902)
+        pe = Substance(name="PE", molecular_weight=86.18, state="liquid", density=0.66)
+        db.session.add_all([g, u, sm, etoac, pe])
+        db.session.flush()
 
         eluent = Mixture(name="EtOAc/PE 5:2", kind="eluent")
         eluent.components = [
-            MixtureComponent(substance_id=etoac.id, role="cosolvent",
-                             concentration=5.0, concentration_unit="ratio",
-                             position=0),
-            MixtureComponent(substance_id=pe.id, role="cosolvent",
-                             concentration=2.0, concentration_unit="ratio",
-                             position=1),
+            MixtureComponent(
+                substance_id=etoac.id,
+                role="cosolvent",
+                concentration=5.0,
+                concentration_unit="ratio",
+                position=0,
+            ),
+            MixtureComponent(
+                substance_id=pe.id,
+                role="cosolvent",
+                concentration=2.0,
+                concentration_unit="ratio",
+                position=1,
+            ),
         ]
-        db.session.add(eluent); db.session.flush()
+        db.session.add(eluent)
+        db.session.flush()
 
-        rxn = Reaction(code="R-chromo", title="Test chromato",
-                       default_scale_mmol=5.0, status="published",
-                       created_by_id=u.id)
-        db.session.add(rxn); db.session.flush()
-        db.session.add(ReactionComponent(
-            reaction_id=rxn.id, substance_id=sm.id,
-            role="starting_material", is_limiting=True,
-            equivalents=1.0, position=0,
-        ))
-        step = ReactionStep(
-            reaction_id=rxn.id, title="Cromatografia",
-            description="Eluire con EtOAc/PE 5:2",
-            kind="purification", position=0,
+        rxn = Reaction(
+            code="R-chromo",
+            title="Test chromato",
+            default_scale_mmol=5.0,
+            status="published",
+            created_by_id=u.id,
         )
-        db.session.add(step); db.session.flush()
-        sc = ReactionStepComponent(
-            step_id=step.id, mixture_id=eluent.id,
-            role="solvent", ratio_kind="free", ratio_value=None,
+        db.session.add(rxn)
+        db.session.flush()
+        db.session.add(
+            ReactionComponent(
+                reaction_id=rxn.id,
+                substance_id=sm.id,
+                role="starting_material",
+                is_limiting=True,
+                equivalents=1.0,
+                position=0,
+            )
+        )
+        step = ReactionStep(
+            reaction_id=rxn.id,
+            title="Cromatografia",
+            description="Eluire con EtOAc/PE 5:2",
+            kind="purification",
             position=0,
         )
-        db.session.add(sc); db.session.flush()
+        db.session.add(step)
+        db.session.flush()
+        sc = ReactionStepComponent(
+            step_id=step.id,
+            mixture_id=eluent.id,
+            role="solvent",
+            ratio_kind="free",
+            ratio_value=None,
+            position=0,
+        )
+        db.session.add(sc)
+        db.session.flush()
 
         lot_eluent = InventoryItem(
-            mixture_id=eluent.id, group_id=g.id,
+            mixture_id=eluent.id,
+            group_id=g.id,
             batch_code="ETOACPE52-001",
-            quantity_mL=1500.0, initial_quantity_mL=1500.0,
+            quantity_mL=1500.0,
+            initial_quantity_mL=1500.0,
             is_active=True,
         )
         lot_sm = InventoryItem(
-            substance_id=sm.id, group_id=g.id, batch_code="SM-001",
-            quantity_g=10.0, initial_quantity_g=10.0, is_active=True,
+            substance_id=sm.id,
+            group_id=g.id,
+            batch_code="SM-001",
+            quantity_g=10.0,
+            initial_quantity_g=10.0,
+            is_active=True,
         )
-        db.session.add_all([lot_eluent, lot_sm]); db.session.commit()
+        db.session.add_all([lot_eluent, lot_sm])
+        db.session.commit()
 
         return {
-            "user_id": u.id, "group_id": g.id,
-            "sm_id": sm.id, "eluent_id": eluent.id,
-            "reaction_id": rxn.id, "step_id": step.id,
+            "user_id": u.id,
+            "group_id": g.id,
+            "sm_id": sm.id,
+            "eluent_id": eluent.id,
+            "reaction_id": rxn.id,
+            "step_id": step.id,
             "step_component_id": sc.id,
-            "lot_eluent_id": lot_eluent.id, "lot_sm_id": lot_sm.id,
+            "lot_eluent_id": lot_eluent.id,
+            "lot_sm_id": lot_sm.id,
         }
 
 
@@ -172,6 +208,7 @@ def test_step_quantity_skips_free_kind(app):
     """The _step_quantity helper returns all-None for free components
     so the template renders 'ad lib.' instead of a number."""
     from stoic_eln import _step_quantity
+
     fx = _bootstrap(app)
     with app.app_context():
         rxn = db.session.get(Reaction, fx["reaction_id"])
@@ -184,23 +221,31 @@ def test_step_component_xor_constraint(app):
     """Setting both substance_id and mixture_id violates XOR."""
     with app.app_context():
         from sqlalchemy.exc import IntegrityError
+
         g = Group(name="L", slug="l")
         sub = Substance(name="X", molecular_weight=100.0)
         mix = Mixture(name="Y", kind="solution")
-        db.session.add_all([g, sub, mix]); db.session.flush()
+        db.session.add_all([g, sub, mix])
+        db.session.flush()
 
         u = User(email="t@t.it", username="t", full_name="t", password_hash="x")
-        db.session.add(u); db.session.flush()
+        db.session.add(u)
+        db.session.flush()
         rxn = Reaction(code="R", title="t", status="draft", created_by_id=u.id)
-        db.session.add(rxn); db.session.flush()
-        step = ReactionStep(reaction_id=rxn.id, title="s", kind="reaction",
-                            position=0)
-        db.session.add(step); db.session.flush()
+        db.session.add(rxn)
+        db.session.flush()
+        step = ReactionStep(reaction_id=rxn.id, title="s", kind="reaction", position=0)
+        db.session.add(step)
+        db.session.flush()
 
         bad = ReactionStepComponent(
             step_id=step.id,
-            substance_id=sub.id, mixture_id=mix.id,  # both set → violates XOR
-            role="solvent", ratio_kind="eq", ratio_value=1.0, position=0,
+            substance_id=sub.id,
+            mixture_id=mix.id,  # both set → violates XOR
+            role="solvent",
+            ratio_kind="eq",
+            ratio_value=1.0,
+            position=0,
         )
         db.session.add(bad)
         with pytest.raises(IntegrityError):
@@ -235,42 +280,58 @@ def test_clone_for_editing_preserves_step_component_mixture_id(app):
 
         eluent = Mixture(name="EtOAc/PE 5:2", kind="eluent")
         eluent.components = [
-            MixtureComponent(substance_id=sub_eluent_a.id, role="solvent",
-                             position=0),
-            MixtureComponent(substance_id=sub_eluent_b.id, role="solvent",
-                             position=1),
+            MixtureComponent(substance_id=sub_eluent_a.id, role="solvent", position=0),
+            MixtureComponent(substance_id=sub_eluent_b.id, role="solvent", position=1),
         ]
-        db.session.add(eluent); db.session.flush()
+        db.session.add(eluent)
+        db.session.flush()
 
-        u = User(email="rico@lab.it", username="rico",
-                 full_name="Rico", password_hash="x")
-        db.session.add(u); db.session.flush()
+        u = User(email="rico@lab.it", username="rico", full_name="Rico", password_hash="x")
+        db.session.add(u)
+        db.session.flush()
 
         rxn = Reaction(
-            code="CLONE-MIX", title="Cloneable",
-            template_code="CLM.1", template_code_base="CLM",
-            version_number=1, status="published",
-            default_scale_mmol=1.0, created_by_id=u.id,
+            code="CLONE-MIX",
+            title="Cloneable",
+            template_code="CLM.1",
+            template_code_base="CLM",
+            version_number=1,
+            status="published",
+            default_scale_mmol=1.0,
+            created_by_id=u.id,
         )
-        db.session.add(rxn); db.session.flush()
-        db.session.add(ReactionComponent(
-            reaction_id=rxn.id, substance_id=sub_sm.id,
-            role="starting_material", position=0,
-            is_limiting=True, equivalents=1.0,
-        ))
+        db.session.add(rxn)
+        db.session.flush()
+        db.session.add(
+            ReactionComponent(
+                reaction_id=rxn.id,
+                substance_id=sub_sm.id,
+                role="starting_material",
+                position=0,
+                is_limiting=True,
+                equivalents=1.0,
+            )
+        )
         # Chromatography purification step with a mixture-based eluent
         step = ReactionStep(
-            reaction_id=rxn.id, title="Column chromatography",
-            kind="purification", position=0,
+            reaction_id=rxn.id,
+            title="Column chromatography",
+            kind="purification",
+            position=0,
         )
-        db.session.add(step); db.session.flush()
-        db.session.add(ReactionStepComponent(
-            step_id=step.id,
-            substance_id=None,  # ← XOR with mixture_id
-            mixture_id=eluent.id,
-            role="solvent", ratio_kind="mL_per_mmol",
-            ratio_value=10.0, position=0,
-        ))
+        db.session.add(step)
+        db.session.flush()
+        db.session.add(
+            ReactionStepComponent(
+                step_id=step.id,
+                substance_id=None,  # ← XOR with mixture_id
+                mixture_id=eluent.id,
+                role="solvent",
+                ratio_kind="mL_per_mmol",
+                ratio_value=10.0,
+                position=0,
+            )
+        )
         db.session.commit()
 
         # Act — this used to raise IntegrityError before the fix
@@ -302,36 +363,54 @@ def test_clone_for_editing_preserves_step_component_substance_id(app):
         g = Group(slug="lab2", name="lab2")
         sub_sm = Substance(name="SM2", molecular_weight=100.0)
         sub_solvent = Substance(name="DCM", molecular_weight=84.93)
-        db.session.add_all([g, sub_sm, sub_solvent]); db.session.flush()
+        db.session.add_all([g, sub_sm, sub_solvent])
+        db.session.flush()
 
-        u = User(email="rico2@lab.it", username="rico2",
-                 full_name="Rico", password_hash="x")
-        db.session.add(u); db.session.flush()
+        u = User(email="rico2@lab.it", username="rico2", full_name="Rico", password_hash="x")
+        db.session.add(u)
+        db.session.flush()
 
         rxn = Reaction(
-            code="CLONE-SUB", title="Cloneable sub",
-            template_code="CLS.1", template_code_base="CLS",
-            version_number=1, status="published",
-            default_scale_mmol=1.0, created_by_id=u.id,
+            code="CLONE-SUB",
+            title="Cloneable sub",
+            template_code="CLS.1",
+            template_code_base="CLS",
+            version_number=1,
+            status="published",
+            default_scale_mmol=1.0,
+            created_by_id=u.id,
         )
-        db.session.add(rxn); db.session.flush()
-        db.session.add(ReactionComponent(
-            reaction_id=rxn.id, substance_id=sub_sm.id,
-            role="starting_material", position=0,
-            is_limiting=True, equivalents=1.0,
-        ))
+        db.session.add(rxn)
+        db.session.flush()
+        db.session.add(
+            ReactionComponent(
+                reaction_id=rxn.id,
+                substance_id=sub_sm.id,
+                role="starting_material",
+                position=0,
+                is_limiting=True,
+                equivalents=1.0,
+            )
+        )
         step = ReactionStep(
-            reaction_id=rxn.id, title="Workup",
-            kind="workup", position=0,
+            reaction_id=rxn.id,
+            title="Workup",
+            kind="workup",
+            position=0,
         )
-        db.session.add(step); db.session.flush()
-        db.session.add(ReactionStepComponent(
-            step_id=step.id,
-            substance_id=sub_solvent.id,
-            mixture_id=None,
-            role="solvent", ratio_kind="mL_per_mmol",
-            ratio_value=5.0, position=0,
-        ))
+        db.session.add(step)
+        db.session.flush()
+        db.session.add(
+            ReactionStepComponent(
+                step_id=step.id,
+                substance_id=sub_solvent.id,
+                mixture_id=None,
+                role="solvent",
+                ratio_kind="mL_per_mmol",
+                ratio_value=5.0,
+                position=0,
+            )
+        )
         db.session.commit()
 
         draft = reaction_clone.clone_for_editing(rxn, created_by_id=u.id)

@@ -31,12 +31,16 @@ def _login(client, username):
     r = client.get("/auth/login")
     m = re.search(rb'name="csrf_token"[^>]*value="([^"]+)"', r.data)
     csrf = m.group(1).decode() if m else None
-    return client.post("/auth/login", data={
-        "csrf_token": csrf,
-        "username": username,
-        "password": "password123",
-        "submit": "x",
-    }, follow_redirects=False)
+    return client.post(
+        "/auth/login",
+        data={
+            "csrf_token": csrf,
+            "username": username,
+            "password": "password123",
+            "submit": "x",
+        },
+        follow_redirects=False,
+    )
 
 
 # ─── Model property tests ───────────────────────────────────────────────────
@@ -108,8 +112,7 @@ def test_user_cannot_change_user_role(app, client):
     _create_user(app, username="bob", role="user", is_admin=False)
     target_id = _create_user(app, username="alice", role="user", is_admin=False)
     _login(client, "bob")
-    resp = client.post(f"/settings/users/{target_id}/role",
-                       data={"role": "admin"})
+    resp = client.post(f"/settings/users/{target_id}/role", data={"role": "admin"})
     assert resp.status_code == 403
 
 
@@ -118,8 +121,7 @@ def test_supervisor_cannot_change_user_role(app, client):
     _create_user(app, username="sue", role="supervisor", is_admin=False)
     target_id = _create_user(app, username="alice", role="user", is_admin=False)
     _login(client, "sue")
-    resp = client.post(f"/settings/users/{target_id}/role",
-                       data={"role": "admin"})
+    resp = client.post(f"/settings/users/{target_id}/role", data={"role": "admin"})
     assert resp.status_code == 403
 
 
@@ -127,9 +129,9 @@ def test_admin_can_change_user_role(app, client):
     _create_user(app, username="root", role="admin", is_admin=True)
     target_id = _create_user(app, username="alice", role="user", is_admin=False)
     _login(client, "root")
-    resp = client.post(f"/settings/users/{target_id}/role",
-                       data={"role": "supervisor"},
-                       follow_redirects=False)
+    resp = client.post(
+        f"/settings/users/{target_id}/role", data={"role": "supervisor"}, follow_redirects=False
+    )
     assert resp.status_code in (200, 302)
     with app.app_context():
         u = db.session.get(User, target_id)
@@ -144,9 +146,9 @@ def test_cannot_demote_last_admin(app, client):
     # only one admin → demoting them fails.
     # Login as root, try to demote some other admin? We only have root.
     # So we POST to demote root (the only admin) — should be blocked.
-    resp = client.post(f"/settings/users/{admin_id}/role",
-                       data={"role": "user"},
-                       follow_redirects=False)
+    resp = client.post(
+        f"/settings/users/{admin_id}/role", data={"role": "user"}, follow_redirects=False
+    )
     assert resp.status_code in (200, 302)
     with app.app_context():
         u = db.session.get(User, admin_id)
@@ -158,7 +160,8 @@ def test_run_placeholder_accessible_to_all(app, client):
     _create_user(app, username="bob", role="user", is_admin=False)
     with app.app_context():
         rxn = Reaction(code="RX-2026-0001", title="Test", status="published")
-        db.session.add(rxn); db.session.commit()
+        db.session.add(rxn)
+        db.session.commit()
         rid = rxn.id
     _login(client, "bob")
     resp = client.get(f"/reactions/{rid}/run")
@@ -173,9 +176,9 @@ def test_published_reaction_renders_in_view_mode(app, client):
     """A published reaction page should NOT contain editable inputs/forms."""
     _create_user(app, username="root", role="admin", is_admin=True)
     with app.app_context():
-        rxn = Reaction(code="RX-2026-0001", status="published",
-                       title="Test", template_code="TEST")
-        db.session.add(rxn); db.session.commit()
+        rxn = Reaction(code="RX-2026-0001", status="published", title="Test", template_code="TEST")
+        db.session.add(rxn)
+        db.session.commit()
         rid = rxn.id
     _login(client, "root")
     resp = client.get(f"/reactions/{rid}")
@@ -184,12 +187,12 @@ def test_published_reaction_renders_in_view_mode(app, client):
 
     # View-mode should NOT have:
     forbidden = [
-        "/components/",                  # × on components (any /components/N/delete URL)
-        "Imposta come limitante",        # ★ button
-        "/checklist/new",                # +Add for checklist
-        "/checklist/",                   # any toggle/edit/move/delete
-        "readonly",                      # readonly inputs
-        "Stai modificando una bozza",    # draft banner
+        "/components/",  # × on components (any /components/N/delete URL)
+        "Imposta come limitante",  # ★ button
+        "/checklist/new",  # +Add for checklist
+        "/checklist/",  # any toggle/edit/move/delete
+        "readonly",  # readonly inputs
+        "Stai modificando una bozza",  # draft banner
     ]
     for needle in forbidden:
         assert needle not in html, f"View-mode HTML should not contain {needle!r}"
@@ -197,7 +200,7 @@ def test_published_reaction_renders_in_view_mode(app, client):
     # View-mode SHOULD have:
     expected = [
         "Visualizzazione: solo lettura",  # banner
-        "Esegui run",                     # action button
+        "Esegui run",  # action button
     ]
     for needle in expected:
         assert needle in html, f"View-mode HTML should contain {needle!r}"
@@ -207,9 +210,9 @@ def test_draft_reaction_renders_in_edit_mode(app, client):
     """A draft reaction page should have editable inputs and action buttons."""
     _create_user(app, username="root", role="admin", is_admin=True)
     with app.app_context():
-        rxn = Reaction(code="RX-DRAFT-1", status="draft",
-                       title="Draft test")
-        db.session.add(rxn); db.session.commit()
+        rxn = Reaction(code="RX-DRAFT-1", status="draft", title="Draft test")
+        db.session.add(rxn)
+        db.session.commit()
         rid = rxn.id
     _login(client, "root")
     resp = client.get(f"/reactions/{rid}")
@@ -217,10 +220,10 @@ def test_draft_reaction_renders_in_edit_mode(app, client):
     html = resp.data.decode()
 
     expected = [
-        "Stai modificando una bozza",   # draft banner
-        "/checklist/new",                # +Add form action url
-        "Salva",                         # save button
-        "Aggiungi una voce",             # placeholder for add input
+        "Stai modificando una bozza",  # draft banner
+        "/checklist/new",  # +Add form action url
+        "Salva",  # save button
+        "Aggiungi una voce",  # placeholder for add input
     ]
     for needle in expected:
         assert needle in html, f"Edit-mode HTML should contain {needle!r}"

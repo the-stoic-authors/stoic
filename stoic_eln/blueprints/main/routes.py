@@ -37,20 +37,19 @@ def dashboard():
         .filter(Reaction.is_archived.is_(False))
         .count()
     )
-    n_runs_completed = (
-        db.session.query(Run)
-        .filter(Run.status == "completed")
-        .count()
-    )
+    n_runs_completed = db.session.query(Run).filter(Run.status == "completed").count()
 
     # Recent audit events — admin only
     recent_audit_events: list = []
     label_for_action = None
     from flask_login import current_user
+
     if current_user.is_authenticated and getattr(current_user, "is_admin", False):
         from stoic_eln.services.audit_query import (
-            recent_events, label_for_action as _lf,
+            recent_events,
+            label_for_action as _lf,
         )
+
         recent_audit_events = recent_events(n=8)
         label_for_action = _lf
 

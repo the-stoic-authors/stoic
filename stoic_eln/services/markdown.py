@@ -75,10 +75,7 @@ def _render_inline(text: str) -> str:
         safe = _safe_url(url)
         if safe is None:
             return f"[{label}]({url})"  # leave literal
-        return (
-            f'<a href="{safe}" target="_blank" '
-            f'rel="noopener noreferrer">{label}</a>'
-        )
+        return f'<a href="{safe}" target="_blank" rel="noopener noreferrer">{label}</a>'
 
     text = _LINK_RE.sub(_link_repl, text)
 
@@ -136,18 +133,14 @@ def render_markdown(src: str) -> str:
         # Unordered list?
         if all(_UL_LINE.match(ln) for ln in lines):
             items = [_UL_LINE.match(ln).group(1) for ln in lines]
-            html_items = "".join(
-                f"<li>{_render_inline(it)}</li>" for it in items
-            )
+            html_items = "".join(f"<li>{_render_inline(it)}</li>" for it in items)
             out.append(f"<ul>{html_items}</ul>")
             continue
 
         # Ordered list?
         if all(_OL_LINE.match(ln) for ln in lines):
             items = [_OL_LINE.match(ln).group(1) for ln in lines]
-            html_items = "".join(
-                f"<li>{_render_inline(it)}</li>" for it in items
-            )
+            html_items = "".join(f"<li>{_render_inline(it)}</li>" for it in items)
             out.append(f"<ol>{html_items}</ol>")
             continue
 

@@ -41,16 +41,20 @@ def main() -> None:
 
 @main.command()
 @click.option(
-    "--daemon/--no-daemon", default=False,
+    "--daemon/--no-daemon",
+    default=False,
     help="Register stoic as a system service (launchd on macOS, "
-         "systemd user on Linux). Lets stoic survive logout/reboot.",
+    "systemd user on Linux). Lets stoic survive logout/reboot.",
 )
 @click.option(
-    "--port", default=5001, type=int,
+    "--port",
+    default=5001,
+    type=int,
     help="Port for the web UI. Default 5001.",
 )
 @click.option(
-    "--admin-email", default=None,
+    "--admin-email",
+    default=None,
     help="Email for the first admin user (interactive if omitted).",
 )
 def install(daemon: bool, port: int, admin_email: str | None) -> None:
@@ -89,7 +93,8 @@ def install(daemon: bool, port: int, admin_email: str | None) -> None:
 
 @main.command()
 @click.option(
-    "--skip-restart", is_flag=True,
+    "--skip-restart",
+    is_flag=True,
     help="Don't restart the running server after updating.",
 )
 def update(skip_restart: bool) -> None:
@@ -142,7 +147,8 @@ def update(skip_restart: bool) -> None:
 
 @main.command()
 @click.option(
-    "--foreground/--background", default=False,
+    "--foreground/--background",
+    default=False,
     help="Run attached to this terminal (default: background).",
 )
 @click.option("--port", default=5001, type=int)
@@ -306,7 +312,9 @@ def _create_first_admin(admin_email: str | None) -> None:
     )
     result = subprocess.run(
         [str(venv_python), "-c", check_script],
-        cwd=str(REPO_ROOT), capture_output=True, text=True,
+        cwd=str(REPO_ROOT),
+        capture_output=True,
+        text=True,
         env={**os.environ, "FLASK_APP": "stoic_eln"},
     )
     count = 0
@@ -349,7 +357,8 @@ def _flask_command(args: list[str], abort_on_error: bool = True) -> int:
     env = {**os.environ, "FLASK_APP": "stoic_eln"}
     rc = subprocess.call(
         [str(venv_python), "-m", "flask", "--app", "stoic_eln", *args],
-        cwd=str(REPO_ROOT), env=env,
+        cwd=str(REPO_ROOT),
+        env=env,
     )
     if rc != 0 and abort_on_error:
         out.die(f"flask {' '.join(args)} failed (exit {rc}).")
@@ -391,8 +400,12 @@ def _doctor_venv() -> None:
 def _doctor_deps() -> None:
     """Verify a handful of critical packages."""
     critical = [
-        "flask", "sqlalchemy", "flask_babel", "reportlab",
-        "rdkit", "cryptography",
+        "flask",
+        "sqlalchemy",
+        "flask_babel",
+        "reportlab",
+        "rdkit",
+        "cryptography",
     ]
     venv_python = REPO_ROOT / ".venv" / "bin" / "python"
     if not venv_python.exists():

@@ -22,9 +22,7 @@ class InventoryItemForm(FlaskForm):
         render_kw={"placeholder": "es. STBG3140"},
     )
     supplier = StringField(_l("Fornitore"), validators=[Optional(), Length(max=120)])
-    catalogue_number = StringField(
-        _l("Codice catalogo"), validators=[Optional(), Length(max=64)]
-    )
+    catalogue_number = StringField(_l("Codice catalogo"), validators=[Optional(), Length(max=64)])
 
     initial_quantity_g = FloatField(
         _l("Quantità iniziale (g)"),

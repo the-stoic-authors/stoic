@@ -74,9 +74,7 @@ def test_create_backup_produces_readable_gzipped_sqlite(file_app, tmp_path):
             w.write(r.read())
 
         conn = sqlite3.connect(str(decoded))
-        cur = conn.execute(
-            "SELECT value FROM app_setting WHERE key=?", ("test.marker",)
-        )
+        cur = conn.execute("SELECT value FROM app_setting WHERE key=?", ("test.marker",))
         row = cur.fetchone()
         conn.close()
         assert row is not None
@@ -94,6 +92,7 @@ def test_create_backup_filename_format(file_app):
         ts = backup_service._parse_timestamp(name)
         assert ts is not None
         from stoic_eln.services.backup import _now_utc
+
         assert abs((_now_utc() - ts).total_seconds()) < 60
 
 
@@ -162,9 +161,7 @@ def test_restore_swaps_db_and_sidelines_previous(file_app):
         # Verify by opening a fresh sqlite3 connection straight to
         # the file.
         conn = sqlite3.connect(str(live_db))
-        cur = conn.execute(
-            "SELECT value FROM app_setting WHERE key=?", ("test.marker",)
-        )
+        cur = conn.execute("SELECT value FROM app_setting WHERE key=?", ("test.marker",))
         row = cur.fetchone()
         conn.close()
         assert row is not None
@@ -241,7 +238,4 @@ def test_parse_timestamp_rejects_invalid():
     assert backup_service._parse_timestamp("foo.txt") is None
     assert backup_service._parse_timestamp("stoic_eln-bogus.db.gz") is None
     assert backup_service._parse_timestamp("stoic_eln-20260101-000000.db") is None
-    assert backup_service._parse_timestamp(
-        "stoic_eln-20260101-120000.db.gz"
-    ) is not None
-
+    assert backup_service._parse_timestamp("stoic_eln-20260101-120000.db.gz") is not None

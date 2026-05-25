@@ -54,7 +54,9 @@ def spending():
     date_to = _parse_date(request.args.get("to"))
 
     report = compute_spending(
-        bucket=bucket, date_from=date_from, date_to=date_to,
+        bucket=bucket,
+        date_from=date_from,
+        date_to=date_to,
     )
 
     return render_template(

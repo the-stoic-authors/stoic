@@ -70,8 +70,10 @@ class ReactionStep(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
 
     reaction_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("reaction.id", ondelete="CASCADE"),
-        nullable=False, index=True,
+        Integer,
+        ForeignKey("reaction.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
     )
 
     position: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
@@ -83,13 +85,12 @@ class ReactionStep(db.Model):
     # If NULL → use the reaction's limiting reagent.
     # Otherwise → use the specific ReactionComponent referenced.
     reference_component_id: Mapped[int | None] = mapped_column(
-        Integer, ForeignKey("reaction_component.id", ondelete="SET NULL"),
+        Integer,
+        ForeignKey("reaction_component.id", ondelete="SET NULL"),
         nullable=True,
     )
 
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime, default=_now_utc, nullable=False
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now_utc, nullable=False)
 
     # Relationships
     reaction: Mapped[Reaction] = relationship(
@@ -106,9 +107,7 @@ class ReactionStep(db.Model):
     )
     checklist_items: Mapped[list[ChecklistItem]] = relationship(
         "ChecklistItem",
-        primaryjoin=(
-            "ChecklistItem.step_id == ReactionStep.id"
-        ),
+        primaryjoin=("ChecklistItem.step_id == ReactionStep.id"),
         cascade="all, delete-orphan",
         order_by="ChecklistItem.position.asc()",
         overlaps="reaction,step",

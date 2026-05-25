@@ -78,17 +78,17 @@ class Substance(db.Model):
     # for liquids (state-driven; both can be set if the substance can be
     # bought either way).
     low_stock_threshold_g: Mapped[float | None] = mapped_column(
-        Float, nullable=True,
+        Float,
+        nullable=True,
     )
     low_stock_threshold_mL: Mapped[float | None] = mapped_column(
-        Float, nullable=True,
+        Float,
+        nullable=True,
     )
 
     # Notes and metadata
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
-    created_by_id: Mapped[int | None] = mapped_column(
-        Integer, ForeignKey("user.id"), nullable=True
-    )
+    created_by_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("user.id"), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_now_utc, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, default=_now_utc, onupdate=_now_utc, nullable=False
@@ -117,16 +117,12 @@ class Substance(db.Model):
     @property
     def total_quantity_g(self) -> float:
         """Sum of all active inventory items in grams."""
-        return sum(
-            (item.quantity_g or 0) for item in self.inventory_items if item.is_active
-        )
+        return sum((item.quantity_g or 0) for item in self.inventory_items if item.is_active)
 
     @property
     def total_quantity_mL(self) -> float:
         """Sum of all active inventory items in mL."""
-        return sum(
-            (item.quantity_mL or 0) for item in self.inventory_items if item.is_active
-        )
+        return sum((item.quantity_mL or 0) for item in self.inventory_items if item.is_active)
 
     @property
     def active_inventory_count(self) -> int:
@@ -150,13 +146,19 @@ class Substance(db.Model):
             return cur is not None and cur > 0
 
         if self.low_stock_threshold_g is not None:
-            total = sum((it.quantity_g or 0) for it in self.inventory_items
-                        if _available(it) and it.quantity_g is not None)
+            total = sum(
+                (it.quantity_g or 0)
+                for it in self.inventory_items
+                if _available(it) and it.quantity_g is not None
+            )
             if total < self.low_stock_threshold_g:
                 return True
         if self.low_stock_threshold_mL is not None:
-            total = sum((it.quantity_mL or 0) for it in self.inventory_items
-                        if _available(it) and it.quantity_mL is not None)
+            total = sum(
+                (it.quantity_mL or 0)
+                for it in self.inventory_items
+                if _available(it) and it.quantity_mL is not None
+            )
             if total < self.low_stock_threshold_mL:
                 return True
         return False
@@ -178,12 +180,18 @@ class Substance(db.Model):
             return cur is not None and cur > 0
 
         if self.low_stock_threshold_g is not None:
-            total = sum((it.quantity_g or 0) for it in self.inventory_items
-                        if _available(it) and it.quantity_g is not None)
+            total = sum(
+                (it.quantity_g or 0)
+                for it in self.inventory_items
+                if _available(it) and it.quantity_g is not None
+            )
             return f"{total:g} g (soglia: {self.low_stock_threshold_g:g} g)"
         if self.low_stock_threshold_mL is not None:
-            total = sum((it.quantity_mL or 0) for it in self.inventory_items
-                        if _available(it) and it.quantity_mL is not None)
+            total = sum(
+                (it.quantity_mL or 0)
+                for it in self.inventory_items
+                if _available(it) and it.quantity_mL is not None
+            )
             return f"{total:g} mL (soglia: {self.low_stock_threshold_mL:g} mL)"
         return None
 

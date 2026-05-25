@@ -66,16 +66,25 @@ class MixturePrep(db.Model):
     # Auto-generated batch code (e.g. "HCL6N-2026-001"). Unique
     # across all preps in the lab, same constraint shape as Run.code.
     code: Mapped[str] = mapped_column(
-        String(80), unique=True, nullable=False, index=True,
+        String(80),
+        unique=True,
+        nullable=False,
+        index=True,
     )
     sequence: Mapped[int] = mapped_column(
-        Integer, nullable=False, default=1, index=True,
+        Integer,
+        nullable=False,
+        default=1,
+        index=True,
     )
     year: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
 
     # The mixture (recipe) being prepared.
     mixture_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("mixture.id"), nullable=False, index=True,
+        Integer,
+        ForeignKey("mixture.id"),
+        nullable=False,
+        index=True,
     )
 
     # Target quantity the operator asked for. The actual produced
@@ -84,7 +93,8 @@ class MixturePrep(db.Model):
     # the consumption math.
     target_quantity: Mapped[float] = mapped_column(Float, nullable=False)
     target_quantity_unit: Mapped[str] = mapped_column(
-        String(8), nullable=False,
+        String(8),
+        nullable=False,
     )
 
     # The lot created by this preparation. One-to-one — each prep
@@ -92,32 +102,46 @@ class MixturePrep(db.Model):
     # make audit queries cheap (find the prep that created a given
     # lot, find the lot produced by a given prep).
     output_inventory_item_id: Mapped[int | None] = mapped_column(
-        Integer, ForeignKey("inventory_item.id"), nullable=True, index=True,
+        Integer,
+        ForeignKey("inventory_item.id"),
+        nullable=True,
+        index=True,
     )
 
     prepared_by_id: Mapped[int | None] = mapped_column(
-        Integer, ForeignKey("user.id"), nullable=True,
+        Integer,
+        ForeignKey("user.id"),
+        nullable=True,
     )
     prepared_at: Mapped[datetime] = mapped_column(
-        DateTime, nullable=False, default=_now_utc,
+        DateTime,
+        nullable=False,
+        default=_now_utc,
     )
 
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     # Audit
     created_at: Mapped[datetime] = mapped_column(
-        DateTime, nullable=False, default=_now_utc,
+        DateTime,
+        nullable=False,
+        default=_now_utc,
     )
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime, nullable=False, default=_now_utc, onupdate=_now_utc,
+        DateTime,
+        nullable=False,
+        default=_now_utc,
+        onupdate=_now_utc,
     )
 
     # Relationships
     mixture = relationship(
-        "Mixture", foreign_keys=[mixture_id],
+        "Mixture",
+        foreign_keys=[mixture_id],
     )
     output_lot = relationship(
-        "InventoryItem", foreign_keys=[output_inventory_item_id],
+        "InventoryItem",
+        foreign_keys=[output_inventory_item_id],
     )
     prepared_by = relationship("User", foreign_keys=[prepared_by_id])
 
@@ -194,10 +218,16 @@ class MixturePrepConsumption(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
 
     prep_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("mixture_prep.id"), nullable=False, index=True,
+        Integer,
+        ForeignKey("mixture_prep.id"),
+        nullable=False,
+        index=True,
     )
     inventory_item_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("inventory_item.id"), nullable=False, index=True,
+        Integer,
+        ForeignKey("inventory_item.id"),
+        nullable=False,
+        index=True,
     )
 
     quantity_consumed: Mapped[float] = mapped_column(Float, nullable=False)
@@ -206,17 +236,21 @@ class MixturePrepConsumption(db.Model):
     # Display order within the prep (= position of the matching
     # MixtureComponent on the recipe). Defaults to 0.
     position: Mapped[int] = mapped_column(
-        Integer, nullable=False, default=0,
+        Integer,
+        nullable=False,
+        default=0,
     )
 
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     # Relationships
     prep = relationship(
-        "MixturePrep", back_populates="consumptions",
+        "MixturePrep",
+        back_populates="consumptions",
     )
     inventory_item = relationship(
-        "InventoryItem", foreign_keys=[inventory_item_id],
+        "InventoryItem",
+        foreign_keys=[inventory_item_id],
     )
 
     def __repr__(self) -> str:  # pragma: no cover
@@ -262,14 +296,8 @@ class MixturePrepConsumption(db.Model):
         # Sanity check: lot's cost_per_unit is per g or per mL.
         # If we consumed mass from a volume-priced lot (or
         # vice versa), we can't compute — the units would mix.
-        is_mass_priced = (
-            lot.initial_quantity_g is not None
-            and lot.initial_quantity_g > 0
-        )
-        is_volume_priced = (
-            lot.initial_quantity_mL is not None
-            and lot.initial_quantity_mL > 0
-        )
+        is_mass_priced = lot.initial_quantity_g is not None and lot.initial_quantity_g > 0
+        is_volume_priced = lot.initial_quantity_mL is not None and lot.initial_quantity_mL > 0
         consumed_is_mass = unit in ("g", "kg")
         consumed_is_volume = unit in ("mL", "L")
         if is_mass_priced and consumed_is_volume:

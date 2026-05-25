@@ -104,7 +104,9 @@ def create(entity_type: str, entity_id: int):
     db.session.add(note)
     db.session.commit()
     log_event(
-        action="create", entity_type="note", entity_id=note.id,
+        action="create",
+        entity_type="note",
+        entity_id=note.id,
         details={"target_type": entity_type, "target_id": entity_id},
     )
 
@@ -170,9 +172,10 @@ def edit(note_id: int):
     note.updated_at = _now_utc()
     db.session.commit()
     log_event(
-        action="update", entity_type="note", entity_id=note.id,
-        details={"target_type": note.entity_type,
-                 "target_id": note.entity_id},
+        action="update",
+        entity_type="note",
+        entity_id=note.id,
+        details={"target_type": note.entity_type, "target_id": note.entity_id},
     )
 
     if request.headers.get("HX-Request"):
@@ -193,12 +196,15 @@ def delete(note_id: int):
         abort(403)
 
     entity_type, entity_id, author_id = (
-        note.entity_type, note.entity_id, note.author_id,
+        note.entity_type,
+        note.entity_id,
+        note.author_id,
     )
     log_event(
-        action="delete", entity_type="note", entity_id=note.id,
-        details={"target_type": entity_type, "target_id": entity_id,
-                 "author_id": author_id},
+        action="delete",
+        entity_type="note",
+        entity_id=note.id,
+        details={"target_type": entity_type, "target_id": entity_id, "author_id": author_id},
     )
     db.session.delete(note)
     db.session.commit()

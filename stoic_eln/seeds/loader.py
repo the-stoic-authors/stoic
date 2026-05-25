@@ -26,9 +26,7 @@ def seed_hazard_phrases() -> tuple[int, int]:
     for code, category, en, it in HAZARD_PHRASES:
         existing = db.session.get(HazardPhrase, code)
         if existing is None:
-            db.session.add(
-                HazardPhrase(code=code, category=category, text_en=en, text_it=it)
-            )
+            db.session.add(HazardPhrase(code=code, category=category, text_en=en, text_it=it))
             added += 1
         else:
             skipped += 1

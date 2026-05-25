@@ -70,9 +70,7 @@ def set_format(fmt: str) -> None:
 
 def set_scope(scope: str) -> None:
     if scope not in SCOPES:
-        raise ValueError(
-            f"Unknown sequence scope {scope!r}. Allowed: {SCOPES}"
-        )
+        raise ValueError(f"Unknown sequence scope {scope!r}. Allowed: {SCOPES}")
     AppSetting.set(KEY_SCOPE, scope)
 
 
@@ -86,14 +84,9 @@ def validate_format(fmt: str) -> None:
     used = _PLACEHOLDER_RE.findall(fmt)
     bad = [p for p in used if p not in PLACEHOLDERS]
     if bad:
-        raise ValueError(
-            f"Placeholder non riconosciuti: {bad}. "
-            f"Validi: {PLACEHOLDERS}"
-        )
+        raise ValueError(f"Placeholder non riconosciuti: {bad}. Validi: {PLACEHOLDERS}")
     if "seq" not in used:
-        raise ValueError(
-            "Il formato deve contenere {seq} per garantire l'unicità."
-        )
+        raise ValueError("Il formato deve contenere {seq} per garantire l'unicità.")
 
     # Quick test render to surface any dangling colons / wrong specs.
     try:
@@ -124,15 +117,22 @@ def slugify_mixture_name(name: str) -> str:
 
 
 def format_prep_code(
-    *, fmt: str, mix: str, year: int, seq: int,
+    *,
+    fmt: str,
+    mix: str,
+    year: int,
+    seq: int,
 ) -> str:
     """Render a prep code from explicit values. No DB access."""
     return fmt.format(mix=mix, year=year, seq=seq)
 
 
 def preview_prep_code(
-    *, mix: str = "HCL6N", year: int | None = None,
-    seq: int = 1, fmt: str | None = None,
+    *,
+    mix: str = "HCL6N",
+    year: int | None = None,
+    seq: int = 1,
+    fmt: str | None = None,
 ) -> str:
     """Render a sample code for the admin UI."""
     if year is None:
@@ -146,7 +146,10 @@ def preview_prep_code(
 
 
 def next_sequence_number(
-    *, scope: str, mixture_id: int, year: int,
+    *,
+    scope: str,
+    mixture_id: int,
+    year: int,
 ) -> int:
     """Compute the next sequence number for a new prep.
 
@@ -166,7 +169,10 @@ def next_sequence_number(
 
 
 def generate_prep_code(
-    *, mixture_name: str, mixture_id: int, year: int | None = None,
+    *,
+    mixture_name: str,
+    mixture_id: int,
+    year: int | None = None,
 ) -> tuple[str, int]:
     """End-to-end: read settings, slug the name, compute seq, format.
 

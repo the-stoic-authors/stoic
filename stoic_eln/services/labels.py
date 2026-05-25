@@ -172,11 +172,7 @@ def qr_payload(item: InventoryItem) -> str:
         {
             "lotto_id": item.id,
             "batch": item.batch_code or "",
-            "sostanza": (
-                sub.name if sub
-                else mix.display_label if mix
-                else ""
-            ),
+            "sostanza": (sub.name if sub else mix.display_label if mix else ""),
             "scadenza": item.expiry_date.isoformat() if item.expiry_date else "",
         },
         ensure_ascii=False,
@@ -251,15 +247,15 @@ _GHS_PALETTES: dict[str, dict[str, str]] = {
 # placeholder, otherwise a naive sequential replace would turn black
 # back into white on the second pass.
 _THEME_COLOR_MAP: dict[str, list[tuple[str, str]]] = {
-    "light": [],   # no-op
+    "light": [],  # no-op
     "dark": [
         # white tokens -> sentinel
         (r"#ffffff\b", "__GHS_TMP_WHITE__"),
-        (r"#fff\b",    "__GHS_TMP_WHITE__"),
+        (r"#fff\b", "__GHS_TMP_WHITE__"),
         (r"\bwhite\b", "__GHS_TMP_WHITE__"),
         # black tokens -> white
         (r"#000000\b", "#ffffff"),
-        (r"#000\b",    "#ffffff"),
+        (r"#000\b", "#ffffff"),
         (r"\bblack\b", "#ffffff"),
         # sentinel -> dark bg
         (r"__GHS_TMP_WHITE__", "#1a1a1a"),
@@ -283,9 +279,7 @@ def _resolve_css_vars(svg_text: str, palette: dict[str, str]) -> str:
     """
     import re
 
-    pattern = re.compile(
-        r"var\s*\(\s*(--[a-zA-Z0-9_-]+)\s*(?:,\s*([^)]+?))?\s*\)"
-    )
+    pattern = re.compile(r"var\s*\(\s*(--[a-zA-Z0-9_-]+)\s*(?:,\s*([^)]+?))?\s*\)")
 
     def repl(m: re.Match[str]) -> str:
         name = m.group(1)
@@ -441,6 +435,7 @@ def _ghs_png(code: str, *, theme: str = "light") -> bytes | None:
         # along with the magenta, making the symbol disappear from
         # the printed label.
         from PIL import Image  # noqa: PLC0415 — local keeps cold-import cheap
+
         pil_img = renderPM.drawToPIL(d, bg=0xFF00FF)
         pil_img = pil_img.convert("RGBA")
         # Walk the bytes once, converting magenta sentinel → fully
@@ -461,8 +456,7 @@ def _ghs_png(code: str, *, theme: str = "light") -> bytes | None:
         pil_img.save(buf, format="PNG", optimize=False)
         png_bytes = buf.getvalue()
     except Exception as exc:  # noqa: BLE001
-        log.warning("Failed to rasterise GHS %s (theme=%s): %s",
-                    code, theme, exc)
+        log.warning("Failed to rasterise GHS %s (theme=%s): %s", code, theme, exc)
         _ghs_cache[cache_key] = None
         return None
 
@@ -470,8 +464,7 @@ def _ghs_png(code: str, *, theme: str = "light") -> bytes | None:
     return png_bytes
 
 
-def _draw_ghs(c: canvas.Canvas, code: str, x_mm: float, y_mm: float,
-              size_mm: float) -> None:
+def _draw_ghs(c: canvas.Canvas, code: str, x_mm: float, y_mm: float, size_mm: float) -> None:
     """Draw a GHS pictogram at ``(x_mm, y_mm)`` (bottom-left), uniformly
     scaled to ``size_mm`` square. No-op if the asset is missing.
 
@@ -491,8 +484,11 @@ def _draw_ghs(c: canvas.Canvas, code: str, x_mm: float, y_mm: float,
         return
     img = ImageReader(io.BytesIO(png))
     c.drawImage(
-        img, x_mm * mm, y_mm * mm,
-        width=size_mm * mm, height=size_mm * mm,
+        img,
+        x_mm * mm,
+        y_mm * mm,
+        width=size_mm * mm,
+        height=size_mm * mm,
         preserveAspectRatio=True,
         mask="auto",
     )
@@ -504,8 +500,7 @@ def _draw_ghs(c: canvas.Canvas, code: str, x_mm: float, y_mm: float,
 _mol_cache: dict[str, bytes | None] = {}
 
 
-def _molecule_png(smiles: str | None,
-                  *, width_px: int = 700, height_px: int = 600) -> bytes | None:
+def _molecule_png(smiles: str | None, *, width_px: int = 700, height_px: int = 600) -> bytes | None:
     """Render a 2D molecular structure as PNG bytes via RDKit.
 
     Returns None when SMILES is missing, RDKit is unavailable, or the
@@ -548,9 +543,9 @@ def _molecule_png(smiles: str | None,
     return png
 
 
-def _draw_molecule(c: canvas.Canvas, smiles: str | None,
-                   x_mm: float, y_mm: float,
-                   max_w_mm: float, max_h_mm: float) -> bool:
+def _draw_molecule(
+    c: canvas.Canvas, smiles: str | None, x_mm: float, y_mm: float, max_w_mm: float, max_h_mm: float
+) -> bool:
     """Place a 2D molecule depiction within the given box (bottom-left).
 
     Returns True if something was drawn, False otherwise — callers can
@@ -561,9 +556,13 @@ def _draw_molecule(c: canvas.Canvas, smiles: str | None,
         return False
     img = ImageReader(io.BytesIO(png))
     c.drawImage(
-        img, x_mm * mm, y_mm * mm,
-        width=max_w_mm * mm, height=max_h_mm * mm,
-        preserveAspectRatio=True, mask="auto",
+        img,
+        x_mm * mm,
+        y_mm * mm,
+        width=max_w_mm * mm,
+        height=max_h_mm * mm,
+        preserveAspectRatio=True,
+        mask="auto",
     )
     return True
 
@@ -580,8 +579,7 @@ def _truncate(s: str, max_chars: int) -> str:
     return s[: max_chars - 1].rstrip() + "…"
 
 
-def _fit_to_width(c: canvas.Canvas, text: str, max_w_pt: float,
-                  font: str, size: float) -> str:
+def _fit_to_width(c: canvas.Canvas, text: str, max_w_pt: float, font: str, size: float) -> str:
     """Truncate ``text`` to fit within ``max_w_pt`` at the given font/size.
 
     Tries word-by-word truncation first, then falls back to character
@@ -621,9 +619,13 @@ def _fit_to_width(c: canvas.Canvas, text: str, max_w_pt: float,
     return ""
 
 
-def _wrap_two_lines(c: canvas.Canvas, text: str,
-                    max_w_pt: float, font: str, size: float,
-                    ) -> tuple[str, str]:
+def _wrap_two_lines(
+    c: canvas.Canvas,
+    text: str,
+    max_w_pt: float,
+    font: str,
+    size: float,
+) -> tuple[str, str]:
     """Split ``text`` into at most two lines that each fit ``max_w_pt``.
 
     The first line breaks on the last whitespace whose left fragment
@@ -660,10 +662,15 @@ def _wrap_two_lines(c: canvas.Canvas, text: str,
     return line1, line2
 
 
-def _fit_lot_code_lines(c: canvas.Canvas, text: str, max_w_pt: float,
-                        font: str, preferred_size: float,
-                        *, min_size: float = 5.0,
-                        ) -> tuple[list[str], float]:
+def _fit_lot_code_lines(
+    c: canvas.Canvas,
+    text: str,
+    max_w_pt: float,
+    font: str,
+    preferred_size: float,
+    *,
+    min_size: float = 5.0,
+) -> tuple[list[str], float]:
     """Shrink-and-wrap a lot code so it ALWAYS fits without truncation.
 
     The lot code is the lot's primary identifier — losing characters
@@ -708,8 +715,10 @@ def _fit_lot_code_lines(c: canvas.Canvas, text: str, max_w_pt: float,
         for pos in positions:
             head = text[:pos]
             tail = text[pos:]
-            if (c.stringWidth(head, font, size) <= max_w_pt
-                    and c.stringWidth(tail, font, size) <= max_w_pt):
+            if (
+                c.stringWidth(head, font, size) <= max_w_pt
+                and c.stringWidth(tail, font, size) <= max_w_pt
+            ):
                 # Prefer the split closest to the midpoint.
                 score = abs(pos - len(text) / 2)
                 if best_split is None or score < best_split[0]:
@@ -723,8 +732,10 @@ def _fit_lot_code_lines(c: canvas.Canvas, text: str, max_w_pt: float,
     for split_at in range(len(text) // 2, len(text)):
         head = text[:split_at]
         tail = text[split_at:]
-        if (c.stringWidth(head, font, size) <= max_w_pt
-                and c.stringWidth(tail, font, size) <= max_w_pt):
+        if (
+            c.stringWidth(head, font, size) <= max_w_pt
+            and c.stringWidth(tail, font, size) <= max_w_pt
+        ):
             return [head, tail], size
 
     # Truly pathological case (a single >max_w_pt-wide character): we
@@ -805,6 +816,7 @@ def _pick_lot_date_label(item: InventoryItem) -> str | None:
         # the labels service and the run model module.
         from stoic_eln.extensions import db  # noqa: PLC0415
         from stoic_eln.models.run import Run  # noqa: PLC0415
+
         run = db.session.get(Run, item.source_run_id)
         run_date = None
         if run is not None:
@@ -827,9 +839,9 @@ def _pick_lot_date_label(item: InventoryItem) -> str | None:
     return None
 
 
-def _draw_label(c: canvas.Canvas, item: InventoryItem,
-                origin_x_mm: float, origin_y_mm: float,
-                fmt: LabelFormat) -> None:
+def _draw_label(
+    c: canvas.Canvas, item: InventoryItem, origin_x_mm: float, origin_y_mm: float, fmt: LabelFormat
+) -> None:
     """Render one label at the given origin (bottom-left, in mm).
 
     Layout (patch 12.2): the label is split into a left text column and
@@ -884,6 +896,7 @@ def _draw_label(c: canvas.Canvas, item: InventoryItem,
         # this is purely a render-time adapter and instances live
         # for one label.
         from types import SimpleNamespace  # noqa: PLC0415
+
         primary_solute = next(
             (c for c in mix.components if c.role == "solute"),
             None,
@@ -893,18 +906,21 @@ def _draw_label(c: canvas.Canvas, item: InventoryItem,
             iupac_name=None,
             cas_number=(
                 primary_solute.substance.cas_number
-                if primary_solute and primary_solute.substance else None
+                if primary_solute and primary_solute.substance
+                else None
             ),
             molecular_formula=(
                 primary_solute.substance.molecular_formula
-                if primary_solute and primary_solute.substance else None
+                if primary_solute and primary_solute.substance
+                else None
             ),
             molecular_weight=(
                 primary_solute.substance.molecular_weight
-                if primary_solute and primary_solute.substance else None
+                if primary_solute and primary_solute.substance
+                else None
             ),
-            density=None,                  # mixtures have no single density
-            smiles=None,                   # no structure render for mixtures
+            density=None,  # mixtures have no single density
+            smiles=None,  # no structure render for mixtures
             ghs_pictograms=mix.effective_pictograms,
             h_phrases=mix.effective_h_phrases,
             p_phrases=mix.effective_p_phrases,
@@ -982,10 +998,14 @@ def _draw_label(c: canvas.Canvas, item: InventoryItem,
         struct_x_mm = min(ideal_x_mm, max_x_mm)
         struct_y_mm = qr_y_mm - struct_h - 1.0
         if struct_y_mm > pad:
-            if _draw_molecule(c, sub.smiles,
-                              origin_x_mm + struct_x_mm,
-                              origin_y_mm + struct_y_mm,
-                              struct_w, struct_h):
+            if _draw_molecule(
+                c,
+                sub.smiles,
+                origin_x_mm + struct_x_mm,
+                origin_y_mm + struct_y_mm,
+                struct_w,
+                struct_h,
+            ):
                 right_col_bottom_mm = struct_y_mm
 
     # ── Left column: text width depends on vertical position ────
@@ -994,9 +1014,9 @@ def _draw_label(c: canvas.Canvas, item: InventoryItem,
     text_x_mm = pad
     text_x_pt = at_x(text_x_mm)
     # The right column's left edge sets the right boundary above.
-    right_col_x_mm = (struct_x_mm if (is_roomy and struct_w
-                                      and right_col_bottom_mm < qr_y_mm)
-                      else qr_x_mm)
+    right_col_x_mm = (
+        struct_x_mm if (is_roomy and struct_w and right_col_bottom_mm < qr_y_mm) else qr_x_mm
+    )
     text_w_top_pt = (right_col_x_mm - pad - 1.0) * mm
     text_w_full_pt = (W - 2 * pad) * mm
 
@@ -1036,65 +1056,93 @@ def _draw_label(c: canvas.Canvas, item: InventoryItem,
     iupac_for_measure = (sub.iupac_name if sub else None) or ""
     formula_for_measure = (sub.molecular_formula if sub else None) or ""
     cas_for_measure = (sub.cas_number if sub else None) or ""
-    mw_for_measure = (
-        f"MW {sub.molecular_weight:.2f}"
-        if sub and sub.molecular_weight else ""
-    )
-    rho_for_measure = (
-        f"\u03c1 {sub.density:.3g} g/mL"
-        if sub and sub.density else ""
-    )
+    mw_for_measure = f"MW {sub.molecular_weight:.2f}" if sub and sub.molecular_weight else ""
+    rho_for_measure = f"\u03c1 {sub.density:.3g} g/mL" if sub and sub.density else ""
 
     measure_rows: list[tuple[str, str, float, float]] = []
     if item.batch_code:
         # The "Lotto " prefix counts toward the budget — it has to
         # share the row with the code itself.
-        measure_rows.append((
-            f"Lotto {item.batch_code}", "Helvetica", font_lot_size,
-            text_w_top_pt,
-        ))
+        measure_rows.append(
+            (
+                f"Lotto {item.batch_code}",
+                "Helvetica",
+                font_lot_size,
+                text_w_top_pt,
+            )
+        )
     if iupac_for_measure:
-        measure_rows.append((
-            iupac_for_measure, "Helvetica-Oblique", font_iupac_size,
-            text_w_top_pt,
-        ))
+        measure_rows.append(
+            (
+                iupac_for_measure,
+                "Helvetica-Oblique",
+                font_iupac_size,
+                text_w_top_pt,
+            )
+        )
     if formula_for_measure:
-        measure_rows.append((
-            formula_for_measure, "Helvetica", font_meta_size,
-            text_w_top_pt,
-        ))
+        measure_rows.append(
+            (
+                formula_for_measure,
+                "Helvetica",
+                font_meta_size,
+                text_w_top_pt,
+            )
+        )
     if cas_for_measure:
-        measure_rows.append((
-            f"CAS {cas_for_measure}", "Helvetica", font_meta_size,
-            text_w_top_pt,
-        ))
+        measure_rows.append(
+            (
+                f"CAS {cas_for_measure}",
+                "Helvetica",
+                font_meta_size,
+                text_w_top_pt,
+            )
+        )
     if mw_for_measure:
-        measure_rows.append((
-            mw_for_measure, "Helvetica", font_meta_size,
-            text_w_top_pt,
-        ))
+        measure_rows.append(
+            (
+                mw_for_measure,
+                "Helvetica",
+                font_meta_size,
+                text_w_top_pt,
+            )
+        )
     if rho_for_measure:
-        measure_rows.append((
-            rho_for_measure, "Helvetica", font_meta_size,
-            text_w_top_pt,
-        ))
+        measure_rows.append(
+            (
+                rho_for_measure,
+                "Helvetica",
+                font_meta_size,
+                text_w_top_pt,
+            )
+        )
     if h_codes_for_measure:
-        measure_rows.append((
-            "H: " + " ".join(h_codes_for_measure),
-            "Helvetica", font_hp_size,
-            text_w_top_pt,
-        ))
+        measure_rows.append(
+            (
+                "H: " + " ".join(h_codes_for_measure),
+                "Helvetica",
+                font_hp_size,
+                text_w_top_pt,
+            )
+        )
     if p_codes_for_measure:
-        measure_rows.append((
-            "P: " + " ".join(p_codes_for_measure),
-            "Helvetica", font_hp_size,
-            text_w_top_pt,
-        ))
+        measure_rows.append(
+            (
+                "P: " + " ".join(p_codes_for_measure),
+                "Helvetica",
+                font_hp_size,
+                text_w_top_pt,
+            )
+        )
     if date_label_for_measure:
-        measure_rows.append((
-            date_label_for_measure, "Helvetica-Bold", font_exp_size,
-            text_w_full_pt,  # date row is below the right column
-        ))
+        measure_rows.append(
+            (
+                date_label_for_measure,
+                "Helvetica-Bold",
+                font_exp_size,
+                text_w_full_pt,  # date row is below the right column
+            )
+        )
 
     # Floor the shrink at 0.55: below that, point sizes get into
     # illegible territory (a 5.5-pt font × 0.55 ≈ 3pt). When this
@@ -1102,7 +1150,9 @@ def _draw_label(c: canvas.Canvas, item: InventoryItem,
     # truncate, but for the practical cases (long lot codes, long
     # IUPAC names, dense H/P phrase lists) 0.55 is more than enough.
     shrink_ratio = _compute_proportional_shrink(
-        c, measure_rows, min_ratio=0.55,
+        c,
+        measure_rows,
+        min_ratio=0.55,
     )
 
     # Apply uniformly to every font and line height. The right-column
@@ -1110,19 +1160,19 @@ def _draw_label(c: canvas.Canvas, item: InventoryItem,
     # are graphics with their own size logic, and the label's overall
     # layout depends on them being predictable.
     if shrink_ratio < 1.0:
-        font_lot_size  *= shrink_ratio
+        font_lot_size *= shrink_ratio
         font_name_size *= shrink_ratio
         font_iupac_size *= shrink_ratio
         font_meta_size *= shrink_ratio
-        font_hp_size   *= shrink_ratio
-        font_exp_size  *= shrink_ratio
-        line_h_lot     *= shrink_ratio
-        line_h_name    *= shrink_ratio
-        line_h_iupac   *= shrink_ratio
-        line_h_meta    *= shrink_ratio
-        line_h_hp      *= shrink_ratio
-        line_h_exp     *= shrink_ratio
-        sep_gap        *= shrink_ratio
+        font_hp_size *= shrink_ratio
+        font_exp_size *= shrink_ratio
+        line_h_lot *= shrink_ratio
+        line_h_name *= shrink_ratio
+        line_h_iupac *= shrink_ratio
+        line_h_meta *= shrink_ratio
+        line_h_hp *= shrink_ratio
+        line_h_exp *= shrink_ratio
+        sep_gap *= shrink_ratio
 
     # ── Vertical cursor starts at the top-inner corner ──────────
     cur_y_mm = H - pad
@@ -1142,8 +1192,11 @@ def _draw_label(c: canvas.Canvas, item: InventoryItem,
         prefix_w_pt = pdfmetrics.stringWidth(prefix, "Helvetica", font_lot_size)
         avail_pt = width_at(cur_y_mm) - prefix_w_pt
         lines, lot_font_size = _fit_lot_code_lines(
-            c, item.batch_code, avail_pt,
-            "Helvetica", font_lot_size,
+            c,
+            item.batch_code,
+            avail_pt,
+            "Helvetica",
+            font_lot_size,
             min_size=max(5.0, font_lot_size - 2.5),
         )
         c.setFont("Helvetica", lot_font_size)
@@ -1159,8 +1212,11 @@ def _draw_label(c: canvas.Canvas, item: InventoryItem,
     # ── 2. NAME (bold, big, up to 2 lines) ──────────────────────
     name = (sub.name if sub else "—") or "—"
     line1, line2 = _wrap_two_lines(
-        c, name, width_at(cur_y_mm - line_h_name),
-        "Helvetica-Bold", font_name_size,
+        c,
+        name,
+        width_at(cur_y_mm - line_h_name),
+        "Helvetica-Bold",
+        font_name_size,
     )
     cur_y_mm -= line_h_name
     c.setFont("Helvetica-Bold", font_name_size)
@@ -1170,15 +1226,15 @@ def _draw_label(c: canvas.Canvas, item: InventoryItem,
         c.drawString(text_x_pt, at_y(cur_y_mm), line2)
 
     # ── 3. IUPAC name (italic, grey, single line, truncated) ────
-    iupac = (sub.iupac_name if sub else None)
+    iupac = sub.iupac_name if sub else None
     if iupac:
         cur_y_mm -= line_h_iupac
         c.setFont("Helvetica-Oblique", font_iupac_size)
         c.setFillColor(grey)
         c.drawString(
-            text_x_pt, at_y(cur_y_mm),
-            _fit_to_width(c, iupac, width_at(cur_y_mm),
-                          "Helvetica-Oblique", font_iupac_size),
+            text_x_pt,
+            at_y(cur_y_mm),
+            _fit_to_width(c, iupac, width_at(cur_y_mm), "Helvetica-Oblique", font_iupac_size),
         )
         c.setFillColor(black)
 
@@ -1187,9 +1243,11 @@ def _draw_label(c: canvas.Canvas, item: InventoryItem,
         cur_y_mm -= line_h_meta
         c.setFont("Helvetica", font_meta_size)
         c.drawString(
-            text_x_pt, at_y(cur_y_mm),
-            _fit_to_width(c, sub.molecular_formula, width_at(cur_y_mm),
-                          "Helvetica", font_meta_size),
+            text_x_pt,
+            at_y(cur_y_mm),
+            _fit_to_width(
+                c, sub.molecular_formula, width_at(cur_y_mm), "Helvetica", font_meta_size
+            ),
         )
 
     # ── 5. CAS ──────────────────────────────────────────────────
@@ -1197,9 +1255,11 @@ def _draw_label(c: canvas.Canvas, item: InventoryItem,
         cur_y_mm -= line_h_meta
         c.setFont("Helvetica", font_meta_size)
         c.drawString(
-            text_x_pt, at_y(cur_y_mm),
-            _fit_to_width(c, f"CAS {sub.cas_number}", width_at(cur_y_mm),
-                          "Helvetica", font_meta_size),
+            text_x_pt,
+            at_y(cur_y_mm),
+            _fit_to_width(
+                c, f"CAS {sub.cas_number}", width_at(cur_y_mm), "Helvetica", font_meta_size
+            ),
         )
 
     # ── ── separator (thin grey rule across the left column) ─── ──
@@ -1208,12 +1268,10 @@ def _draw_label(c: canvas.Canvas, item: InventoryItem,
     # QR or 2D structure.
     if sub and (sub.molecular_weight or sub.density):
         cur_y_mm -= sep_gap
-        sep_right_mm = (W - pad if cur_y_mm <= right_col_bottom_mm
-                        else right_col_x_mm - 1.0)
+        sep_right_mm = W - pad if cur_y_mm <= right_col_bottom_mm else right_col_x_mm - 1.0
         c.setStrokeColor(grey)
         c.setLineWidth(0.3)
-        c.line(at_x(pad), at_y(cur_y_mm),
-               at_x(sep_right_mm), at_y(cur_y_mm))
+        c.line(at_x(pad), at_y(cur_y_mm), at_x(sep_right_mm), at_y(cur_y_mm))
         c.setStrokeColor(black)
 
     # ── 6. MW ───────────────────────────────────────────────────
@@ -1221,10 +1279,11 @@ def _draw_label(c: canvas.Canvas, item: InventoryItem,
         cur_y_mm -= line_h_meta
         c.setFont("Helvetica", font_meta_size)
         c.drawString(
-            text_x_pt, at_y(cur_y_mm),
-            _fit_to_width(c, f"MW {sub.molecular_weight:.2f}",
-                          width_at(cur_y_mm),
-                          "Helvetica", font_meta_size),
+            text_x_pt,
+            at_y(cur_y_mm),
+            _fit_to_width(
+                c, f"MW {sub.molecular_weight:.2f}", width_at(cur_y_mm), "Helvetica", font_meta_size
+            ),
         )
 
     # ── 7. Density ──────────────────────────────────────────────
@@ -1232,10 +1291,11 @@ def _draw_label(c: canvas.Canvas, item: InventoryItem,
         cur_y_mm -= line_h_meta
         c.setFont("Helvetica", font_meta_size)
         c.drawString(
-            text_x_pt, at_y(cur_y_mm),
-            _fit_to_width(c, f"ρ {sub.density:.3g} g/mL",
-                          width_at(cur_y_mm),
-                          "Helvetica", font_meta_size),
+            text_x_pt,
+            at_y(cur_y_mm),
+            _fit_to_width(
+                c, f"ρ {sub.density:.3g} g/mL", width_at(cur_y_mm), "Helvetica", font_meta_size
+            ),
         )
 
     # ── ── separator before the safety block ────────────────────
@@ -1245,12 +1305,10 @@ def _draw_label(c: canvas.Canvas, item: InventoryItem,
     date_label = _pick_lot_date_label(item)
     if h_codes or p_codes or pictograms or date_label:
         cur_y_mm -= sep_gap
-        sep_right_mm = (W - pad if cur_y_mm <= right_col_bottom_mm
-                        else right_col_x_mm - 1.0)
+        sep_right_mm = W - pad if cur_y_mm <= right_col_bottom_mm else right_col_x_mm - 1.0
         c.setStrokeColor(grey)
         c.setLineWidth(0.3)
-        c.line(at_x(pad), at_y(cur_y_mm),
-               at_x(sep_right_mm), at_y(cur_y_mm))
+        c.line(at_x(pad), at_y(cur_y_mm), at_x(sep_right_mm), at_y(cur_y_mm))
         c.setStrokeColor(black)
 
     # ── 8. H phrases (grey, small) ──────────────────────────────
@@ -1259,10 +1317,11 @@ def _draw_label(c: canvas.Canvas, item: InventoryItem,
         c.setFont("Helvetica", font_hp_size)
         c.setFillColor(grey)
         c.drawString(
-            text_x_pt, at_y(cur_y_mm),
-            _fit_to_width(c, "H: " + " ".join(h_codes),
-                          width_at(cur_y_mm),
-                          "Helvetica", font_hp_size),
+            text_x_pt,
+            at_y(cur_y_mm),
+            _fit_to_width(
+                c, "H: " + " ".join(h_codes), width_at(cur_y_mm), "Helvetica", font_hp_size
+            ),
         )
         c.setFillColor(black)
 
@@ -1272,10 +1331,11 @@ def _draw_label(c: canvas.Canvas, item: InventoryItem,
         c.setFont("Helvetica", font_hp_size)
         c.setFillColor(grey)
         c.drawString(
-            text_x_pt, at_y(cur_y_mm),
-            _fit_to_width(c, "P: " + " ".join(p_codes),
-                          width_at(cur_y_mm),
-                          "Helvetica", font_hp_size),
+            text_x_pt,
+            at_y(cur_y_mm),
+            _fit_to_width(
+                c, "P: " + " ".join(p_codes), width_at(cur_y_mm), "Helvetica", font_hp_size
+            ),
         )
         c.setFillColor(black)
 
@@ -1288,8 +1348,7 @@ def _draw_label(c: canvas.Canvas, item: InventoryItem,
         if len(pictograms) > max_fit:
             size = (W - 2 * pad - 0.7 * (len(pictograms) - 1)) / len(pictograms)
         for code in pictograms:
-            _draw_ghs(c, code, origin_x_mm + gx_mm, origin_y_mm + cur_y_mm,
-                      size)
+            _draw_ghs(c, code, origin_x_mm + gx_mm, origin_y_mm + cur_y_mm, size)
             gx_mm += size + 0.7
 
     # ── 11. Date row (last) ─────────────────────────────────────
@@ -1304,15 +1363,17 @@ def _draw_label(c: canvas.Canvas, item: InventoryItem,
         c.setFont("Helvetica-Bold", font_exp_size)
         c.drawString(text_x_pt, at_y(cur_y_mm), date_label)
 
+
 # ── Public API ─────────────────────────────────────────────────────
 
 
-def render_labels_pdf(items: Iterable[InventoryItem],
-                      fmt_key: str,
-                      *,
-                      start_position: int = 0,
-                      copies_per_item: int = 1,
-                      ) -> bytes:
+def render_labels_pdf(
+    items: Iterable[InventoryItem],
+    fmt_key: str,
+    *,
+    start_position: int = 0,
+    copies_per_item: int = 1,
+) -> bytes:
     """Render one or more lots' labels into a PDF.
 
     Args:
@@ -1359,12 +1420,9 @@ def render_labels_pdf(items: Iterable[InventoryItem],
             # Convert from row/col to bottom-left mm coords. ReportLab
             # has origin at bottom-left, but Avery measurements are
             # from the top-left, so we flip the row.
-            x_mm = (fmt.margin_left_mm
-                    + col * (fmt.label_width_mm + fmt.gap_h_mm))
-            y_top_mm = (fmt.margin_top_mm
-                        + row * (fmt.label_height_mm + fmt.gap_v_mm))
-            y_bottom_mm = (fmt.page_height_mm
-                           - y_top_mm - fmt.label_height_mm)
+            x_mm = fmt.margin_left_mm + col * (fmt.label_width_mm + fmt.gap_h_mm)
+            y_top_mm = fmt.margin_top_mm + row * (fmt.label_height_mm + fmt.gap_v_mm)
+            y_bottom_mm = fmt.page_height_mm - y_top_mm - fmt.label_height_mm
             _draw_label(c, it, x_mm, y_bottom_mm, fmt)
             slot += 1
             if slot >= per_sheet:

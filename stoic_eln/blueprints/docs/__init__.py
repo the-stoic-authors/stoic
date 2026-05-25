@@ -9,6 +9,7 @@ rendered at request time. Three pages:
 
 Each page picks IT or EN based on ``current_user.locale``.
 """
+
 from __future__ import annotations
 
 from flask import Blueprint

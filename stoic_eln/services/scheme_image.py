@@ -60,8 +60,7 @@ def render_reaction_png(
             n_mols = rxn.GetNumReactantTemplates() + rxn.GetNumProductTemplates()
             if n_mols == 0:
                 return None
-            cell_w = max(220, min(_DEFAULT_SUB_IMG[0],
-                                  target_width_px // max(n_mols, 1)))
+            cell_w = max(220, min(_DEFAULT_SUB_IMG[0], target_width_px // max(n_mols, 1)))
             cell_h = int(cell_w * 0.65)
             img = Draw.ReactionToImage(
                 rxn,
@@ -75,8 +74,7 @@ def render_reaction_png(
             mols = [m for m in mols if m is not None]
             if not mols:
                 return None
-            cell_w = max(220, min(_DEFAULT_SUB_IMG[0],
-                                  target_width_px // max(len(mols), 1)))
+            cell_w = max(220, min(_DEFAULT_SUB_IMG[0], target_width_px // max(len(mols), 1)))
             cell_h = int(cell_w * 0.85)
             img = Draw.MolsToGridImage(
                 mols,
@@ -159,12 +157,12 @@ def render_molecule_svg(
             opts.setBackgroundColour((0, 0, 0, 0))  # fully transparent
             palette = {
                 # atomic number -> (R, G, B)
-                0:  (0.85, 0.85, 0.85),  # default / "unlabelled" atoms
-                1:  (0.85, 0.85, 0.85),  # H
-                6:  (0.85, 0.85, 0.85),  # C
-                7:  (0.45, 0.55, 1.00),  # N — lighter blue
-                8:  (1.00, 0.55, 0.55),  # O — lighter red
-                9:  (0.50, 0.90, 0.50),  # F — lighter green
+                0: (0.85, 0.85, 0.85),  # default / "unlabelled" atoms
+                1: (0.85, 0.85, 0.85),  # H
+                6: (0.85, 0.85, 0.85),  # C
+                7: (0.45, 0.55, 1.00),  # N — lighter blue
+                8: (1.00, 0.55, 0.55),  # O — lighter red
+                9: (0.50, 0.90, 0.50),  # F — lighter green
                 15: (1.00, 0.65, 0.30),  # P — orange
                 16: (1.00, 0.95, 0.40),  # S — yellow
                 17: (0.50, 0.95, 0.55),  # Cl — green

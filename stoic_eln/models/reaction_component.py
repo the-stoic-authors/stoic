@@ -109,9 +109,7 @@ class ReactionComponent(db.Model):
     # Per-component notes
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime, default=_now_utc, nullable=False
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now_utc, nullable=False)
 
     # XOR check (parallel to inventory_item)
     __table_args__ = (
@@ -125,10 +123,12 @@ class ReactionComponent(db.Model):
     # Relationships
     reaction: Mapped[Reaction] = relationship("Reaction", back_populates="components")
     substance: Mapped[Substance | None] = relationship(
-        "Substance", foreign_keys=[substance_id],
+        "Substance",
+        foreign_keys=[substance_id],
     )
     mixture: Mapped[Mixture | None] = relationship(
-        "Mixture", foreign_keys=[mixture_id],
+        "Mixture",
+        foreign_keys=[mixture_id],
     )
 
     def __repr__(self) -> str:

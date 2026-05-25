@@ -93,5 +93,5 @@ class ProductionConfig(Config):
         if not os.environ.get("SECRET_KEY"):
             raise RuntimeError(
                 "SECRET_KEY must be set in production. "
-                "Generate one with: python -c \"import secrets; print(secrets.token_hex(32))\""
+                'Generate one with: python -c "import secrets; print(secrets.token_hex(32))"'
             )

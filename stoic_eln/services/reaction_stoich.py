@@ -41,12 +41,14 @@ class MmolFromVolumeResult:
     incompatible units like %v/v without density). ``reason``
     explains why so the UI can surface it.
     """
+
     mmol: float | None
-    reason: str = ""        # empty when mmol is set
+    reason: str = ""  # empty when mmol is set
 
 
 def mmol_from_volume_mL(
-    component: ReactionComponent, volume_mL: float,
+    component: ReactionComponent,
+    volume_mL: float,
 ) -> MmolFromVolumeResult:
     """Compute moles (in mmol) of the active ingredient given a volume
     of a mixture-backed reaction component.
@@ -57,11 +59,13 @@ def mmol_from_volume_mL(
     """
     if component.mixture is None:
         return MmolFromVolumeResult(
-            mmol=None, reason="Componente non basato su miscela.",
+            mmol=None,
+            reason="Componente non basato su miscela.",
         )
     if volume_mL is None or volume_mL <= 0:
         return MmolFromVolumeResult(
-            mmol=None, reason="Volume non specificato o non positivo.",
+            mmol=None,
+            reason="Volume non specificato o non positivo.",
         )
 
     conc = component.effective_concentration

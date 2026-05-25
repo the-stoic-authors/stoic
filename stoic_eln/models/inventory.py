@@ -86,7 +86,10 @@ class InventoryItem(db.Model):
     # are attributed. The migration assigns existing lots to the
     # "Default" group; the column is NOT NULL going forward.
     group_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("group.id"), nullable=False, index=True,
+        Integer,
+        ForeignKey("group.id"),
+        nullable=False,
+        index=True,
     )
 
     # Status
@@ -94,9 +97,7 @@ class InventoryItem(db.Model):
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     # Audit
-    created_by_id: Mapped[int | None] = mapped_column(
-        Integer, ForeignKey("user.id"), nullable=True
-    )
+    created_by_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("user.id"), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_now_utc, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, default=_now_utc, onupdate=_now_utc, nullable=False
@@ -104,16 +105,16 @@ class InventoryItem(db.Model):
 
     # Relationships
     substance: Mapped[Substance | None] = relationship(
-        "Substance", back_populates="inventory_items",
+        "Substance",
+        back_populates="inventory_items",
     )
     mixture: Mapped[Mixture | None] = relationship(
-        "Mixture", back_populates="inventory_items",
+        "Mixture",
+        back_populates="inventory_items",
         primaryjoin="InventoryItem.mixture_id == Mixture.id",
     )
     created_by: Mapped[User | None] = relationship("User", foreign_keys=[created_by_id])
-    group: Mapped[Group] = relationship(
-        "Group", foreign_keys=[group_id]
-    )
+    group: Mapped[Group] = relationship("Group", foreign_keys=[group_id])
 
     # XOR constraint: exactly one of (substance_id, mixture_id) must
     # be set on every row. Using SQLite-compatible boolean arithmetic
@@ -168,23 +169,26 @@ class InventoryItem(db.Model):
         # Look up the Default group via the connection (we may not be in
         # a Session-managed flow — e.g. raw inserts in tests).
         from sqlalchemy import text
-        row = connection.execute(text(
-            'SELECT id FROM "group" WHERE slug = :s'
-        ), {"s": "default"}).first()
+
+        row = connection.execute(
+            text('SELECT id FROM "group" WHERE slug = :s'), {"s": "default"}
+        ).first()
         if row:
             target.group_id = row.id
             return
         # No Default group exists yet — create one inline.
-        connection.execute(text(
-            'INSERT INTO "group" (slug, name, description, '
-            'is_default, is_active, created_at) '
-            "VALUES ('default', 'Default', "
-            "'Gruppo di default del laboratorio.', 1, 1, "
-            "CURRENT_TIMESTAMP)"
-        ))
-        row = connection.execute(text(
-            'SELECT id FROM "group" WHERE slug = :s'
-        ), {"s": "default"}).first()
+        connection.execute(
+            text(
+                'INSERT INTO "group" (slug, name, description, '
+                "is_default, is_active, created_at) "
+                "VALUES ('default', 'Default', "
+                "'Gruppo di default del laboratorio.', 1, 1, "
+                "CURRENT_TIMESTAMP)"
+            )
+        )
+        row = connection.execute(
+            text('SELECT id FROM "group" WHERE slug = :s'), {"s": "default"}
+        ).first()
         target.group_id = row.id
 
     @property
@@ -282,12 +286,14 @@ class InventoryItem(db.Model):
     def is_expired(self) -> bool:
         """True when ``expiry_date`` is in the past."""
         from datetime import date as _date
+
         return self.expiry_date is not None and self.expiry_date < _date.today()
 
     @property
     def is_expiring_soon(self) -> bool:
         """True when ``expiry_date`` is within 30 days from today."""
         from datetime import date as _date, timedelta
+
         if self.expiry_date is None:
             return False
         soon = _date.today() + timedelta(days=30)
@@ -340,6 +346,7 @@ class InventoryItem(db.Model):
 from sqlalchemy import event as _sa_event  # noqa: E402
 
 _sa_event.listen(
-    InventoryItem, "before_insert",
+    InventoryItem,
+    "before_insert",
     InventoryItem._ensure_group_before_insert,
 )

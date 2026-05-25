@@ -65,9 +65,7 @@ def validate_base(
     """
     norm = normalize(code)
     if not norm:
-        raise TemplateCodeError(
-            "Il codice del template è obbligatorio."
-        )
+        raise TemplateCodeError("Il codice del template è obbligatorio.")
     if "." in norm:
         raise TemplateCodeError(
             "Il codice del template non può contenere il punto: "
@@ -79,8 +77,7 @@ def validate_base(
         )
     if not _BASE_RE.match(norm):
         raise TemplateCodeError(
-            "Il codice del template può contenere solo lettere A-Z, "
-            "cifre 0-9, e trattini."
+            "Il codice del template può contenere solo lettere A-Z, cifre 0-9, e trattini."
         )
 
     # Uniqueness check on the FAMILY: no other published reaction may
@@ -93,9 +90,7 @@ def validate_base(
     if exclude_id is not None:
         q = q.filter(Reaction.id != exclude_id)
     if q.first() is not None:
-        raise TemplateCodeError(
-            f"Il codice '{norm}' è già usato da un altro template."
-        )
+        raise TemplateCodeError(f"Il codice '{norm}' è già usato da un altro template.")
 
     return norm
 
@@ -108,10 +103,12 @@ def next_version_for_base(base: str) -> int:
     Returns 1 if no reactions exist for this base yet.
     """
     norm = normalize(base)
-    last = (db.session.query(Reaction)
-              .filter(Reaction.template_code_base == norm)
-              .order_by(Reaction.version_number.desc())
-              .first())
+    last = (
+        db.session.query(Reaction)
+        .filter(Reaction.template_code_base == norm)
+        .order_by(Reaction.version_number.desc())
+        .first()
+    )
     return (last.version_number + 1) if last else 1
 
 
@@ -132,9 +129,7 @@ def validate(
     """
     norm = normalize(code)
     if not norm:
-        raise TemplateCodeError(
-            "Il codice del template è obbligatorio."
-        )
+        raise TemplateCodeError("Il codice del template è obbligatorio.")
     if len(norm) > MAX_LENGTH:
         raise TemplateCodeError(
             f"Il codice del template può avere al massimo {MAX_LENGTH} caratteri."
@@ -142,8 +137,7 @@ def validate(
     # Allow either a base code (no dot) or a versioned code (BASE.N)
     if not (_BASE_RE.match(norm) or _VERSIONED_RE.match(norm)):
         raise TemplateCodeError(
-            "Il codice del template può contenere solo lettere A-Z, "
-            "cifre 0-9, e trattini."
+            "Il codice del template può contenere solo lettere A-Z, cifre 0-9, e trattini."
         )
 
     if allow_replace:
@@ -156,9 +150,6 @@ def validate(
     if exclude_id is not None:
         q = q.filter(Reaction.id != exclude_id)
     if q.first() is not None:
-        raise TemplateCodeError(
-            f"Il codice '{norm}' è già usato da un altro template."
-        )
+        raise TemplateCodeError(f"Il codice '{norm}' è già usato da un altro template.")
 
     return norm
-

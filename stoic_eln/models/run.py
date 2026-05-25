@@ -101,9 +101,7 @@ class Run(db.Model):
     completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
     # Audit
-    operator_id: Mapped[int | None] = mapped_column(
-        Integer, ForeignKey("user.id"), nullable=True
-    )
+    operator_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("user.id"), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_now_utc, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, default=_now_utc, onupdate=_now_utc, nullable=False

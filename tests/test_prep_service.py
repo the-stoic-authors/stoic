@@ -29,46 +29,69 @@ def _setup_hcl_dilution_lab():
     ``db.session.get(...)`` in the same context, so we don't run into
     DetachedInstanceError between contexts.
     """
-    g = Group(name="Lab", slug="lab"); db.session.add(g); db.session.flush()
+    g = Group(name="Lab", slug="lab")
+    db.session.add(g)
+    db.session.flush()
 
-    hcl = Substance(name="HCl", molecular_formula="HCl",
-                    ghs_pictograms=["GHS05", "GHS07"])
+    hcl = Substance(name="HCl", molecular_formula="HCl", ghs_pictograms=["GHS05", "GHS07"])
     h2o = Substance(name="Water", molecular_formula="H2O")
-    db.session.add_all([hcl, h2o]); db.session.flush()
+    db.session.add_all([hcl, h2o])
+    db.session.flush()
 
-    m_12n = Mixture(name="HCl 12N", kind="solution",
-                    primary_concentration=12.0,
-                    primary_concentration_unit="N")
+    m_12n = Mixture(
+        name="HCl 12N", kind="solution", primary_concentration=12.0, primary_concentration_unit="N"
+    )
     m_12n.components = [
-        MixtureComponent(substance_id=hcl.id, role="solute",
-                         concentration=12.0, concentration_unit="N",
-                         position=0),
+        MixtureComponent(
+            substance_id=hcl.id,
+            role="solute",
+            concentration=12.0,
+            concentration_unit="N",
+            position=0,
+        ),
         MixtureComponent(substance_id=h2o.id, role="solvent", position=1),
     ]
-    m_6n = Mixture(name="HCl 6N", kind="solution",
-                   primary_concentration=6.0,
-                   primary_concentration_unit="N")
+    m_6n = Mixture(
+        name="HCl 6N", kind="solution", primary_concentration=6.0, primary_concentration_unit="N"
+    )
     m_6n.components = [
-        MixtureComponent(substance_id=hcl.id, role="solute",
-                         concentration=12.0, concentration_unit="N",
-                         position=0),
+        MixtureComponent(
+            substance_id=hcl.id,
+            role="solute",
+            concentration=12.0,
+            concentration_unit="N",
+            position=0,
+        ),
         MixtureComponent(substance_id=h2o.id, role="solvent", position=1),
     ]
-    db.session.add_all([m_12n, m_6n]); db.session.flush()
+    db.session.add_all([m_12n, m_6n])
+    db.session.flush()
 
     stock_hcl = InventoryItem(
-        mixture_id=m_12n.id, group_id=g.id, batch_code="HCL12N-001",
-        quantity_mL=5000.0, initial_quantity_mL=5000.0, is_active=True,
+        mixture_id=m_12n.id,
+        group_id=g.id,
+        batch_code="HCL12N-001",
+        quantity_mL=5000.0,
+        initial_quantity_mL=5000.0,
+        is_active=True,
     )
     stock_water = InventoryItem(
-        substance_id=h2o.id, group_id=g.id, batch_code="H2O-001",
-        quantity_mL=20000.0, initial_quantity_mL=20000.0, is_active=True,
+        substance_id=h2o.id,
+        group_id=g.id,
+        batch_code="H2O-001",
+        quantity_mL=20000.0,
+        initial_quantity_mL=20000.0,
+        is_active=True,
     )
-    db.session.add_all([stock_hcl, stock_water]); db.session.commit()
+    db.session.add_all([stock_hcl, stock_water])
+    db.session.commit()
     return {
-        "m_12n_id": m_12n.id, "m_6n_id": m_6n.id,
-        "hcl_id": hcl.id, "h2o_id": h2o.id,
-        "stock_hcl_id": stock_hcl.id, "stock_water_id": stock_water.id,
+        "m_12n_id": m_12n.id,
+        "m_6n_id": m_6n.id,
+        "hcl_id": hcl.id,
+        "h2o_id": h2o.id,
+        "stock_hcl_id": stock_hcl.id,
+        "stock_water_id": stock_water.id,
         "stock_hcl_qty_initial": stock_hcl.quantity_mL,
     }
 
@@ -79,7 +102,9 @@ def test_suggest_dilution_math(app):
         ctx = _setup_hcl_dilution_lab()
         m_6n = db.session.get(Mixture, ctx["m_6n_id"])
         suggestion = suggest_consumptions(
-            mixture=m_6n, target_quantity=4, target_unit="L",
+            mixture=m_6n,
+            target_quantity=4,
+            target_unit="L",
         )
         rows_by_role = {r.role: r for r in suggestion.rows}
     assert "solute" in rows_by_role
@@ -97,32 +122,47 @@ def test_suggest_finds_mixture_lot_as_solute_source(app):
         ctx = _setup_hcl_dilution_lab()
         m_6n = db.session.get(Mixture, ctx["m_6n_id"])
         suggestion = suggest_consumptions(
-            mixture=m_6n, target_quantity=4, target_unit="L",
+            mixture=m_6n,
+            target_quantity=4,
+            target_unit="L",
         )
         solute_row = next(r for r in suggestion.rows if r.role == "solute")
         assert solute_row.suggested_lot_id == ctx["stock_hcl_id"]
-        assert any(
-            l.id == ctx["stock_hcl_id"]
-            for l in solute_row.available_lots
-        )
+        assert any(l.id == ctx["stock_hcl_id"] for l in solute_row.available_lots)
 
 
 def test_suggest_warns_when_no_lots(app):
     """Mixture with components but no precursor lots: warning emitted."""
     with app.app_context():
-        g = Group(name="Empty", slug="empty"); db.session.add(g); db.session.flush()
-        s1 = Substance(name="Z"); s2 = Substance(name="Y")
-        db.session.add_all([s1, s2]); db.session.flush()
-        m = Mixture(name="Mix Z 1M", kind="solution",
-                    primary_concentration=1.0, primary_concentration_unit="M")
+        g = Group(name="Empty", slug="empty")
+        db.session.add(g)
+        db.session.flush()
+        s1 = Substance(name="Z")
+        s2 = Substance(name="Y")
+        db.session.add_all([s1, s2])
+        db.session.flush()
+        m = Mixture(
+            name="Mix Z 1M",
+            kind="solution",
+            primary_concentration=1.0,
+            primary_concentration_unit="M",
+        )
         m.components = [
-            MixtureComponent(substance_id=s1.id, role="solute",
-                             concentration=10.0, concentration_unit="M", position=0),
+            MixtureComponent(
+                substance_id=s1.id,
+                role="solute",
+                concentration=10.0,
+                concentration_unit="M",
+                position=0,
+            ),
             MixtureComponent(substance_id=s2.id, role="solvent", position=1),
         ]
-        db.session.add(m); db.session.commit()
+        db.session.add(m)
+        db.session.commit()
         suggestion = suggest_consumptions(
-            mixture=m, target_quantity=1, target_unit="L",
+            mixture=m,
+            target_quantity=1,
+            target_unit="L",
         )
     assert any("Nessun lotto" in w for w in suggestion.warnings)
 
@@ -134,15 +174,18 @@ def test_execute_preparation_decrements_stocks_and_creates_lot(app):
         ctx = _setup_hcl_dilution_lab()
         inp = PrepInput(
             mixture_id=ctx["m_6n_id"],
-            target_quantity=4.0, target_quantity_unit="L",
+            target_quantity=4.0,
+            target_quantity_unit="L",
             consumptions=[
                 ConsumptionInput(
                     inventory_item_id=ctx["stock_hcl_id"],
-                    quantity_consumed=2.0, quantity_unit="L",
+                    quantity_consumed=2.0,
+                    quantity_unit="L",
                 ),
                 ConsumptionInput(
                     inventory_item_id=ctx["stock_water_id"],
-                    quantity_consumed=2.0, quantity_unit="L",
+                    quantity_consumed=2.0,
+                    quantity_unit="L",
                 ),
             ],
             output_batch_code=None,
@@ -179,15 +222,18 @@ def test_execute_preparation_rejects_overdraft(app):
 
         inp = PrepInput(
             mixture_id=ctx["m_6n_id"],
-            target_quantity=20.0, target_quantity_unit="L",
+            target_quantity=20.0,
+            target_quantity_unit="L",
             consumptions=[
                 ConsumptionInput(
                     inventory_item_id=ctx["stock_hcl_id"],
-                    quantity_consumed=10.0, quantity_unit="L",
+                    quantity_consumed=10.0,
+                    quantity_unit="L",
                 ),
                 ConsumptionInput(
                     inventory_item_id=ctx["stock_water_id"],
-                    quantity_consumed=10.0, quantity_unit="L",
+                    quantity_consumed=10.0,
+                    quantity_unit="L",
                 ),
             ],
             output_batch_code=None,
@@ -212,15 +258,18 @@ def test_execute_preparation_custom_batch_code(app):
         ctx = _setup_hcl_dilution_lab()
         inp = PrepInput(
             mixture_id=ctx["m_6n_id"],
-            target_quantity=2.0, target_quantity_unit="L",
+            target_quantity=2.0,
+            target_quantity_unit="L",
             consumptions=[
                 ConsumptionInput(
                     inventory_item_id=ctx["stock_hcl_id"],
-                    quantity_consumed=1.0, quantity_unit="L",
+                    quantity_consumed=1.0,
+                    quantity_unit="L",
                 ),
                 ConsumptionInput(
                     inventory_item_id=ctx["stock_water_id"],
-                    quantity_consumed=1.0, quantity_unit="L",
+                    quantity_consumed=1.0,
+                    quantity_unit="L",
                 ),
             ],
             output_batch_code="MY-CUSTOM-001",
@@ -237,32 +286,57 @@ def test_execute_preparation_custom_batch_code(app):
 def test_execute_preparation_eluent_pct(app):
     """Eluent A 95:5 hexane:EtOAc — 1 L target → 950 mL hexane + 50 mL EtOAc."""
     with app.app_context():
-        g = Group(name="L3", slug="l3"); db.session.add(g); db.session.flush()
+        g = Group(name="L3", slug="l3")
+        db.session.add(g)
+        db.session.flush()
         hex_ = Substance(name="Hexane", molecular_formula="C6H14")
         etoac = Substance(name="EtOAc", molecular_formula="C4H8O2")
-        db.session.add_all([hex_, etoac]); db.session.flush()
+        db.session.add_all([hex_, etoac])
+        db.session.flush()
 
         m = Mixture(name="Eluent A", kind="eluent")
         m.components = [
-            MixtureComponent(substance_id=hex_.id, role="cosolvent",
-                             concentration=95.0, concentration_unit="%v/v",
-                             position=0),
-            MixtureComponent(substance_id=etoac.id, role="cosolvent",
-                             concentration=5.0, concentration_unit="%v/v",
-                             position=1),
+            MixtureComponent(
+                substance_id=hex_.id,
+                role="cosolvent",
+                concentration=95.0,
+                concentration_unit="%v/v",
+                position=0,
+            ),
+            MixtureComponent(
+                substance_id=etoac.id,
+                role="cosolvent",
+                concentration=5.0,
+                concentration_unit="%v/v",
+                position=1,
+            ),
         ]
-        db.session.add(m); db.session.flush()
+        db.session.add(m)
+        db.session.flush()
 
-        lot_hex = InventoryItem(substance_id=hex_.id, group_id=g.id,
-                                batch_code="HEX-1", quantity_mL=2000.0,
-                                initial_quantity_mL=2000.0, is_active=True)
-        lot_eto = InventoryItem(substance_id=etoac.id, group_id=g.id,
-                                batch_code="ETO-1", quantity_mL=500.0,
-                                initial_quantity_mL=500.0, is_active=True)
-        db.session.add_all([lot_hex, lot_eto]); db.session.commit()
+        lot_hex = InventoryItem(
+            substance_id=hex_.id,
+            group_id=g.id,
+            batch_code="HEX-1",
+            quantity_mL=2000.0,
+            initial_quantity_mL=2000.0,
+            is_active=True,
+        )
+        lot_eto = InventoryItem(
+            substance_id=etoac.id,
+            group_id=g.id,
+            batch_code="ETO-1",
+            quantity_mL=500.0,
+            initial_quantity_mL=500.0,
+            is_active=True,
+        )
+        db.session.add_all([lot_hex, lot_eto])
+        db.session.commit()
 
         suggestion = suggest_consumptions(
-            mixture=m, target_quantity=1, target_unit="L",
+            mixture=m,
+            target_quantity=1,
+            target_unit="L",
         )
 
     rows = {r.substance_name: r for r in suggestion.rows}
@@ -277,33 +351,52 @@ def test_execute_preparation_eluent_pct(app):
 def test_suggest_ratio_parts_5_to_2(app):
     """EtOAc/PE 5:2 with target 7 L → 5 L EtOAc + 2 L PE."""
     with app.app_context():
-        g = Group(name="R", slug="r"); db.session.add(g); db.session.flush()
+        g = Group(name="R", slug="r")
+        db.session.add(g)
+        db.session.flush()
         etoac = Substance(name="EtOAc", molecular_formula="C4H8O2")
         pe = Substance(name="Petroleum ether", molecular_formula="-")
-        db.session.add_all([etoac, pe]); db.session.flush()
+        db.session.add_all([etoac, pe])
+        db.session.flush()
 
         m = Mixture(name="EtOAc/PE 5:2", kind="eluent")
         m.components = [
-            MixtureComponent(substance_id=etoac.id, role="cosolvent",
-                             concentration=5.0, concentration_unit="ratio",
-                             position=0),
-            MixtureComponent(substance_id=pe.id, role="cosolvent",
-                             concentration=2.0, concentration_unit="ratio",
-                             position=1),
+            MixtureComponent(
+                substance_id=etoac.id,
+                role="cosolvent",
+                concentration=5.0,
+                concentration_unit="ratio",
+                position=0,
+            ),
+            MixtureComponent(
+                substance_id=pe.id,
+                role="cosolvent",
+                concentration=2.0,
+                concentration_unit="ratio",
+                position=1,
+            ),
         ]
-        db.session.add(m); db.session.flush()
+        db.session.add(m)
+        db.session.flush()
 
         # Stock lots
         for sub, qty in [(etoac, 10000.0), (pe, 10000.0)]:
-            db.session.add(InventoryItem(
-                substance_id=sub.id, group_id=g.id,
-                batch_code=f"{sub.name[:3].upper()}-1",
-                quantity_mL=qty, initial_quantity_mL=qty, is_active=True,
-            ))
+            db.session.add(
+                InventoryItem(
+                    substance_id=sub.id,
+                    group_id=g.id,
+                    batch_code=f"{sub.name[:3].upper()}-1",
+                    quantity_mL=qty,
+                    initial_quantity_mL=qty,
+                    is_active=True,
+                )
+            )
         db.session.commit()
 
         suggestion = suggest_consumptions(
-            mixture=m, target_quantity=7, target_unit="L",
+            mixture=m,
+            target_quantity=7,
+            target_unit="L",
         )
 
     rows_by_name = {r.substance_name: r for r in suggestion.rows}
@@ -316,35 +409,57 @@ def test_suggest_ratio_parts_5_to_2(app):
 def test_suggest_ratio_three_components(app):
     """A:B:C = 1:2:3, target 12 L → 2 L + 4 L + 6 L."""
     with app.app_context():
-        g = Group(name="R3", slug="r3"); db.session.add(g); db.session.flush()
+        g = Group(name="R3", slug="r3")
+        db.session.add(g)
+        db.session.flush()
         a = Substance(name="A")
         b = Substance(name="B")
         c = Substance(name="C")
-        db.session.add_all([a, b, c]); db.session.flush()
+        db.session.add_all([a, b, c])
+        db.session.flush()
 
         m = Mixture(name="A:B:C 1:2:3", kind="other")
         m.components = [
-            MixtureComponent(substance_id=a.id, role="cosolvent",
-                             concentration=1.0, concentration_unit="ratio",
-                             position=0),
-            MixtureComponent(substance_id=b.id, role="cosolvent",
-                             concentration=2.0, concentration_unit="ratio",
-                             position=1),
-            MixtureComponent(substance_id=c.id, role="cosolvent",
-                             concentration=3.0, concentration_unit="ratio",
-                             position=2),
+            MixtureComponent(
+                substance_id=a.id,
+                role="cosolvent",
+                concentration=1.0,
+                concentration_unit="ratio",
+                position=0,
+            ),
+            MixtureComponent(
+                substance_id=b.id,
+                role="cosolvent",
+                concentration=2.0,
+                concentration_unit="ratio",
+                position=1,
+            ),
+            MixtureComponent(
+                substance_id=c.id,
+                role="cosolvent",
+                concentration=3.0,
+                concentration_unit="ratio",
+                position=2,
+            ),
         ]
-        db.session.add(m); db.session.flush()
+        db.session.add(m)
+        db.session.flush()
         for sub in (a, b, c):
-            db.session.add(InventoryItem(
-                substance_id=sub.id, group_id=g.id,
-                quantity_mL=20000.0, initial_quantity_mL=20000.0,
-                is_active=True,
-            ))
+            db.session.add(
+                InventoryItem(
+                    substance_id=sub.id,
+                    group_id=g.id,
+                    quantity_mL=20000.0,
+                    initial_quantity_mL=20000.0,
+                    is_active=True,
+                )
+            )
         db.session.commit()
 
         suggestion = suggest_consumptions(
-            mixture=m, target_quantity=12, target_unit="L",
+            mixture=m,
+            target_quantity=12,
+            target_unit="L",
         )
 
     rows_by_name = {r.substance_name: r for r in suggestion.rows}
@@ -363,54 +478,82 @@ def test_suggest_vol_pct_dilution_from_concentrated(app):
     we leave open here to confirm the dynamic-read behaviour).
     """
     with app.app_context():
-        g = Group(name="V", slug="v"); db.session.add(g); db.session.flush()
+        g = Group(name="V", slug="v")
+        db.session.add(g)
+        db.session.flush()
         etoh = Substance(name="EtOH", molecular_formula="C2H6O")
         h2o = Substance(name="Water", molecular_formula="H2O")
-        db.session.add_all([etoh, h2o]); db.session.flush()
+        db.session.add_all([etoh, h2o])
+        db.session.flush()
 
         # Precursor mixture: EtOH 95% v/v in water (a commercial stock)
         m_95 = Mixture(
-            name="EtOH 95% v/v", kind="solution",
-            primary_concentration=95.0, primary_concentration_unit="%v/v",
+            name="EtOH 95% v/v",
+            kind="solution",
+            primary_concentration=95.0,
+            primary_concentration_unit="%v/v",
             primary_solvent_id=h2o.id,
         )
         m_95.components = [
-            MixtureComponent(substance_id=etoh.id, role="solute",
-                             concentration=95.0, concentration_unit="%v/v",
-                             position=0),
+            MixtureComponent(
+                substance_id=etoh.id,
+                role="solute",
+                concentration=95.0,
+                concentration_unit="%v/v",
+                position=0,
+            ),
             MixtureComponent(substance_id=h2o.id, role="solvent", position=1),
         ]
-        db.session.add(m_95); db.session.flush()
+        db.session.add(m_95)
+        db.session.flush()
 
         # Target mixture: EtOH 50% v/v. Crucially, the solute
         # component's concentration is LEFT BLANK to force the
         # system to read from the lot.
         m_50 = Mixture(
-            name="EtOH 50% v/v", kind="solution",
-            primary_concentration=50.0, primary_concentration_unit="%v/v",
+            name="EtOH 50% v/v",
+            kind="solution",
+            primary_concentration=50.0,
+            primary_concentration_unit="%v/v",
             primary_solvent_id=h2o.id,
         )
         m_50.components = [
-            MixtureComponent(substance_id=etoh.id, role="solute",
-                             concentration=None, concentration_unit=None,
-                             position=0),
+            MixtureComponent(
+                substance_id=etoh.id,
+                role="solute",
+                concentration=None,
+                concentration_unit=None,
+                position=0,
+            ),
             MixtureComponent(substance_id=h2o.id, role="solvent", position=1),
         ]
-        db.session.add(m_50); db.session.flush()
+        db.session.add(m_50)
+        db.session.flush()
 
         # Lots
         stock_etoh = InventoryItem(
-            mixture_id=m_95.id, group_id=g.id, batch_code="ETOH95-001",
-            quantity_mL=2000.0, initial_quantity_mL=2000.0, is_active=True,
+            mixture_id=m_95.id,
+            group_id=g.id,
+            batch_code="ETOH95-001",
+            quantity_mL=2000.0,
+            initial_quantity_mL=2000.0,
+            is_active=True,
         )
         stock_h2o = InventoryItem(
-            substance_id=h2o.id, group_id=g.id, batch_code="H2O-001",
-            quantity_mL=20000.0, initial_quantity_mL=20000.0, is_active=True,
+            substance_id=h2o.id,
+            group_id=g.id,
+            batch_code="H2O-001",
+            quantity_mL=20000.0,
+            initial_quantity_mL=20000.0,
+            is_active=True,
         )
-        db.session.add_all([stock_etoh, stock_h2o]); db.session.commit()
+        db.session.add_all([stock_etoh, stock_h2o])
+        db.session.commit()
 
         suggestion = suggest_consumptions(
-            mixture=m_50, target_quantity=1, target_unit="L",
+            mixture=m_50,
+            target_quantity=1,
+            target_unit="L",
         )
         # Solute row picked the 95% stock and computed dilution
         solute_row = next(r for r in suggestion.rows if r.role == "solute")
@@ -436,46 +579,76 @@ def test_suggest_dilution_reads_stock_from_lot_not_recipe(app):
     from the lot, not 6N from the recipe.
     """
     with app.app_context():
-        g = Group(name="D", slug="d"); db.session.add(g); db.session.flush()
+        g = Group(name="D", slug="d")
+        db.session.add(g)
+        db.session.flush()
         hcl = Substance(name="HCl", molecular_formula="HCl")
         h2o = Substance(name="Water", molecular_formula="H2O")
-        db.session.add_all([hcl, h2o]); db.session.flush()
+        db.session.add_all([hcl, h2o])
+        db.session.flush()
 
-        m_12 = Mixture(name="HCl 12N", kind="solution",
-                       primary_concentration=12.0,
-                       primary_concentration_unit="N")
+        m_12 = Mixture(
+            name="HCl 12N",
+            kind="solution",
+            primary_concentration=12.0,
+            primary_concentration_unit="N",
+        )
         m_12.components = [
-            MixtureComponent(substance_id=hcl.id, role="solute",
-                             concentration=12.0, concentration_unit="N",
-                             position=0),
+            MixtureComponent(
+                substance_id=hcl.id,
+                role="solute",
+                concentration=12.0,
+                concentration_unit="N",
+                position=0,
+            ),
             MixtureComponent(substance_id=h2o.id, role="solvent", position=1),
         ]
-        db.session.add(m_12); db.session.flush()
+        db.session.add(m_12)
+        db.session.flush()
 
         # Recipe hint says 6N (different from the actual lot's 12N).
-        m_1 = Mixture(name="HCl 1N", kind="solution",
-                      primary_concentration=1.0,
-                      primary_concentration_unit="N")
+        m_1 = Mixture(
+            name="HCl 1N",
+            kind="solution",
+            primary_concentration=1.0,
+            primary_concentration_unit="N",
+        )
         m_1.components = [
-            MixtureComponent(substance_id=hcl.id, role="solute",
-                             concentration=6.0, concentration_unit="N",
-                             position=0),
+            MixtureComponent(
+                substance_id=hcl.id,
+                role="solute",
+                concentration=6.0,
+                concentration_unit="N",
+                position=0,
+            ),
             MixtureComponent(substance_id=h2o.id, role="solvent", position=1),
         ]
-        db.session.add(m_1); db.session.flush()
+        db.session.add(m_1)
+        db.session.flush()
 
         stock = InventoryItem(
-            mixture_id=m_12.id, group_id=g.id, batch_code="HCL12N-001",
-            quantity_mL=5000.0, initial_quantity_mL=5000.0, is_active=True,
+            mixture_id=m_12.id,
+            group_id=g.id,
+            batch_code="HCL12N-001",
+            quantity_mL=5000.0,
+            initial_quantity_mL=5000.0,
+            is_active=True,
         )
         water = InventoryItem(
-            substance_id=h2o.id, group_id=g.id, batch_code="H2O-001",
-            quantity_mL=20000.0, initial_quantity_mL=20000.0, is_active=True,
+            substance_id=h2o.id,
+            group_id=g.id,
+            batch_code="H2O-001",
+            quantity_mL=20000.0,
+            initial_quantity_mL=20000.0,
+            is_active=True,
         )
-        db.session.add_all([stock, water]); db.session.commit()
+        db.session.add_all([stock, water])
+        db.session.commit()
 
         suggestion = suggest_consumptions(
-            mixture=m_1, target_quantity=1, target_unit="L",
+            mixture=m_1,
+            target_quantity=1,
+            target_unit="L",
         )
         solute_row = next(r for r in suggestion.rows if r.role == "solute")
         # 1 L × 1 N / 12 N ≈ 83.33 mL solute → rendered as 0.0833 L
@@ -488,46 +661,71 @@ def test_suggest_dilution_reads_stock_from_lot_not_recipe(app):
 def test_suggest_dilution_compatible_unit_groups(app):
     """mM stock → M target works (both are molarity)."""
     with app.app_context():
-        g = Group(name="M", slug="m"); db.session.add(g); db.session.flush()
+        g = Group(name="M", slug="m")
+        db.session.add(g)
+        db.session.flush()
         s = Substance(name="NaCl")
         h2o = Substance(name="Water")
-        db.session.add_all([s, h2o]); db.session.flush()
+        db.session.add_all([s, h2o])
+        db.session.flush()
 
-        m_stock = Mixture(name="NaCl 1000 mM", kind="solution",
-                          primary_concentration=1000.0,
-                          primary_concentration_unit="mM")
+        m_stock = Mixture(
+            name="NaCl 1000 mM",
+            kind="solution",
+            primary_concentration=1000.0,
+            primary_concentration_unit="mM",
+        )
         m_stock.components = [
-            MixtureComponent(substance_id=s.id, role="solute",
-                             concentration=1000.0,
-                             concentration_unit="mM", position=0),
-            MixtureComponent(substance_id=h2o.id, role="solvent",
-                             position=1),
+            MixtureComponent(
+                substance_id=s.id,
+                role="solute",
+                concentration=1000.0,
+                concentration_unit="mM",
+                position=0,
+            ),
+            MixtureComponent(substance_id=h2o.id, role="solvent", position=1),
         ]
-        db.session.add(m_stock); db.session.flush()
+        db.session.add(m_stock)
+        db.session.flush()
 
-        m_target = Mixture(name="NaCl 0.5 M", kind="solution",
-                           primary_concentration=0.5,
-                           primary_concentration_unit="M")
+        m_target = Mixture(
+            name="NaCl 0.5 M",
+            kind="solution",
+            primary_concentration=0.5,
+            primary_concentration_unit="M",
+        )
         m_target.components = [
-            MixtureComponent(substance_id=s.id, role="solute",
-                             position=0),
-            MixtureComponent(substance_id=h2o.id, role="solvent",
-                             position=1),
+            MixtureComponent(substance_id=s.id, role="solute", position=0),
+            MixtureComponent(substance_id=h2o.id, role="solvent", position=1),
         ]
-        db.session.add(m_target); db.session.flush()
+        db.session.add(m_target)
+        db.session.flush()
 
-        db.session.add(InventoryItem(
-            mixture_id=m_stock.id, group_id=g.id, batch_code="NACL-1M",
-            quantity_mL=2000.0, initial_quantity_mL=2000.0, is_active=True,
-        ))
-        db.session.add(InventoryItem(
-            substance_id=h2o.id, group_id=g.id,
-            quantity_mL=10000.0, initial_quantity_mL=10000.0, is_active=True,
-        ))
+        db.session.add(
+            InventoryItem(
+                mixture_id=m_stock.id,
+                group_id=g.id,
+                batch_code="NACL-1M",
+                quantity_mL=2000.0,
+                initial_quantity_mL=2000.0,
+                is_active=True,
+            )
+        )
+        db.session.add(
+            InventoryItem(
+                substance_id=h2o.id,
+                group_id=g.id,
+                quantity_mL=10000.0,
+                initial_quantity_mL=10000.0,
+                is_active=True,
+            )
+        )
         db.session.commit()
 
         suggestion = suggest_consumptions(
-            mixture=m_target, target_quantity=1, target_unit="L",
+            mixture=m_target,
+            target_quantity=1,
+            target_unit="L",
         )
         solute_row = next(r for r in suggestion.rows if r.role == "solute")
         # 0.5 M / (1000 mM = 1 M) = 0.5 → 500 mL
@@ -537,55 +735,76 @@ def test_suggest_dilution_compatible_unit_groups(app):
 def test_suggest_dilution_incompatible_units_falls_back(app):
     """A %v/v stock can't dilute into an N target — fallback."""
     with app.app_context():
-        g = Group(name="X", slug="x"); db.session.add(g); db.session.flush()
+        g = Group(name="X", slug="x")
+        db.session.add(g)
+        db.session.flush()
         s = Substance(name="HCl")
         h2o = Substance(name="Water")
-        db.session.add_all([s, h2o]); db.session.flush()
+        db.session.add_all([s, h2o])
+        db.session.flush()
 
         # Stock in %v/v
-        m_stock = Mixture(name="HCl 37% v/v", kind="solution",
-                          primary_concentration=37.0,
-                          primary_concentration_unit="%v/v")
+        m_stock = Mixture(
+            name="HCl 37% v/v",
+            kind="solution",
+            primary_concentration=37.0,
+            primary_concentration_unit="%v/v",
+        )
         m_stock.components = [
-            MixtureComponent(substance_id=s.id, role="solute",
-                             concentration=37.0,
-                             concentration_unit="%v/v", position=0),
-            MixtureComponent(substance_id=h2o.id, role="solvent",
-                             position=1),
+            MixtureComponent(
+                substance_id=s.id,
+                role="solute",
+                concentration=37.0,
+                concentration_unit="%v/v",
+                position=0,
+            ),
+            MixtureComponent(substance_id=h2o.id, role="solvent", position=1),
         ]
-        db.session.add(m_stock); db.session.flush()
+        db.session.add(m_stock)
+        db.session.flush()
 
         # Target in N
-        m_target = Mixture(name="HCl 6N", kind="solution",
-                           primary_concentration=6.0,
-                           primary_concentration_unit="N")
+        m_target = Mixture(
+            name="HCl 6N",
+            kind="solution",
+            primary_concentration=6.0,
+            primary_concentration_unit="N",
+        )
         m_target.components = [
-            MixtureComponent(substance_id=s.id, role="solute",
-                             position=0),
-            MixtureComponent(substance_id=h2o.id, role="solvent",
-                             position=1),
+            MixtureComponent(substance_id=s.id, role="solute", position=0),
+            MixtureComponent(substance_id=h2o.id, role="solvent", position=1),
         ]
-        db.session.add(m_target); db.session.flush()
+        db.session.add(m_target)
+        db.session.flush()
 
-        db.session.add(InventoryItem(
-            mixture_id=m_stock.id, group_id=g.id,
-            quantity_mL=2000.0, initial_quantity_mL=2000.0, is_active=True,
-        ))
-        db.session.add(InventoryItem(
-            substance_id=h2o.id, group_id=g.id,
-            quantity_mL=10000.0, initial_quantity_mL=10000.0, is_active=True,
-        ))
+        db.session.add(
+            InventoryItem(
+                mixture_id=m_stock.id,
+                group_id=g.id,
+                quantity_mL=2000.0,
+                initial_quantity_mL=2000.0,
+                is_active=True,
+            )
+        )
+        db.session.add(
+            InventoryItem(
+                substance_id=h2o.id,
+                group_id=g.id,
+                quantity_mL=10000.0,
+                initial_quantity_mL=10000.0,
+                is_active=True,
+            )
+        )
         db.session.commit()
 
         suggestion = suggest_consumptions(
-            mixture=m_target, target_quantity=1, target_unit="L",
+            mixture=m_target,
+            target_quantity=1,
+            target_unit="L",
         )
 
     # Must surface a warning about incompatible units
-    assert any(
-        "incompatibili" in w.lower() or "unit" in w.lower()
-        for w in suggestion.warnings
-    )
+    assert any("incompatibili" in w.lower() or "unit" in w.lower() for w in suggestion.warnings)
 
 
 # ── Derived expiry (Settimana 7 patch 14.6.8) ──────────────────────
@@ -597,6 +816,7 @@ def test_output_lot_expiry_derives_from_earliest_precursor(app):
     mixture can't reasonably outlive its shortest-lived input.
     """
     from datetime import date
+
     with app.app_context():
         ctx = _setup_hcl_dilution_lab()
         # Give the precursor lots distinct expiry dates so we can
@@ -609,15 +829,18 @@ def test_output_lot_expiry_derives_from_earliest_precursor(app):
 
         inp = PrepInput(
             mixture_id=ctx["m_6n_id"],
-            target_quantity=4.0, target_quantity_unit="L",
+            target_quantity=4.0,
+            target_quantity_unit="L",
             consumptions=[
                 ConsumptionInput(
                     inventory_item_id=ctx["stock_hcl_id"],
-                    quantity_consumed=2.0, quantity_unit="L",
+                    quantity_consumed=2.0,
+                    quantity_unit="L",
                 ),
                 ConsumptionInput(
                     inventory_item_id=ctx["stock_water_id"],
-                    quantity_consumed=2.0, quantity_unit="L",
+                    quantity_consumed=2.0,
+                    quantity_unit="L",
                 ),
             ],
             output_batch_code=None,
@@ -635,6 +858,7 @@ def test_explicit_output_expiry_overrides_derived_default(app):
     """If the operator passes output_expiry_date explicitly, the
     derived default is bypassed even when precursors have expiries."""
     from datetime import date
+
     with app.app_context():
         ctx = _setup_hcl_dilution_lab()
         stock_hcl = db.session.get(InventoryItem, ctx["stock_hcl_id"])
@@ -643,15 +867,18 @@ def test_explicit_output_expiry_overrides_derived_default(app):
 
         inp = PrepInput(
             mixture_id=ctx["m_6n_id"],
-            target_quantity=4.0, target_quantity_unit="L",
+            target_quantity=4.0,
+            target_quantity_unit="L",
             consumptions=[
                 ConsumptionInput(
                     inventory_item_id=ctx["stock_hcl_id"],
-                    quantity_consumed=2.0, quantity_unit="L",
+                    quantity_consumed=2.0,
+                    quantity_unit="L",
                 ),
                 ConsumptionInput(
                     inventory_item_id=ctx["stock_water_id"],
-                    quantity_consumed=2.0, quantity_unit="L",
+                    quantity_consumed=2.0,
+                    quantity_unit="L",
                 ),
             ],
             output_batch_code=None,
@@ -672,15 +899,18 @@ def test_output_expiry_left_blank_when_no_precursor_has_one(app):
         # Leave precursor expiry_date as None (the default)
         inp = PrepInput(
             mixture_id=ctx["m_6n_id"],
-            target_quantity=4.0, target_quantity_unit="L",
+            target_quantity=4.0,
+            target_quantity_unit="L",
             consumptions=[
                 ConsumptionInput(
                     inventory_item_id=ctx["stock_hcl_id"],
-                    quantity_consumed=2.0, quantity_unit="L",
+                    quantity_consumed=2.0,
+                    quantity_unit="L",
                 ),
                 ConsumptionInput(
                     inventory_item_id=ctx["stock_water_id"],
-                    quantity_consumed=2.0, quantity_unit="L",
+                    quantity_consumed=2.0,
+                    quantity_unit="L",
                 ),
             ],
             output_batch_code=None,
@@ -711,15 +941,18 @@ def test_prep_total_cost_sums_consumed_lot_costs(app):
 
         inp = PrepInput(
             mixture_id=ctx["m_6n_id"],
-            target_quantity=4.0, target_quantity_unit="L",
+            target_quantity=4.0,
+            target_quantity_unit="L",
             consumptions=[
                 ConsumptionInput(
                     inventory_item_id=ctx["stock_hcl_id"],
-                    quantity_consumed=2.0, quantity_unit="L",
+                    quantity_consumed=2.0,
+                    quantity_unit="L",
                 ),
                 ConsumptionInput(
                     inventory_item_id=ctx["stock_water_id"],
-                    quantity_consumed=2.0, quantity_unit="L",
+                    quantity_consumed=2.0,
+                    quantity_unit="L",
                 ),
             ],
             output_batch_code=None,
@@ -750,15 +983,18 @@ def test_prep_total_cost_none_when_any_lot_missing_cost(app):
 
         inp = PrepInput(
             mixture_id=ctx["m_6n_id"],
-            target_quantity=4.0, target_quantity_unit="L",
+            target_quantity=4.0,
+            target_quantity_unit="L",
             consumptions=[
                 ConsumptionInput(
                     inventory_item_id=ctx["stock_hcl_id"],
-                    quantity_consumed=2.0, quantity_unit="L",
+                    quantity_consumed=2.0,
+                    quantity_unit="L",
                 ),
                 ConsumptionInput(
                     inventory_item_id=ctx["stock_water_id"],
-                    quantity_consumed=2.0, quantity_unit="L",
+                    quantity_consumed=2.0,
+                    quantity_unit="L",
                 ),
             ],
             output_batch_code=None,
@@ -775,34 +1011,49 @@ def test_consumption_imputed_cost_kg_to_g_normalisation(app):
     """Consuming in kg from a lot priced per g should normalise."""
     with app.app_context():
         from stoic_eln.models.mixture_prep import MixturePrepConsumption
+
         ctx = _setup_hcl_dilution_lab()
         # Make a mass-based lot manually for this test
         from stoic_eln.models.substance import Substance
+
         sub = Substance(name="NaOH solid")
-        db.session.add(sub); db.session.flush()
+        db.session.add(sub)
+        db.session.flush()
         from stoic_eln.models.inventory import InventoryItem as IItem
+
         lot = IItem(
-            substance_id=sub.id, group_id=1,
+            substance_id=sub.id,
+            group_id=1,
             batch_code="NAOH-001",
-            quantity_g=1000.0, initial_quantity_g=1000.0,
+            quantity_g=1000.0,
+            initial_quantity_g=1000.0,
             total_cost_eur=50.0,  # → 0.05 €/g
             is_active=True,
         )
-        db.session.add(lot); db.session.commit()
+        db.session.add(lot)
+        db.session.commit()
 
         # Build a consumption manually (don't run a full prep — we
         # just want the cost math)
         from stoic_eln.models.mixture_prep import MixturePrep
+
         prep = MixturePrep(
-            code="X", year=2026, mixture_id=ctx["m_6n_id"],
-            target_quantity=1.0, target_quantity_unit="L",
+            code="X",
+            year=2026,
+            mixture_id=ctx["m_6n_id"],
+            target_quantity=1.0,
+            target_quantity_unit="L",
         )
-        db.session.add(prep); db.session.flush()
+        db.session.add(prep)
+        db.session.flush()
         cons = MixturePrepConsumption(
-            prep_id=prep.id, inventory_item_id=lot.id,
-            quantity_consumed=0.5, quantity_unit="kg",  # = 500 g
+            prep_id=prep.id,
+            inventory_item_id=lot.id,
+            quantity_consumed=0.5,
+            quantity_unit="kg",  # = 500 g
             position=0,
         )
-        db.session.add(cons); db.session.commit()
+        db.session.add(cons)
+        db.session.commit()
         # 500 g * 0.05 €/g = 25 €
         assert cons.imputed_cost_eur == 25.0

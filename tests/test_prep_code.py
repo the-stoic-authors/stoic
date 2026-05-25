@@ -31,7 +31,9 @@ def test_slugify_empty_falls_back(app):
 def test_format_prep_code_default(app):
     code = prep_code.format_prep_code(
         fmt="{mix}-{year}-{seq:03d}",
-        mix="HCL6N", year=2026, seq=1,
+        mix="HCL6N",
+        year=2026,
+        seq=1,
     )
     assert code == "HCL6N-2026-001"
 
@@ -60,23 +62,40 @@ def test_generate_prep_code_increments_sequence(app):
     from stoic_eln.models.mixture_prep import MixturePrep
 
     with app.app_context():
-        g = Group(name="L", slug="l"); db.session.add(g); db.session.flush()
-        m = Mixture(name="HCl 6N", kind="solution",
-                    primary_concentration=6.0, primary_concentration_unit="N")
-        db.session.add(m); db.session.flush()
+        g = Group(name="L", slug="l")
+        db.session.add(g)
+        db.session.flush()
+        m = Mixture(
+            name="HCl 6N",
+            kind="solution",
+            primary_concentration=6.0,
+            primary_concentration_unit="N",
+        )
+        db.session.add(m)
+        db.session.flush()
 
         code1, seq1 = prep_code.generate_prep_code(
-            mixture_name=m.name, mixture_id=m.id, year=2026,
+            mixture_name=m.name,
+            mixture_id=m.id,
+            year=2026,
         )
         # Persist a fake prep so the next call sees a non-empty history.
-        db.session.add(MixturePrep(
-            code=code1, sequence=seq1, year=2026,
-            mixture_id=m.id, target_quantity=1.0, target_quantity_unit="L",
-            prepared_at=datetime.now(UTC).replace(tzinfo=None),
-        ))
+        db.session.add(
+            MixturePrep(
+                code=code1,
+                sequence=seq1,
+                year=2026,
+                mixture_id=m.id,
+                target_quantity=1.0,
+                target_quantity_unit="L",
+                prepared_at=datetime.now(UTC).replace(tzinfo=None),
+            )
+        )
         db.session.commit()
         code2, seq2 = prep_code.generate_prep_code(
-            mixture_name=m.name, mixture_id=m.id, year=2026,
+            mixture_name=m.name,
+            mixture_id=m.id,
+            year=2026,
         )
     assert seq1 == 1
     assert seq2 == 2
@@ -94,27 +113,48 @@ def test_scope_mix_isolates_sequences_per_mixture(app):
 
     with app.app_context():
         prep_code.set_scope("mix")
-        g = Group(name="L2", slug="l2"); db.session.add(g); db.session.flush()
-        m_a = Mixture(name="HCl 1N", kind="solution",
-                      primary_concentration=1.0, primary_concentration_unit="N")
-        m_b = Mixture(name="HCl 6N", kind="solution",
-                      primary_concentration=6.0, primary_concentration_unit="N")
-        db.session.add_all([m_a, m_b]); db.session.flush()
+        g = Group(name="L2", slug="l2")
+        db.session.add(g)
+        db.session.flush()
+        m_a = Mixture(
+            name="HCl 1N",
+            kind="solution",
+            primary_concentration=1.0,
+            primary_concentration_unit="N",
+        )
+        m_b = Mixture(
+            name="HCl 6N",
+            kind="solution",
+            primary_concentration=6.0,
+            primary_concentration_unit="N",
+        )
+        db.session.add_all([m_a, m_b])
+        db.session.flush()
 
         # Register one prep against m_a, none against m_b yet.
         code_a, seq_a = prep_code.generate_prep_code(
-            mixture_name=m_a.name, mixture_id=m_a.id, year=2026,
+            mixture_name=m_a.name,
+            mixture_id=m_a.id,
+            year=2026,
         )
-        db.session.add(MixturePrep(
-            code=code_a, sequence=seq_a, year=2026,
-            mixture_id=m_a.id, target_quantity=1.0, target_quantity_unit="L",
-            prepared_at=datetime.now(UTC).replace(tzinfo=None),
-        ))
+        db.session.add(
+            MixturePrep(
+                code=code_a,
+                sequence=seq_a,
+                year=2026,
+                mixture_id=m_a.id,
+                target_quantity=1.0,
+                target_quantity_unit="L",
+                prepared_at=datetime.now(UTC).replace(tzinfo=None),
+            )
+        )
         db.session.commit()
 
         # Now generate for m_b — under 'mix' scope it should be #1, not #2.
         code_b, seq_b = prep_code.generate_prep_code(
-            mixture_name=m_b.name, mixture_id=m_b.id, year=2026,
+            mixture_name=m_b.name,
+            mixture_id=m_b.id,
+            year=2026,
         )
         # Reset to default so we don't bleed state into other tests.
         prep_code.set_scope("lab")

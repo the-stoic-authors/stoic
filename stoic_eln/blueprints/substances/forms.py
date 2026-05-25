@@ -44,9 +44,7 @@ class SubstanceForm(FlaskForm):
         validators=[Optional(), Length(max=27)],
         render_kw={"placeholder": "AAAAAAAAAAAAAA-BBBBBBBBBB-N"},
     )
-    density = FloatField(
-        _l("Densità (g/mL)"), validators=[Optional(), NumberRange(min=0)]
-    )
+    density = FloatField(_l("Densità (g/mL)"), validators=[Optional(), NumberRange(min=0)])
     state = SelectField(
         _l("Stato fisico"),
         choices=[

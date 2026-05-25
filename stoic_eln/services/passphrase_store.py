@@ -145,6 +145,7 @@ def current_source() -> str:
     try:
         from stoic_eln.models.settings import AppSetting
         from flask import has_app_context
+
         if has_app_context():
             raw = AppSetting.get("auth.passphrase_source")
             if raw in SOURCES:
@@ -169,6 +170,7 @@ def _source_marker_path() -> Path | None:
     """
     try:
         from flask import current_app
+
         return Path(current_app.instance_path) / "auth_source"
     except Exception:
         return None
@@ -212,6 +214,7 @@ def set_source(source: str) -> None:
         raise ValueError(f"unknown source: {source!r}")
     try:
         from stoic_eln.models.settings import AppSetting
+
         AppSetting.set("auth.passphrase_source", source)
     except Exception:
         # Could fail if called from a context where the DB isn't
@@ -244,16 +247,12 @@ def ensure_default_source_setting(instance_path: Path) -> None:
         # what the user has on disk rather than forcing a re-prompt.
         marker.parent.mkdir(parents=True, exist_ok=True)
         marker.write_text(SOURCE_FILE, encoding="utf-8")
-        logger.info(
-            "Migrated passphrase source to 'file' (existing backup.key found)"
-        )
+        logger.info("Migrated passphrase source to 'file' (existing backup.key found)")
     elif os.environ.get("STOIC_BACKUP_PASSPHRASE"):
         # User has explicitly set the env var: default to env.
         marker.parent.mkdir(parents=True, exist_ok=True)
         marker.write_text(SOURCE_ENV, encoding="utf-8")
-        logger.info(
-            "Migrated passphrase source to 'env' (STOIC_BACKUP_PASSPHRASE set)"
-        )
+        logger.info("Migrated passphrase source to 'env' (STOIC_BACKUP_PASSPHRASE set)")
     else:
         # Fresh install: encryption off by default. The user
         # opts in explicitly by choosing prompt/file/env from
@@ -365,8 +364,7 @@ def get_passphrase(
         pp = _from_prompt(verifier=verifier)
     else:
         # Defensive: marker may have been hand-edited to garbage
-        logger.warning("unknown passphrase source %r, treating as 'none'",
-                       source)
+        logger.warning("unknown passphrase source %r, treating as 'none'", source)
         return None
 
     if pp:
@@ -460,6 +458,7 @@ def _from_prompt(verifier: Callable[[str], bool] | None = None) -> str | None:
         )
 
     import getpass
+
     try:
         for attempt in range(3):
             if attempt == 0:

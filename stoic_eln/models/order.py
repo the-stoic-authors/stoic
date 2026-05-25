@@ -80,10 +80,16 @@ class Order(db.Model):
 
     # ── What's being ordered ──────────────────────────────────────────
     substance_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("substance.id"), nullable=False, index=True,
+        Integer,
+        ForeignKey("substance.id"),
+        nullable=False,
+        index=True,
     )
     group_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("group.id"), nullable=False, index=True,
+        Integer,
+        ForeignKey("group.id"),
+        nullable=False,
+        index=True,
     )
 
     supplier: Mapped[str | None] = mapped_column(String(120), nullable=True)
@@ -117,7 +123,10 @@ class Order(db.Model):
 
     # Status from ALL_STATUSES
     status: Mapped[str] = mapped_column(
-        String(24), default=STATUS_PLANNED, nullable=False, index=True,
+        String(24),
+        default=STATUS_PLANNED,
+        nullable=False,
+        index=True,
     )
 
     # Free-text notes
@@ -125,28 +134,40 @@ class Order(db.Model):
 
     # ── If received, link to the resulting lot ────────────────────────
     inventory_item_id: Mapped[int | None] = mapped_column(
-        Integer, ForeignKey("inventory_item.id"), nullable=True, index=True,
+        Integer,
+        ForeignKey("inventory_item.id"),
+        nullable=True,
+        index=True,
     )
 
     # ── Audit ─────────────────────────────────────────────────────────
     created_by_id: Mapped[int | None] = mapped_column(
-        Integer, ForeignKey("user.id"), nullable=True,
+        Integer,
+        ForeignKey("user.id"),
+        nullable=True,
     )
     created_at: Mapped[datetime] = mapped_column(
-        DateTime, default=_now_utc, nullable=False,
+        DateTime,
+        default=_now_utc,
+        nullable=False,
     )
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime, default=_now_utc, onupdate=_now_utc, nullable=False,
+        DateTime,
+        default=_now_utc,
+        onupdate=_now_utc,
+        nullable=False,
     )
 
     # ── Relationships ─────────────────────────────────────────────────
     substance: Mapped[Substance] = relationship("Substance")
     group: Mapped[Group] = relationship("Group")
     inventory_item: Mapped[InventoryItem | None] = relationship(
-        "InventoryItem", foreign_keys=[inventory_item_id],
+        "InventoryItem",
+        foreign_keys=[inventory_item_id],
     )
     created_by: Mapped[User | None] = relationship(
-        "User", foreign_keys=[created_by_id],
+        "User",
+        foreign_keys=[created_by_id],
     )
 
     def __repr__(self) -> str:

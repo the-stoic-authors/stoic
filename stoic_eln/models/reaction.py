@@ -49,16 +49,16 @@ class Reaction(db.Model):
     # level (only one *published* reaction can hold a given template_code,
     # but a draft can hold the same code as its parent published version).
     template_code: Mapped[str | None] = mapped_column(
-        String(20), index=True, nullable=True,
+        String(20),
+        index=True,
+        nullable=True,
     )
     """Mnemonic identifier the chemist picks. NULL while the template is
     still in 'draft' status before the first save."""
 
     # Internal sequential code (kept for backwards compatibility and as a
     # fallback display when template_code is empty). Format: 'RX-YYYY-NNNN'.
-    code: Mapped[str] = mapped_column(
-        String(20), unique=True, index=True, nullable=False
-    )
+    code: Mapped[str] = mapped_column(String(20), unique=True, index=True, nullable=False)
     """Auto-generated identifier like 'RX-2026-0001'.
 
     Note: with the new system the user-facing ID is the template_code; this
@@ -68,7 +68,10 @@ class Reaction(db.Model):
     # Lifecycle status — drafts hold WIP edits and are filtered out of
     # most listings unless the user is the draft's author.
     status: Mapped[str] = mapped_column(
-        String(16), default="published", nullable=False, index=True,
+        String(16),
+        default="published",
+        nullable=False,
+        index=True,
     )
     """One of 'draft', 'published'."""
 
@@ -77,7 +80,8 @@ class Reaction(db.Model):
     # this draft is intended to replace, even if its template_code has been
     # edited to a different value during the editing session.
     parent_published_id: Mapped[int | None] = mapped_column(
-        Integer, ForeignKey("reaction.id", ondelete="SET NULL"),
+        Integer,
+        ForeignKey("reaction.id", ondelete="SET NULL"),
         nullable=True,
     )
 
@@ -91,24 +95,34 @@ class Reaction(db.Model):
     # in the DB so historical Runs continue to point at the exact template
     # they were executed against.
     template_code_base: Mapped[str | None] = mapped_column(
-        String(20), index=True, nullable=True,
+        String(20),
+        index=True,
+        nullable=True,
     )
     """The "family" code without version suffix (e.g. 'MD600B').
     Same for every version of the same template family."""
 
     version_number: Mapped[int] = mapped_column(
-        Integer, default=1, nullable=False, index=True,
+        Integer,
+        default=1,
+        nullable=False,
+        index=True,
     )
     """1 for the first version, 2 for the second, …"""
 
     parent_version_id: Mapped[int | None] = mapped_column(
-        Integer, ForeignKey("reaction.id", ondelete="SET NULL"),
-        nullable=True, index=True,
+        Integer,
+        ForeignKey("reaction.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
     )
     """FK to the previous version of the same family (NULL for v1)."""
 
     is_archived: Mapped[bool] = mapped_column(
-        Boolean, default=False, nullable=False, index=True,
+        Boolean,
+        default=False,
+        nullable=False,
+        index=True,
     )
     """True for old versions (v1 once v2 exists, etc.). Filtered out of
     the main listing but accessible via 'Versioni precedenti'."""
@@ -142,29 +156,19 @@ class Reaction(db.Model):
     # Default scale used to preview absolute quantities in the template view.
     # Equivalents are the canonical stoichiometry; this is just a display hint.
     # When a Run is created (Week 4), it gets its own scale_mmol that overrides.
-    default_scale_mmol: Mapped[float] = mapped_column(
-        Float, default=1.0, nullable=False
-    )
+    default_scale_mmol: Mapped[float] = mapped_column(Float, default=1.0, nullable=False)
 
     # Audit
-    created_by_id: Mapped[int | None] = mapped_column(
-        Integer, ForeignKey("user.id"), nullable=True
-    )
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime, default=_now_utc, nullable=False
-    )
+    created_by_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("user.id"), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now_utc, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, default=_now_utc, onupdate=_now_utc, nullable=False
     )
 
-    is_active: Mapped[bool] = mapped_column(
-        Boolean, default=True, nullable=False, index=True
-    )
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False, index=True)
 
     # Relationships
-    created_by: Mapped[User | None] = relationship(
-        "User", foreign_keys=[created_by_id]
-    )
+    created_by: Mapped[User | None] = relationship("User", foreign_keys=[created_by_id])
     components: Mapped[list[ReactionComponent]] = relationship(
         "ReactionComponent",
         back_populates="reaction",
@@ -174,8 +178,7 @@ class Reaction(db.Model):
     checklist_items: Mapped[list[ChecklistItem]] = relationship(
         "ChecklistItem",
         primaryjoin=(
-            "and_(ChecklistItem.reaction_id == Reaction.id, "
-            "ChecklistItem.step_id.is_(None))"
+            "and_(ChecklistItem.reaction_id == Reaction.id, ChecklistItem.step_id.is_(None))"
         ),
         cascade="all, delete-orphan",
         order_by="ChecklistItem.position.asc()",
@@ -232,6 +235,7 @@ class Reaction(db.Model):
         if self.parent_published_id:
             # Editing a parent published version → next version number
             from stoic_eln.extensions import db
+
             parent = db.session.get(Reaction, self.parent_published_id)
             next_v = (parent.version_number + 1) if parent else 2
             return f"{self.template_code_base}.{next_v}"
@@ -347,8 +351,15 @@ class Reaction(db.Model):
         #     with the substrate, not above the arrow.
         left_only_roles = ("starting_material", "reactant")
         right_only_roles = ("product", "byproduct")
-        over_arrow_roles = ("catalyst", "ligand", "base", "acid",
-                            "oxidant", "reductant", "additive")
+        over_arrow_roles = (
+            "catalyst",
+            "ligand",
+            "base",
+            "acid",
+            "oxidant",
+            "reductant",
+            "additive",
+        )
 
         def comp_dict(c) -> dict:
             sub = c.substance
@@ -397,12 +408,14 @@ class Reaction(db.Model):
                 # a positioning signal.
                 left.append(d)
             elif c.role == "solvent":
-                solvents.append({
-                    "name": d["name"],
-                    "smiles": d["smiles"],
-                    "molecular_formula": d["molecular_formula"],
-                    "concentration_M": c.concentration_M,
-                })
+                solvents.append(
+                    {
+                        "name": d["name"],
+                        "smiles": d["smiles"],
+                        "molecular_formula": d["molecular_formula"],
+                        "concentration_M": c.concentration_M,
+                    }
+                )
             elif c.role == "internal_standard":
                 # Internal standard never appears in scheme
                 continue
@@ -444,8 +457,12 @@ class Reaction(db.Model):
             cond_parts.append(f"{self.duration_hours:g} h")
         if self.atmosphere:
             atm_label = {
-                "air": "aria", "N2": "N₂", "Ar": "Ar",
-                "vacuum": "vuoto", "H2": "H₂", "O2": "O₂",
+                "air": "aria",
+                "N2": "N₂",
+                "Ar": "Ar",
+                "vacuum": "vuoto",
+                "H2": "H₂",
+                "O2": "O₂",
             }.get(self.atmosphere, self.atmosphere)
             cond_parts.append(atm_label)
         if self.pressure_bar is not None:
@@ -474,6 +491,7 @@ class Reaction(db.Model):
                 return formula
             # Match patterns like "Br2Cu", "Cl3Fe", "I2Zn" → "CuBr2" etc.
             import re as _re
+
             m = _re.match(
                 r"^([A-Z][a-z]?)(\d*)([A-Z][a-z]?)(\d*)$",
                 formula,
@@ -483,9 +501,33 @@ class Reaction(db.Model):
             sym1, n1, sym2, n2 = m.groups()
             # Metals that should come first (common ones in synthesis).
             METALS_FIRST = {
-                "Li", "Na", "K", "Mg", "Ca", "Mn", "Fe", "Co", "Ni",
-                "Cu", "Zn", "Pd", "Pt", "Au", "Ag", "Ru", "Rh", "Ir",
-                "Hg", "Sn", "Al", "Ti", "Zr", "V", "Cr", "Cd", "Pb",
+                "Li",
+                "Na",
+                "K",
+                "Mg",
+                "Ca",
+                "Mn",
+                "Fe",
+                "Co",
+                "Ni",
+                "Cu",
+                "Zn",
+                "Pd",
+                "Pt",
+                "Au",
+                "Ag",
+                "Ru",
+                "Rh",
+                "Ir",
+                "Hg",
+                "Sn",
+                "Al",
+                "Ti",
+                "Zr",
+                "V",
+                "Cr",
+                "Cd",
+                "Pb",
             }
             if sym2 in METALS_FIRST and sym1 not in METALS_FIRST:
                 # Swap: halide-metal → metal-halide
@@ -495,9 +537,7 @@ class Reaction(db.Model):
         agent_labels: list[str] = []
         for a in agents_text:
             if a["molecular_formula"]:
-                agent_labels.append(
-                    to_subscript(chemist_order(a["molecular_formula"]))
-                )
+                agent_labels.append(to_subscript(chemist_order(a["molecular_formula"])))
             else:
                 agent_labels.append(a["name"])
         above_arrow_label = ", ".join(agent_labels)

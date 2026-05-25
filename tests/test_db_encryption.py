@@ -43,6 +43,7 @@ def test_plain_sqlite_detected_as_not_encrypted(tmp_path):
 def test_sqlcipher_db_detected_as_encrypted(tmp_path):
     """A SQLCipher-encrypted file is detected as encrypted."""
     import sqlcipher3
+
     db_path = tmp_path / "enc.db"
     conn = sqlcipher3.connect(str(db_path))
     conn.execute("PRAGMA key='secret'")
@@ -94,6 +95,7 @@ def test_encrypt_db_basic(tmp_path):
 
     # sqlcipher3 + same key can.
     import sqlcipher3
+
     c = sqlcipher3.connect(str(src))
     c.execute("PRAGMA key='test-passphrase-123'")
     rows = c.execute("SELECT id, name FROM u ORDER BY id").fetchall()
@@ -106,6 +108,7 @@ def test_encrypt_already_encrypted_is_noop(tmp_path):
     passphrase is a successful no-op."""
     src = tmp_path / "enc.db"
     import sqlcipher3
+
     conn = sqlcipher3.connect(str(src))
     conn.execute("PRAGMA key='pw'")
     conn.execute("CREATE TABLE t (x INT)")
@@ -124,6 +127,7 @@ def test_encrypt_already_encrypted_wrong_passphrase_fails(tmp_path):
     is a clear failure (not silent corruption)."""
     src = tmp_path / "enc.db"
     import sqlcipher3
+
     conn = sqlcipher3.connect(str(src))
     conn.execute("PRAGMA key='right-pw'")
     conn.execute("CREATE TABLE t (x INT)")
@@ -132,14 +136,17 @@ def test_encrypt_already_encrypted_wrong_passphrase_fails(tmp_path):
 
     result = db_crypto.encrypt_db(src, "wrong-pw")
     assert not result.ok
-    assert "passphrase" in (result.error or "").lower() \
+    assert (
+        "passphrase" in (result.error or "").lower()
         or "doesn't open" in (result.error or "").lower()
+    )
 
 
 def test_decrypt_db_basic(tmp_path):
     """decrypt_db round-trips an encrypted DB back to plain SQLite."""
     src = tmp_path / "enc.db"
     import sqlcipher3
+
     conn = sqlcipher3.connect(str(src))
     conn.execute("PRAGMA key='pw'")
     conn.execute("CREATE TABLE t (x INT)")
@@ -195,8 +202,9 @@ def test_encrypt_apostrophe_in_passphrase(tmp_path):
 
     # Read back with the same tricky passphrase
     import sqlcipher3
+
     c = sqlcipher3.connect(str(src))
-    c.execute(f"PRAGMA key='{pp.replace(chr(39), chr(39)*2)}'")
+    c.execute(f"PRAGMA key='{pp.replace(chr(39), chr(39) * 2)}'")
     rows = c.execute("SELECT x FROM t").fetchall()
     c.close()
     assert rows == [(99,)]
@@ -262,18 +270,17 @@ def test_boot_with_encrypted_db(encrypted_app):
     """Stoic boots cleanly on an encrypted DB when passphrase is
     available. SQLAlchemy queries return the seeded data."""
     from sqlalchemy import text
+
     with encrypted_app.app_context():
         # Existing Stoic tables (created by create_all on first
         # boot) should be there
-        result = db.session.execute(text(
-            "SELECT count(*) FROM sqlite_master WHERE type='table'"
-        )).scalar()
+        result = db.session.execute(
+            text("SELECT count(*) FROM sqlite_master WHERE type='table'")
+        ).scalar()
         assert result > 0
 
         # Our seed table is also there
-        rows = db.session.execute(
-            text("SELECT id, label FROM seed")
-        ).fetchall()
+        rows = db.session.execute(text("SELECT id, label FROM seed")).fetchall()
         assert (1, "before-encrypt") in [(r[0], r[1]) for r in rows]
 
 
@@ -293,10 +300,9 @@ def test_backup_of_encrypted_live_db(encrypted_app):
         # Decrypt the envelope manually and verify we get back a
         # gzipped plain SQLite that contains our data.
         import gzip
+
         blob = bf.path.read_bytes()
-        plaintext = backup_crypto.decrypt_bytes(
-            blob, "test-passphrase-12345"
-        )
+        plaintext = backup_crypto.decrypt_bytes(blob, "test-passphrase-12345")
         # plaintext is gzipped SQLite
         assert plaintext[:2] == b"\x1f\x8b"
         sql_bytes = gzip.decompress(plaintext)
@@ -305,9 +311,7 @@ def test_backup_of_encrypted_live_db(encrypted_app):
         decoded = bf.path.parent / "decoded.db"
         decoded.write_bytes(sql_bytes)
         c = sqlite3.connect(str(decoded))
-        row = c.execute(
-            "SELECT value FROM app_setting WHERE key=?", ("test.marker",)
-        ).fetchone()
+        row = c.execute("SELECT value FROM app_setting WHERE key=?", ("test.marker",)).fetchone()
         c.close()
         assert row is not None
         assert row[0] == "from-encrypted"
@@ -333,17 +337,15 @@ def test_restore_into_encrypted_deployment(encrypted_app):
         # (consistency with the previous live state)
         live_db = backup_service.get_db_path()
         assert db_crypto.is_encrypted_db(live_db), (
-            "restored file is plain; encrypted-deployment regressed "
-            "to unencrypted"
+            "restored file is plain; encrypted-deployment regressed to unencrypted"
         )
 
         # And the data was restored. Open with sqlcipher3 to verify.
         import sqlcipher3
+
         c = sqlcipher3.connect(str(live_db))
         c.execute("PRAGMA key='test-passphrase-12345'")
-        row = c.execute(
-            "SELECT value FROM app_setting WHERE key=?", ("test.marker",)
-        ).fetchone()
+        row = c.execute("SELECT value FROM app_setting WHERE key=?", ("test.marker",)).fetchone()
         c.close()
         assert row[0] == "alpha"
 
@@ -374,18 +376,20 @@ def test_db_encrypt_command_end_to_end(tmp_path):
     db_path = tmp_path / "stoic.db"
     instance_path = tmp_path / "inst"
     instance_path.mkdir()
-    (instance_path / "backup.key").write_text("cli-test-pp-123456",
-                                              encoding="utf-8")
+    (instance_path / "backup.key").write_text("cli-test-pp-123456", encoding="utf-8")
     # Mark passphrase source as 'file' so the resolver looks at
     # the keyfile we just wrote (patch 14.3 default would be NONE).
     (instance_path / "auth_source").write_text("file", encoding="utf-8")
 
     # Seed plain DB with one row
     conn = sqlite3.connect(str(db_path))
-    conn.execute("CREATE TABLE app_setting (key TEXT PRIMARY KEY, value TEXT, "
-                 "updated_at TIMESTAMP NOT NULL)")
-    conn.execute("INSERT INTO app_setting VALUES ('backup.path', ?, "
-                 "datetime('now'))", (str(tmp_path / "backups"),))
+    conn.execute(
+        "CREATE TABLE app_setting (key TEXT PRIMARY KEY, value TEXT, updated_at TIMESTAMP NOT NULL)"
+    )
+    conn.execute(
+        "INSERT INTO app_setting VALUES ('backup.path', ?, datetime('now'))",
+        (str(tmp_path / "backups"),),
+    )
     conn.commit()
     conn.close()
 

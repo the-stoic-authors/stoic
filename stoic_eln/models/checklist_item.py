@@ -50,23 +50,23 @@ class ChecklistItem(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
 
     reaction_id: Mapped[int | None] = mapped_column(
-        Integer, ForeignKey("reaction.id", ondelete="CASCADE"),
-        nullable=True, index=True,
+        Integer,
+        ForeignKey("reaction.id", ondelete="CASCADE"),
+        nullable=True,
+        index=True,
     )
     step_id: Mapped[int | None] = mapped_column(
-        Integer, ForeignKey("reaction_step.id", ondelete="CASCADE"),
-        nullable=True, index=True,
+        Integer,
+        ForeignKey("reaction_step.id", ondelete="CASCADE"),
+        nullable=True,
+        index=True,
     )
 
     position: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     text: Mapped[str] = mapped_column(String(500), nullable=False)
-    is_default_done: Mapped[bool] = mapped_column(
-        Boolean, default=False, nullable=False
-    )
+    is_default_done: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime, default=_now_utc, nullable=False
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now_utc, nullable=False)
 
     # Relationships are read-only from this side (the parent owns the cascade)
     reaction: Mapped[Reaction | None] = relationship(

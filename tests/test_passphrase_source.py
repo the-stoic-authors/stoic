@@ -129,6 +129,7 @@ def test_from_prompt_no_tty_raises(monkeypatch):
     """Without a callback AND without a tty, prompt mode must
     raise so the caller knows boot can't proceed in this mode."""
     import sys
+
     monkeypatch.setattr(sys.stdin, "isatty", lambda: False)
     ps.set_prompt_callback(None)
     with pytest.raises(ps.PassphraseUnavailable):
@@ -148,6 +149,7 @@ def test_current_source_default_is_none(app_with_instance):
 def test_current_source_reads_appsetting(app_with_instance):
     app, _ = app_with_instance
     from stoic_eln.models.settings import AppSetting
+
     AppSetting.set("auth.passphrase_source", ps.SOURCE_FILE)
     db.session.commit()
     assert ps.current_source() == ps.SOURCE_FILE
@@ -180,6 +182,7 @@ def test_set_source_writes_both_appsetting_and_marker(app_with_instance):
     db.session.commit()
 
     from stoic_eln.models.settings import AppSetting
+
     assert AppSetting.get("auth.passphrase_source") == ps.SOURCE_FILE
     assert (instance / "auth_source").read_text().strip() == ps.SOURCE_FILE
 

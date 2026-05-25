@@ -34,8 +34,17 @@ from stoic_eln.cli.platform import (
 def test_cli_main_registers_all_commands():
     """All 11 documented commands are wired up."""
     expected = {
-        "install", "update", "start", "stop", "restart", "status",
-        "backup", "db-encrypt", "db-status", "version", "doctor",
+        "install",
+        "update",
+        "start",
+        "stop",
+        "restart",
+        "status",
+        "backup",
+        "db-encrypt",
+        "db-status",
+        "version",
+        "doctor",
     }
     actual = set(cli_main.commands.keys())
     assert actual == expected, f"Missing/extra: {actual.symmetric_difference(expected)}"
@@ -46,8 +55,7 @@ def test_cli_help_lists_commands():
     runner = CliRunner()
     result = runner.invoke(cli_main, ["--help"])
     assert result.exit_code == 0
-    for cmd in ("install", "update", "start", "stop", "status",
-                "backup", "doctor", "version"):
+    for cmd in ("install", "update", "start", "stop", "status", "backup", "doctor", "version"):
         assert cmd in result.output, f"'{cmd}' missing from --help"
 
 
@@ -218,8 +226,7 @@ def test_status_defaults():
 
 
 def test_status_with_full_data():
-    s = Status(running=True, pid=12345, uptime_seconds=3600,
-               port=5000, method="launchd")
+    s = Status(running=True, pid=12345, uptime_seconds=3600, port=5000, method="launchd")
     assert s.running
     assert s.pid == 12345
     assert s.uptime_seconds == 3600
@@ -230,19 +237,23 @@ def test_status_with_full_data():
 
 def test_format_uptime_seconds():
     from stoic_eln.cli.main import _format_uptime
+
     assert _format_uptime(45) == "45s"
 
 
 def test_format_uptime_minutes():
     from stoic_eln.cli.main import _format_uptime
+
     assert _format_uptime(120) == "2m"
 
 
 def test_format_uptime_hours():
     from stoic_eln.cli.main import _format_uptime
+
     assert _format_uptime(7320) == "2h2m"  # 2*3600 + 2*60
 
 
 def test_format_uptime_days():
     from stoic_eln.cli.main import _format_uptime
+
     assert _format_uptime(90000) == "1d1h"  # 86400 + 3600

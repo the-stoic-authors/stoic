@@ -31,12 +31,16 @@ def _now_utc() -> datetime:
 # inventory_item, which Note doesn't have — labels and CoAs need to live
 # on the lot, not just on the substance.
 ATTACHMENT_ENTITY_TYPES: tuple[str, ...] = (
-    "run", "reaction", "substance", "inventory_item",
+    "run",
+    "reaction",
+    "substance",
+    "inventory_item",
     # Added in patch 14.4: attachments on mixture recipes (Mixture)
     # and on individual preparation events (MixturePrep). Examples:
     # photo of a buffer recipe annotated by hand, CoA of a prepared
     # eluent batch, calibration spectrum of a stock solution.
-    "mixture", "mixture_prep",
+    "mixture",
+    "mixture_prep",
 )
 
 
@@ -49,7 +53,9 @@ class Attachment(db.Model):
 
     # Generic association to the parent entity.
     entity_type: Mapped[str] = mapped_column(
-        String(32), nullable=False, index=True,
+        String(32),
+        nullable=False,
+        index=True,
     )
     entity_id: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
 
@@ -74,12 +80,17 @@ class Attachment(db.Model):
     caption: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     uploaded_by_id: Mapped[int | None] = mapped_column(
-        Integer, ForeignKey("user.id", ondelete="SET NULL"),
-        nullable=True, index=True,
+        Integer,
+        ForeignKey("user.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
     )
 
     created_at: Mapped[datetime] = mapped_column(
-        DateTime, default=_now_utc, nullable=False, index=True,
+        DateTime,
+        default=_now_utc,
+        nullable=False,
+        index=True,
     )
 
     # Relationships
@@ -90,15 +101,14 @@ class Attachment(db.Model):
         # used by the detail pages and the partial.
         Index(
             "ix_attachment_entity_created",
-            "entity_type", "entity_id", "created_at",
+            "entity_type",
+            "entity_id",
+            "created_at",
         ),
     )
 
     def __repr__(self) -> str:
-        return (
-            f"<Attachment #{self.id} {self.filename!r} "
-            f"on {self.entity_type}#{self.entity_id}>"
-        )
+        return f"<Attachment #{self.id} {self.filename!r} on {self.entity_type}#{self.entity_id}>"
 
     # ── Convenience properties ────────────────────────────────────────
 

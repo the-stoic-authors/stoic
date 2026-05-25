@@ -144,10 +144,12 @@ def test_substances_list_renders(client, app):
 
 def test_substances_search_filters(client, app):
     with app.app_context():
-        db.session.add_all([
-            Substance(name="Aspirin", cas_number="50-78-2"),
-            Substance(name="Caffeine", cas_number="58-08-2"),
-        ])
+        db.session.add_all(
+            [
+                Substance(name="Aspirin", cas_number="50-78-2"),
+                Substance(name="Caffeine", cas_number="58-08-2"),
+            ]
+        )
         db.session.commit()
 
     _login(client, app)
@@ -265,9 +267,9 @@ def test_substance_duplicate_inchi_key_blocks_create(client, app):
     assert f"/substances/{existing_id}" in resp.headers["Location"]
     # And no duplicate was created
     with app.app_context():
-        count = db.session.query(Substance).filter_by(
-            inchi_key="LFQSCWFLJHTTHZ-UHFFFAOYSA-N"
-        ).count()
+        count = (
+            db.session.query(Substance).filter_by(inchi_key="LFQSCWFLJHTTHZ-UHFFFAOYSA-N").count()
+        )
         assert count == 1
 
 

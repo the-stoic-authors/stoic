@@ -7,6 +7,7 @@ Covers:
 * Missing slugs return 404
 * Markdown is actually rendered (HTML in the body, not raw markdown)
 """
+
 from __future__ import annotations
 
 import pytest
@@ -37,19 +38,28 @@ def regular_user(app):
 @pytest.fixture
 def client_user(client, regular_user):
     """Test client logged in as a regular (non-admin) user."""
-    client.post("/auth/login", data={
-        "username": "alice", "password": "test12345", "submit": "x",
-    })
+    client.post(
+        "/auth/login",
+        data={
+            "username": "alice",
+            "password": "test12345",
+            "submit": "x",
+        },
+    )
     return client
 
 
 @pytest.fixture
 def client_admin(client, admin_user):
     """Test client logged in as the default admin."""
-    client.post("/auth/login", data={
-        "username": "testadmin", "password": "testpassword123",
-        "submit": "x",
-    })
+    client.post(
+        "/auth/login",
+        data={
+            "username": "testadmin",
+            "password": "testpassword123",
+            "submit": "x",
+        },
+    )
     return client
 
 

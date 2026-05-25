@@ -85,11 +85,15 @@ def test_mixture_with_components(app):
         )
         m.components = [
             MixtureComponent(
-                substance_id=hcl.id, role=COMPONENT_ROLE_SOLUTE,
-                concentration=1.0, concentration_unit="N", position=0,
+                substance_id=hcl.id,
+                role=COMPONENT_ROLE_SOLUTE,
+                concentration=1.0,
+                concentration_unit="N",
+                position=0,
             ),
             MixtureComponent(
-                substance_id=water.id, role=COMPONENT_ROLE_SOLVENT,
+                substance_id=water.id,
+                role=COMPONENT_ROLE_SOLVENT,
                 position=1,
             ),
         ]
@@ -117,12 +121,18 @@ def test_mixture_eluent_with_two_cosolvents(app):
         )
         m.components = [
             MixtureComponent(
-                substance_id=hex_.id, role="cosolvent",
-                concentration=95.0, concentration_unit="%v/v", position=0,
+                substance_id=hex_.id,
+                role="cosolvent",
+                concentration=95.0,
+                concentration_unit="%v/v",
+                position=0,
             ),
             MixtureComponent(
-                substance_id=etoac.id, role="cosolvent",
-                concentration=5.0, concentration_unit="%v/v", position=1,
+                substance_id=etoac.id,
+                role="cosolvent",
+                concentration=5.0,
+                concentration_unit="%v/v",
+                position=1,
             ),
         ]
         db.session.add(m)
@@ -139,7 +149,8 @@ def test_mixture_derived_pictograms_unions_components(app):
     """Pictograms derive from the union of component substances."""
     with app.app_context():
         hcl = _make_substance(
-            "HCl", ghs_pictograms=["GHS05", "GHS07"],
+            "HCl",
+            ghs_pictograms=["GHS05", "GHS07"],
             h_phrases=["H314", "H335"],
         )
         water = _make_substance("Water", ghs_pictograms=[])
@@ -166,7 +177,9 @@ def test_mixture_pictogram_override_takes_precedence(app):
     """
     with app.app_context():
         naoh = _make_substance(
-            "NaOH", ghs_pictograms=["GHS05"], h_phrases=["H314"],
+            "NaOH",
+            ghs_pictograms=["GHS05"],
+            h_phrases=["H314"],
         )
         water = _make_substance("Water")
         m = Mixture(
@@ -174,7 +187,7 @@ def test_mixture_pictogram_override_takes_precedence(app):
             kind=MIXTURE_KIND_SOLUTION,
             primary_concentration=0.01,
             primary_concentration_unit="M",
-            ghs_pictograms_override=[],   # explicitly clear
+            ghs_pictograms_override=[],  # explicitly clear
             h_phrases_override=[],
         )
         m.components = [
@@ -201,11 +214,12 @@ def test_mixture_empty_override_is_distinct_from_no_override(app):
         hcl = _make_substance("HCl", ghs_pictograms=["GHS05"])
         m = Mixture(name="m", kind="solution")
         m.components = [MixtureComponent(substance_id=hcl.id, role="solute")]
-        db.session.add(m); db.session.commit()
-        assert m.effective_pictograms == ["GHS05"]   # None → derived
+        db.session.add(m)
+        db.session.commit()
+        assert m.effective_pictograms == ["GHS05"]  # None → derived
         m.ghs_pictograms_override = []
         db.session.commit()
-        assert m.effective_pictograms == []          # [] → cleared
+        assert m.effective_pictograms == []  # [] → cleared
 
 
 # ── InventoryItem XOR constraint ────────────────────────────────────
@@ -217,10 +231,15 @@ def test_inventory_item_for_substance_only(app):
         g = _make_group()
         s = _make_substance("NaCl")
         it = InventoryItem(
-            substance_id=s.id, group_id=g.id, batch_code="NACL-001",
-            quantity_g=10, initial_quantity_g=10, is_active=True,
+            substance_id=s.id,
+            group_id=g.id,
+            batch_code="NACL-001",
+            quantity_g=10,
+            initial_quantity_g=10,
+            is_active=True,
         )
-        db.session.add(it); db.session.commit()
+        db.session.add(it)
+        db.session.commit()
         assert it.kind == "substance"
         assert it.display_name == "NaCl"
 
@@ -235,12 +254,18 @@ def test_inventory_item_for_mixture_only(app):
             primary_concentration=1.0,
             primary_concentration_unit="N",
         )
-        db.session.add(m); db.session.flush()
+        db.session.add(m)
+        db.session.flush()
         it = InventoryItem(
-            mixture_id=m.id, group_id=g.id, batch_code="HCL-1N-001",
-            quantity_mL=500, initial_quantity_mL=500, is_active=True,
+            mixture_id=m.id,
+            group_id=g.id,
+            batch_code="HCL-1N-001",
+            quantity_mL=500,
+            initial_quantity_mL=500,
+            is_active=True,
         )
-        db.session.add(it); db.session.commit()
+        db.session.add(it)
+        db.session.commit()
         assert it.kind == "mixture"
         assert it.display_name == "HCl 1N (1 N)"
         assert it.mixture is not None
@@ -252,8 +277,11 @@ def test_inventory_item_rejects_neither_substance_nor_mixture(app):
     with app.app_context():
         g = _make_group("L3")
         it = InventoryItem(
-            group_id=g.id, batch_code="ORPHAN", is_active=True,
-            quantity_g=1, initial_quantity_g=1,
+            group_id=g.id,
+            batch_code="ORPHAN",
+            is_active=True,
+            quantity_g=1,
+            initial_quantity_g=1,
         )
         db.session.add(it)
         with pytest.raises(IntegrityError):
@@ -267,11 +295,15 @@ def test_inventory_item_rejects_both_substance_and_mixture(app):
         g = _make_group("L4")
         s = _make_substance("X")
         m = Mixture(name="m", kind="solution")
-        db.session.add(m); db.session.flush()
+        db.session.add(m)
+        db.session.flush()
         it = InventoryItem(
-            substance_id=s.id, mixture_id=m.id,
-            group_id=g.id, is_active=True,
-            quantity_g=1, initial_quantity_g=1,
+            substance_id=s.id,
+            mixture_id=m.id,
+            group_id=g.id,
+            is_active=True,
+            quantity_g=1,
+            initial_quantity_g=1,
         )
         db.session.add(it)
         with pytest.raises(IntegrityError):
@@ -284,6 +316,7 @@ def test_mixture_can_have_multiple_lots(app):
     each its own lot with its own batch code and expiry."""
     with app.app_context():
         from datetime import date
+
         g = _make_group("L5")
         m = Mixture(
             name="HCl 1N",
@@ -291,17 +324,25 @@ def test_mixture_can_have_multiple_lots(app):
             primary_concentration=1.0,
             primary_concentration_unit="N",
         )
-        db.session.add(m); db.session.flush()
+        db.session.add(m)
+        db.session.flush()
         for batch in ("HCL-1N-A", "HCL-1N-B"):
-            db.session.add(InventoryItem(
-                mixture_id=m.id, group_id=g.id, batch_code=batch,
-                quantity_mL=500, initial_quantity_mL=500, is_active=True,
-                expiry_date=date(2027, 1, 1),
-            ))
+            db.session.add(
+                InventoryItem(
+                    mixture_id=m.id,
+                    group_id=g.id,
+                    batch_code=batch,
+                    quantity_mL=500,
+                    initial_quantity_mL=500,
+                    is_active=True,
+                    expiry_date=date(2027, 1, 1),
+                )
+            )
         db.session.commit()
         assert len(m.inventory_items) == 2
         assert {it.batch_code for it in m.inventory_items} == {
-            "HCL-1N-A", "HCL-1N-B",
+            "HCL-1N-A",
+            "HCL-1N-B",
         }
 
 
@@ -322,10 +363,14 @@ def test_substance_uniqueness_unaffected_by_mixtures(app):
                 primary_concentration=float(normality),
                 primary_concentration_unit="N",
             )
-            m.components = [MixtureComponent(
-                substance_id=s1.id, role="solute",
-                concentration=float(normality), concentration_unit="N",
-            )]
+            m.components = [
+                MixtureComponent(
+                    substance_id=s1.id,
+                    role="solute",
+                    concentration=float(normality),
+                    concentration_unit="N",
+                )
+            ]
             db.session.add(m)
         db.session.commit()
         # Substance table still has exactly 1 HCl row.
@@ -369,14 +414,19 @@ def test_mixture_can_have_another_mixture_as_component(app):
     """
     with app.app_context():
         hcl = _make_substance(
-            "HCl", ghs_pictograms=["GHS05", "GHS07"],
+            "HCl",
+            ghs_pictograms=["GHS05", "GHS07"],
             h_phrases=["H314"],
         )
         water = _make_substance("Water", ghs_pictograms=[])
 
         # HCl 12N from gas + water (manual lot)
-        hcl12 = Mixture(name="HCl 12N", kind=MIXTURE_KIND_SOLUTION,
-                        primary_concentration=12.0, primary_concentration_unit="N")
+        hcl12 = Mixture(
+            name="HCl 12N",
+            kind=MIXTURE_KIND_SOLUTION,
+            primary_concentration=12.0,
+            primary_concentration_unit="N",
+        )
         hcl12.components = [
             MixtureComponent(substance_id=hcl.id, role="solute"),
             MixtureComponent(substance_id=water.id, role="solvent"),
@@ -385,8 +435,12 @@ def test_mixture_can_have_another_mixture_as_component(app):
         db.session.commit()
 
         # HCl 6N diluted from HCl 12N
-        hcl6 = Mixture(name="HCl 6N", kind=MIXTURE_KIND_SOLUTION,
-                       primary_concentration=6.0, primary_concentration_unit="N")
+        hcl6 = Mixture(
+            name="HCl 6N",
+            kind=MIXTURE_KIND_SOLUTION,
+            primary_concentration=6.0,
+            primary_concentration_unit="N",
+        )
         hcl6.components = [
             MixtureComponent(child_mixture_id=hcl12.id, role="solute"),
             MixtureComponent(substance_id=water.id, role="solvent"),
@@ -417,7 +471,8 @@ def test_derived_pictograms_recurse_into_child_mixture(app):
     """
     with app.app_context():
         hcl = _make_substance(
-            "HCl", ghs_pictograms=["GHS05", "GHS07"],
+            "HCl",
+            ghs_pictograms=["GHS05", "GHS07"],
             h_phrases=["H314"],
         )
         water = _make_substance("Water", ghs_pictograms=[])
@@ -453,12 +508,14 @@ def test_child_mixture_override_blocks_further_recursion(app):
     """
     with app.app_context():
         hcl = _make_substance(
-            "HCl", ghs_pictograms=["GHS05", "GHS07"],
+            "HCl",
+            ghs_pictograms=["GHS05", "GHS07"],
         )
         water = _make_substance("Water", ghs_pictograms=[])
 
         hcl12 = Mixture(
-            name="HCl 12N", kind=MIXTURE_KIND_SOLUTION,
+            name="HCl 12N",
+            kind=MIXTURE_KIND_SOLUTION,
             # explicit override on the inner mixture
             ghs_pictograms_override=["GHS05"],
         )
@@ -550,32 +607,42 @@ def test_suggested_expiry_date_min_across_components(app):
     """suggested_expiry_date returns the earliest expiry across all
     components' active lots."""
     from datetime import date
+
     with app.app_context():
-        g = Group(name="L", slug="l"); db.session.add(g); db.session.flush()
+        g = Group(name="L", slug="l")
+        db.session.add(g)
+        db.session.flush()
         hcl = _make_substance("HCl")
         water = _make_substance("Water")
 
         # Two lots of HCl with different expiries; only the
         # active one with the earliest expiry should win.
         from stoic_eln.models.inventory import InventoryItem
+
         hcl_lot_old = InventoryItem(
-            substance_id=hcl.id, group_id=g.id,
+            substance_id=hcl.id,
+            group_id=g.id,
             batch_code="HCL-OLD",
-            quantity_g=10.0, initial_quantity_g=10.0,
+            quantity_g=10.0,
+            initial_quantity_g=10.0,
             expiry_date=date(2026, 1, 1),
             is_active=False,  # inactive — should be skipped
         )
         hcl_lot_active = InventoryItem(
-            substance_id=hcl.id, group_id=g.id,
+            substance_id=hcl.id,
+            group_id=g.id,
             batch_code="HCL-ACTIVE",
-            quantity_g=10.0, initial_quantity_g=10.0,
+            quantity_g=10.0,
+            initial_quantity_g=10.0,
             expiry_date=date(2027, 12, 31),
             is_active=True,
         )
         water_lot = InventoryItem(
-            substance_id=water.id, group_id=g.id,
+            substance_id=water.id,
+            group_id=g.id,
             batch_code="H2O-001",
-            quantity_g=10.0, initial_quantity_g=10.0,
+            quantity_g=10.0,
+            initial_quantity_g=10.0,
             expiry_date=date(2028, 6, 30),
             is_active=True,
         )
@@ -587,7 +654,8 @@ def test_suggested_expiry_date_min_across_components(app):
             MixtureComponent(substance_id=hcl.id, role="solute"),
             MixtureComponent(substance_id=water.id, role="solvent"),
         ]
-        db.session.add(m); db.session.commit()
+        db.session.add(m)
+        db.session.commit()
 
         # Min of (HCl active = 2027-12-31, Water = 2028-06-30) → 2027-12-31
         # The 2026-01-01 inactive lot is ignored.
@@ -601,7 +669,8 @@ def test_suggested_expiry_date_returns_none_without_lots(app):
         hcl = _make_substance("HCl")
         m = Mixture(name="HCl 12N", kind=MIXTURE_KIND_SOLUTION)
         m.components = [MixtureComponent(substance_id=hcl.id, role="solute")]
-        db.session.add(m); db.session.commit()
+        db.session.add(m)
+        db.session.commit()
         assert m.suggested_expiry_date() is None
 
 
@@ -609,27 +678,36 @@ def test_suggested_expiry_date_recurses_into_child_mixture(app):
     """A mixture component pointing at a child mixture: recurse and
     pick the earliest expiry from the child's components."""
     from datetime import date
+
     with app.app_context():
-        g = Group(name="L", slug="l"); db.session.add(g); db.session.flush()
+        g = Group(name="L", slug="l")
+        db.session.add(g)
+        db.session.flush()
         hcl = _make_substance("HCl")
         water = _make_substance("Water")
 
         from stoic_eln.models.inventory import InventoryItem
+
         hcl_lot = InventoryItem(
-            substance_id=hcl.id, group_id=g.id,
+            substance_id=hcl.id,
+            group_id=g.id,
             batch_code="HCL-ACT",
-            quantity_g=10.0, initial_quantity_g=10.0,
+            quantity_g=10.0,
+            initial_quantity_g=10.0,
             expiry_date=date(2027, 6, 30),
             is_active=True,
         )
         water_lot = InventoryItem(
-            substance_id=water.id, group_id=g.id,
+            substance_id=water.id,
+            group_id=g.id,
             batch_code="H2O-ACT",
-            quantity_g=10.0, initial_quantity_g=10.0,
+            quantity_g=10.0,
+            initial_quantity_g=10.0,
             expiry_date=date(2029, 12, 31),
             is_active=True,
         )
-        db.session.add_all([hcl_lot, water_lot]); db.session.flush()
+        db.session.add_all([hcl_lot, water_lot])
+        db.session.flush()
 
         # HCl 12N: HCl (2027-06-30) + Water (2029-12-31) → suggested 2027-06-30
         hcl12 = Mixture(name="HCl 12N", kind=MIXTURE_KIND_SOLUTION)
@@ -637,7 +715,8 @@ def test_suggested_expiry_date_recurses_into_child_mixture(app):
             MixtureComponent(substance_id=hcl.id, role="solute"),
             MixtureComponent(substance_id=water.id, role="solvent"),
         ]
-        db.session.add(hcl12); db.session.commit()
+        db.session.add(hcl12)
+        db.session.commit()
 
         # HCl 6N: HCl 12N (suggested 2027-06-30) + Water (2029-12-31) → 2027-06-30
         hcl6 = Mixture(name="HCl 6N", kind=MIXTURE_KIND_SOLUTION)
@@ -645,6 +724,7 @@ def test_suggested_expiry_date_recurses_into_child_mixture(app):
             MixtureComponent(child_mixture_id=hcl12.id, role="solute"),
             MixtureComponent(substance_id=water.id, role="solvent"),
         ]
-        db.session.add(hcl6); db.session.commit()
+        db.session.add(hcl6)
+        db.session.commit()
 
         assert hcl6.suggested_expiry_date() == date(2027, 6, 30)

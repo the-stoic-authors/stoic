@@ -46,14 +46,11 @@ from stoic_eln.services import run_setup
 @login_required
 def list_view():
     """List all runs, most recent first."""
-    runs = (
-        db.session.query(Run)
-        .order_by(Run.created_at.desc())
-        .all()
-    )
+    runs = db.session.query(Run).order_by(Run.created_at.desc()).all()
     # Compute cost per run for the cost column. We do this in Python since
     # the cost is a derived calculation across multiple tables.
     from stoic_eln.services.run_cost import compute_run_cost
+
     run_costs = {r.id: compute_run_cost(r) for r in runs}
     return render_template("runs/list.html", runs=runs, run_costs=run_costs)
 
@@ -69,18 +66,22 @@ def detail(run_id: int):
     if run is None:
         abort(404)
     from stoic_eln.services.run_cost import (
-        compute_run_cost, product_unit_metrics,
+        compute_run_cost,
+        product_unit_metrics,
     )
+
     cost_breakdown = compute_run_cost(run)
     metrics_cumulative = product_unit_metrics(run, cost_breakdown.total_eur)
     metrics_direct = product_unit_metrics(run, cost_breakdown.direct_total_eur)
 
     # Notes (Settimana 6 patch 9)
     from stoic_eln.services.notes import list_notes
+
     notes_for_entity = list_notes("run", run.id)
 
     # Attachments (Settimana 6 patch 10)
     from stoic_eln.services.attachments import list_attachments
+
     attachments_for_entity = list_attachments("run", run.id)
 
     return render_template(
@@ -99,8 +100,7 @@ def detail(run_id: int):
 
 def _ensure_draft(run: Run) -> None:
     if not run.is_draft:
-        flash(_("Questa azione non è permessa: il run non è più in bozza."),
-              "warning")
+        flash(_("Questa azione non è permessa: il run non è più in bozza."), "warning")
         return False
     return True
 
@@ -114,8 +114,11 @@ def update_scale(run_id: int):
     if not _ensure_draft(run):
         return redirect(url_for("runs.detail", run_id=run_id))
 
-    raw = (request.form.get("scale_amount") or
-           request.form.get("scale_mmol") or "").strip().replace(",", ".")
+    raw = (
+        (request.form.get("scale_amount") or request.form.get("scale_mmol") or "")
+        .strip()
+        .replace(",", ".")
+    )
     unit = (request.form.get("scale_unit") or "mmol").strip()
 
     if raw == "":
@@ -139,6 +142,7 @@ def update_scale(run_id: int):
 
     # Find the limiting reagent's substance for mass/volume conversions
     from stoic_eln.services import units
+
     limiting_comp = next((c for c in run.components if c.is_limiting), None)
     sub = limiting_comp.substance if limiting_comp else None
 
@@ -161,7 +165,8 @@ def update_scale(run_id: int):
 @login_required
 def set_lot(run_id: int, cid: int):
     run = db.session.get(Run, run_id)
-    if run is None: abort(404)
+    if run is None:
+        abort(404)
     if not _ensure_draft(run):
         return redirect(url_for("runs.detail", run_id=run_id))
 
@@ -216,7 +221,8 @@ def set_actual(run_id: int, cid: int):
     so the operator can record the isolated yield before completing.
     """
     run = db.session.get(Run, run_id)
-    if run is None: abort(404)
+    if run is None:
+        abort(404)
 
     rc = db.session.get(RunComponent, cid)
     if rc is None or rc.run_id != run_id:
@@ -227,8 +233,10 @@ def set_actual(run_id: int, cid: int):
         flash(_("Run completato: non si possono più modificare i pesi."), "warning")
         return redirect(url_for("runs.detail", run_id=run_id))
     if run.is_in_progress and not is_product:
-        flash(_("Run in esecuzione: solo i pesi dei prodotti possono ancora essere inseriti."),
-              "warning")
+        flash(
+            _("Run in esecuzione: solo i pesi dei prodotti possono ancora essere inseriti."),
+            "warning",
+        )
         return redirect(url_for("runs.detail", run_id=run_id))
 
     raw = (request.form.get("actual") or "").strip().replace(",", ".")
@@ -283,8 +291,10 @@ def set_actual(run_id: int, cid: int):
 def set_step_lot(run_id: int, scid: int):
     """Assign an inventory lot to a workup/step component."""
     from stoic_eln.models.run_step import RunStepComponent
+
     run = db.session.get(Run, run_id)
-    if run is None: abort(404)
+    if run is None:
+        abort(404)
     if run.is_completed:
         flash(_("Run completato: non si possono modificare i lotti."), "warning")
         return redirect(url_for("runs.detail", run_id=run_id))
@@ -335,8 +345,10 @@ def set_step_actual(run_id: int, scid: int):
     during ``draft`` AND ``in_progress`` (any state but completed).
     """
     from stoic_eln.models.run_step import RunStepComponent
+
     run = db.session.get(Run, run_id)
-    if run is None: abort(404)
+    if run is None:
+        abort(404)
     if run.is_completed:
         flash(_("Run completato: non si possono modificare le quantità."), "warning")
         return redirect(url_for("runs.detail", run_id=run_id))
@@ -363,6 +375,7 @@ def set_step_actual(run_id: int, scid: int):
         return redirect(url_for("runs.detail", run_id=run_id))
 
     from stoic_eln.services import units
+
     if unit in ("mg", "g"):
         sc.actual_mass_g = units.to_grams(amount, unit)
         sc.actual_volume_mL = None
@@ -399,7 +412,8 @@ def toggle_checklist(run_id: int, cid: int):
     the page doesn't reload (and the scroll position is preserved).
     """
     run = db.session.get(Run, run_id)
-    if run is None: abort(404)
+    if run is None:
+        abort(404)
     if run.is_completed:
         flash(_("Run completato: la check list non è più modificabile."), "warning")
         return redirect(url_for("runs.detail", run_id=run_id))
@@ -417,7 +431,9 @@ def toggle_checklist(run_id: int, cid: int):
 
     if request.headers.get("HX-Request"):
         return render_template(
-            "runs/_checklist_item.html", item=item, run=run,
+            "runs/_checklist_item.html",
+            item=item,
+            run=run,
         )
     return redirect(url_for("runs.detail", run_id=run_id))
 
@@ -429,7 +445,8 @@ def toggle_checklist(run_id: int, cid: int):
 @login_required
 def start(run_id: int):
     run = db.session.get(Run, run_id)
-    if run is None: abort(404)
+    if run is None:
+        abort(404)
     if not _ensure_draft(run):
         return redirect(url_for("runs.detail", run_id=run_id))
 
@@ -458,7 +475,8 @@ def complete(run_id: int):
     Optional notes can be appended via ``notes``.
     """
     run = db.session.get(Run, run_id)
-    if run is None: abort(404)
+    if run is None:
+        abort(404)
     if run.status != STATUS_IN_PROGRESS:
         flash(_("Solo i run in esecuzione possono essere completati."), "warning")
         return redirect(url_for("runs.detail", run_id=run_id))
@@ -476,25 +494,31 @@ def complete(run_id: int):
         # template can show the confirmation dialog.
         for err in e.errors:
             flash(err, "warning")
-        return redirect(url_for("runs.detail", run_id=run_id,
-                                _anchor="confirm-no-products"))
+        return redirect(url_for("runs.detail", run_id=run_id, _anchor="confirm-no-products"))
 
     db.session.commit()
 
     # Surface any warnings and the auto-created lots
     if "yield_over_100" in result["warnings"]:
-        flash(_(
-            "Resa > 100%% (%(p).1f%%): possibile errore di pesata o "
-            "sale idrato. Salvato comunque.",
-            p=result["yield_percent"] or 0,
-        ), "warning")
+        flash(
+            _(
+                "Resa > 100%% (%(p).1f%%): possibile errore di pesata o "
+                "sale idrato. Salvato comunque.",
+                p=result["yield_percent"] or 0,
+            ),
+            "warning",
+        )
 
     for lot in result["lots_created"]:
-        flash(_(
-            "Creato lotto %(code)s: %(qty).3f g di %(name)s.",
-            code=lot["batch_code"], qty=lot["quantity_g"],
-            name=lot["product_name"],
-        ), "success")
+        flash(
+            _(
+                "Creato lotto %(code)s: %(qty).3f g di %(name)s.",
+                code=lot["batch_code"],
+                qty=lot["quantity_g"],
+                name=lot["product_name"],
+            ),
+            "success",
+        )
 
     if result["is_failed"]:
         flash(_("Run registrato come fallito (resa zero)."), "info")
@@ -509,10 +533,10 @@ def complete(run_id: int):
 def append_post_notes(run_id: int):
     """Append post-completion notes (always allowed for completed runs)."""
     run = db.session.get(Run, run_id)
-    if run is None: abort(404)
+    if run is None:
+        abort(404)
     if not run.is_completed:
-        flash(_("Le note post-mortem si aggiungono solo a run completati."),
-              "warning")
+        flash(_("Le note post-mortem si aggiungono solo a run completati."), "warning")
         return redirect(url_for("runs.detail", run_id=run_id))
 
     text = (request.form.get("text") or "").strip()
@@ -528,7 +552,8 @@ def append_post_notes(run_id: int):
 def cancel(run_id: int):
     """Delete a draft run."""
     run = db.session.get(Run, run_id)
-    if run is None: abort(404)
+    if run is None:
+        abort(404)
     if not run.is_draft:
         flash(_("Solo le bozze possono essere annullate."), "warning")
         return redirect(url_for("runs.detail", run_id=run_id))
@@ -548,7 +573,8 @@ def cancel(run_id: int):
 def create_from_template(reaction_id: int):
     """Create a new draft run from a published template and redirect."""
     rxn = db.session.get(Reaction, reaction_id)
-    if rxn is None: abort(404)
+    if rxn is None:
+        abort(404)
     if rxn.status != "published":
         flash(_("Puoi eseguire solo template pubblicati."), "warning")
         return redirect(url_for("reactions.detail", reaction_id=reaction_id))
@@ -585,6 +611,7 @@ def pdf(run_id: int):
     pdf_type = (request.args.get("type") or "summary").lower()
 
     from stoic_eln.services.pdf_run import render_run_summary, render_run_full
+
     if pdf_type == "full":
         data = render_run_full(run)
         suffix = "completo"
@@ -596,10 +623,13 @@ def pdf(run_id: int):
     filename = f"{safe_code}-{suffix}.pdf"
 
     from stoic_eln.services.audit import log_event
-    log_event(action="download_run_pdf", entity_type="run",
-              entity_id=run.id, details={"type": pdf_type})
+
+    log_event(
+        action="download_run_pdf", entity_type="run", entity_id=run.id, details={"type": pdf_type}
+    )
 
     from io import BytesIO
+
     return send_file(
         BytesIO(data),
         mimetype="application/pdf",
@@ -616,11 +646,11 @@ def pdf(run_id: int):
 def stats():
     """Lab-wide overview: stats per template across all runs."""
     from stoic_eln.services.template_stats import all_templates_stats
+
     all_stats = all_templates_stats()
     # Total run count
     total_runs = sum(s.n_runs for s in all_stats)
-    total_cost = sum(s.avg_cost_eur * s.n_runs for s in all_stats
-                     if s.avg_cost_eur is not None)
+    total_cost = sum(s.avg_cost_eur * s.n_runs for s in all_stats if s.avg_cost_eur is not None)
     return render_template(
         "runs/stats.html",
         all_stats=all_stats,

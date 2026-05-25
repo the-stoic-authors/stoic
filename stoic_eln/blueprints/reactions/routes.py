@@ -58,9 +58,7 @@ def list_view():
         like = f"%{q}%"
         # Search reaction fields + substance names of components
         query = (
-            query.outerjoin(
-                ReactionComponent, ReactionComponent.reaction_id == Reaction.id
-            )
+            query.outerjoin(ReactionComponent, ReactionComponent.reaction_id == Reaction.id)
             .outerjoin(Substance, Substance.id == ReactionComponent.substance_id)
             .filter(
                 or_(
@@ -109,23 +107,28 @@ def detail(reaction_id: int):
     # Aggregate stats across all completed runs of this template family
     # (Settimana 6 patch 6).
     from stoic_eln.services.template_stats import (
-        stats_for_template, render_sparkline_svg,
+        stats_for_template,
+        render_sparkline_svg,
     )
+
     stats = None
     sparkline_svg = ""
     if rxn.template_code_base:
         stats = stats_for_template(rxn.template_code_base)
         if stats.has_data:
             sparkline_svg = render_sparkline_svg(
-                stats.points, metric="cost_per_g",
+                stats.points,
+                metric="cost_per_g",
             )
 
     # Notes (Settimana 6 patch 9)
     from stoic_eln.services.notes import list_notes
+
     notes_for_entity = list_notes("reaction", rxn.id)
 
     # Attachments (Settimana 6 patch 10)
     from stoic_eln.services.attachments import list_attachments
+
     attachments_for_entity = list_attachments("reaction", rxn.id)
 
     return render_template(
@@ -201,10 +204,15 @@ def edit(reaction_id: int):
 
     draft = clone_for_editing(rxn, created_by_id=current_user.id)
     log_event(
-        action="open_for_edit", entity_type="reaction",
-        entity_id=draft.id, details={"source_id": rxn.id},
+        action="open_for_edit",
+        entity_type="reaction",
+        entity_id=draft.id,
+        details={"source_id": rxn.id},
     )
-    flash(_("Modifica in corso. Premi 'Salva' per confermare o 'Annulla' per scartare le modifiche."), "info")
+    flash(
+        _("Modifica in corso. Premi 'Salva' per confermare o 'Annulla' per scartare le modifiche."),
+        "info",
+    )
     return redirect(url_for("reactions.detail", reaction_id=draft.id))
 
 
@@ -264,7 +272,9 @@ def save_draft(reaction_id: int):
                     f"Il codice '{norm}' è già usato da un altro template."
                 )
             rxn.template_code = tc_service.validate(
-                raw_code, exclude_id=rxn.id, allow_replace=True,
+                raw_code,
+                exclude_id=rxn.id,
+                allow_replace=True,
             )
         else:
             rxn.template_code = tc_service.validate(raw_code, exclude_id=rxn.id)
@@ -325,6 +335,7 @@ def cancel_draft(reaction_id: int):
 
 
 # ─── Inline field update (HTMX) ──────────────────────────────────────────────
+
 
 # Fields that can be updated inline on the detail page.
 # Maps form field name → (column attribute, parser callable returning new value or None).
@@ -538,6 +549,7 @@ def add_component(reaction_id: int):
             return redirect(url_for("reactions.detail", reaction_id=rxn.id))
     else:
         from stoic_eln.models.mixture import Mixture
+
         mix = db.session.get(Mixture, mix_id)
         if mix is None:
             flash(_("Miscela non trovata."), "danger")
@@ -578,9 +590,7 @@ def add_component(reaction_id: int):
     if is_limiting:
         equivalents = 1.0
 
-    next_position = (
-        max((c.position for c in rxn.components), default=-1) + 1
-    )
+    next_position = max((c.position for c in rxn.components), default=-1) + 1
 
     component = ReactionComponent(
         reaction_id=rxn.id,
@@ -611,9 +621,7 @@ def add_component(reaction_id: int):
     )
 
     if request.headers.get("HX-Request"):
-        return render_template(
-            "reactions/_components_table.html", reaction=rxn, is_draft=True
-        )
+        return render_template("reactions/_components_table.html", reaction=rxn, is_draft=True)
 
     return redirect(url_for("reactions.detail", reaction_id=rxn.id))
 
@@ -636,9 +644,7 @@ def delete_component(component_id: int):
     )
 
     if request.headers.get("HX-Request"):
-        return render_template(
-            "reactions/_components_table.html", reaction=rxn, is_draft=True
-        )
+        return render_template("reactions/_components_table.html", reaction=rxn, is_draft=True)
 
     return redirect(url_for("reactions.detail", reaction_id=rxn.id))
 
@@ -698,9 +704,7 @@ def edit_component(component_id: int):
     db.session.commit()
 
     if request.headers.get("HX-Request"):
-        return render_template(
-            "reactions/_components_table.html", reaction=rxn, is_draft=True
-        )
+        return render_template("reactions/_components_table.html", reaction=rxn, is_draft=True)
 
     return redirect(url_for("reactions.detail", reaction_id=rxn.id))
 
@@ -740,9 +744,7 @@ def update_scale(reaction_id: int):
     db.session.commit()
 
     if request.headers.get("HX-Request"):
-        return render_template(
-            "reactions/_components_table.html", reaction=rxn, is_draft=True
-        )
+        return render_template("reactions/_components_table.html", reaction=rxn, is_draft=True)
     return redirect(url_for("reactions.detail", reaction_id=rxn.id))
 
 
@@ -763,21 +765,22 @@ def add_checklist_item(reaction_id: int):
     if not text:
         if request.headers.get("HX-Request"):
             return render_template(
-            "reactions/_checklist.html",
-            items=rxn.checklist_items,
+                "reactions/_checklist.html",
+                items=rxn.checklist_items,
                 parent_kind="reaction",
-                parent_id=rxn.id, can_edit=True,
-        )
+                parent_id=rxn.id,
+                can_edit=True,
+            )
         return redirect(url_for("reactions.detail", reaction_id=rxn.id))
 
     next_pos = max((c.position for c in rxn.checklist_items), default=-1) + 1
-    item = ChecklistItem(
-        reaction_id=rxn.id, position=next_pos, text=text[:500]
-    )
+    item = ChecklistItem(reaction_id=rxn.id, position=next_pos, text=text[:500])
     db.session.add(item)
     db.session.commit()
     log_event(
-        action="add_checklist", entity_type="reaction", entity_id=rxn.id,
+        action="add_checklist",
+        entity_type="reaction",
+        entity_id=rxn.id,
         details={"text": item.text},
     )
 
@@ -788,7 +791,8 @@ def add_checklist_item(reaction_id: int):
             "reactions/_checklist.html",
             items=rxn.checklist_items,
             parent_kind="reaction",
-            parent_id=rxn.id, can_edit=True,
+            parent_id=rxn.id,
+            can_edit=True,
         )
     return redirect(url_for("reactions.detail", reaction_id=rxn.id))
 
@@ -808,14 +812,14 @@ def add_step_checklist_item(step_id: int):
     text = (request.form.get("text") or "").strip()
     if text:
         next_pos = max((c.position for c in step.checklist_items), default=-1) + 1
-        item = ChecklistItem(
-            step_id=step.id, position=next_pos, text=text[:500]
-        )
+        item = ChecklistItem(step_id=step.id, position=next_pos, text=text[:500])
         db.session.add(item)
         db.session.commit()
         log_event(
-            action="add_checklist", entity_type="reaction_step",
-            entity_id=step.id, details={"text": item.text},
+            action="add_checklist",
+            entity_type="reaction_step",
+            entity_id=step.id,
+            details={"text": item.text},
         )
 
     if request.headers.get("HX-Request"):
@@ -824,7 +828,8 @@ def add_step_checklist_item(step_id: int):
             "reactions/_checklist.html",
             items=step.checklist_items,
             parent_kind="step",
-            parent_id=step.id, can_edit=True,
+            parent_id=step.id,
+            can_edit=True,
         )
     return redirect(url_for("reactions.detail", reaction_id=step.reaction_id))
 
@@ -844,9 +849,7 @@ def toggle_checklist_item(item_id: int):
 
     if request.headers.get("HX-Request"):
         # Render just this row swap
-        return render_template(
-            "reactions/_checklist_row.html", item=item
-        )
+        return render_template("reactions/_checklist_row.html", item=item)
     if item.reaction_id:
         return redirect(url_for("reactions.detail", reaction_id=item.reaction_id))
     step = item.step
@@ -892,20 +895,24 @@ def edit_checklist_item(item_id: int):
         # Empty text -> treat as a no-op, just re-render the row.
         if request.headers.get("HX-Request"):
             return render_template("reactions/_checklist_row.html", item=item)
-        return redirect(url_for(
-            "reactions.detail",
-            reaction_id=item.reaction_id or item.step.reaction_id,
-        ))
+        return redirect(
+            url_for(
+                "reactions.detail",
+                reaction_id=item.reaction_id or item.step.reaction_id,
+            )
+        )
 
     item.text = new_text
     db.session.commit()
 
     if request.headers.get("HX-Request"):
         return render_template("reactions/_checklist_row.html", item=item)
-    return redirect(url_for(
-        "reactions.detail",
-        reaction_id=item.reaction_id or item.step.reaction_id,
-    ))
+    return redirect(
+        url_for(
+            "reactions.detail",
+            reaction_id=item.reaction_id or item.step.reaction_id,
+        )
+    )
 
 
 @bp.route("/checklist/<int:item_id>/delete", methods=["POST"])
@@ -932,11 +939,15 @@ def delete_checklist_item(item_id: int):
             items = rxn.checklist_items if rxn else []
         else:
             from stoic_eln.models.reaction_step import ReactionStep
+
             step = db.session.get(ReactionStep, parent_id)
             items = step.checklist_items if step else []
         return render_template(
             "reactions/_checklist.html",
-            items=items, parent_kind=parent_kind, parent_id=parent_id, can_edit=True,
+            items=items,
+            parent_kind=parent_kind,
+            parent_id=parent_id,
+            can_edit=True,
         )
     return redirect(url_for("reactions.detail", reaction_id=rid_for_redirect))
 
@@ -995,7 +1006,10 @@ def move_checklist_item(item_id: int, direction: str):
     if request.headers.get("HX-Request"):
         return render_template(
             "reactions/_checklist.html",
-            items=siblings, parent_kind=parent_kind, parent_id=parent_id, can_edit=True,
+            items=siblings,
+            parent_kind=parent_kind,
+            parent_id=parent_id,
+            can_edit=True,
         )
     return redirect(url_for("reactions.detail", reaction_id=rid_for_redirect))
 
@@ -1026,22 +1040,24 @@ def add_step(reaction_id: int):
 
     next_pos = max((s.position for s in rxn.steps), default=-1) + 1
     step = ReactionStep(
-        reaction_id=rxn.id, position=next_pos,
-        kind=kind, title=title[:200], description=description,
+        reaction_id=rxn.id,
+        position=next_pos,
+        kind=kind,
+        title=title[:200],
+        description=description,
     )
     db.session.add(step)
     db.session.commit()
     log_event(
-        action="add_step", entity_type="reaction", entity_id=rxn.id,
+        action="add_step",
+        entity_type="reaction",
+        entity_id=rxn.id,
         details={"step_id": step.id, "kind": step.kind, "title": step.title},
     )
     flash(_("Step '%(t)s' aggiunto.", t=step.title), "success")
     # Anchor to the newly-added step so the page doesn't jump back
     # to the top after the redirect — keeps the user in context.
-    return redirect(
-        url_for("reactions.detail", reaction_id=rxn.id)
-        + f"#step-card-{step.id}"
-    )
+    return redirect(url_for("reactions.detail", reaction_id=rxn.id) + f"#step-card-{step.id}")
 
 
 @bp.route("/steps/<int:step_id>/edit", methods=["POST"])
@@ -1074,6 +1090,7 @@ def edit_step(step_id: int):
                 cid = int(value)
                 # Validate it belongs to the same reaction
                 from stoic_eln.models.reaction_component import ReactionComponent
+
                 rc = db.session.get(ReactionComponent, cid)
                 if rc and rc.reaction_id == step.reaction_id:
                     step.reference_component_id = cid
@@ -1180,6 +1197,7 @@ def add_step_component(step_id: int):
             return redirect(url_for("reactions.detail", reaction_id=step.reaction_id))
     else:
         from stoic_eln.models.mixture import Mixture
+
         mix = db.session.get(Mixture, mixture_id)
         if mix is None:
             flash(_("Miscela non trovata."), "danger")
@@ -1217,14 +1235,17 @@ def add_step_component(step_id: int):
         substance_id=sub.id if sub else None,
         mixture_id=mix.id if mix else None,
         position=next_pos,
-        role=role, ratio_kind=ratio_kind, ratio_value=ratio_value,
+        role=role,
+        ratio_kind=ratio_kind,
+        ratio_value=ratio_value,
         concentration_M=conc,
         notes=(request.form.get("notes") or "").strip() or None,
     )
     db.session.add(sc)
     db.session.commit()
     log_event(
-        action="add_step_component", entity_type="reaction_step",
+        action="add_step_component",
+        entity_type="reaction_step",
         entity_id=step.id,
         details={
             "step_component_id": sc.id,
@@ -1236,7 +1257,9 @@ def add_step_component(step_id: int):
     if request.headers.get("HX-Request"):
         return render_template(
             "reactions/_step_card.html",
-            step=step, reaction=step.reaction, is_draft=True,
+            step=step,
+            reaction=step.reaction,
+            is_draft=True,
         )
     return redirect(url_for("reactions.detail", reaction_id=step.reaction_id))
 
@@ -1288,9 +1311,7 @@ def edit_step_component(scid: int):
         return render_template(
             "reactions/_step_card.html", step=sc.step, reaction=sc.step.reaction, is_draft=True
         )
-    return redirect(
-        url_for("reactions.detail", reaction_id=sc.step.reaction_id)
-    )
+    return redirect(url_for("reactions.detail", reaction_id=sc.step.reaction_id))
 
 
 @bp.route("/step-components/<int:scid>/delete", methods=["POST"])
@@ -1347,11 +1368,13 @@ def duplicate(reaction_id: int):
         abort(404)
 
     draft = duplicate_for_new(src, created_by_id=current_user.id)
-    log_event(action="duplicate_reaction", entity_type="reaction",
-              entity_id=draft.id,
-              details={"source_id": src.id})
-    flash(_("Reazione duplicata. Inserisci un nuovo codice prima di salvare."),
-          "info")
+    log_event(
+        action="duplicate_reaction",
+        entity_type="reaction",
+        entity_id=draft.id,
+        details={"source_id": src.id},
+    )
+    flash(_("Reazione duplicata. Inserisci un nuovo codice prima di salvare."), "info")
     return redirect(url_for("reactions.detail", reaction_id=draft.id))
 
 
@@ -1366,8 +1389,7 @@ def versions(reaction_id: int):
     base = rxn.template_code_base
     if not base:
         # Legacy: no base set; show only this row.
-        return render_template("reactions/versions.html",
-                               current=rxn, versions=[rxn])
+        return render_template("reactions/versions.html", current=rxn, versions=[rxn])
 
     versions_list = (
         db.session.query(Reaction)
@@ -1375,11 +1397,11 @@ def versions(reaction_id: int):
         .order_by(Reaction.version_number.desc())
         .all()
     )
-    current = next((v for v in versions_list
-                    if v.status == "published" and not v.is_archived),
-                   versions_list[0] if versions_list else None)
-    return render_template("reactions/versions.html",
-                           current=current, versions=versions_list)
+    current = next(
+        (v for v in versions_list if v.status == "published" and not v.is_archived),
+        versions_list[0] if versions_list else None,
+    )
+    return render_template("reactions/versions.html", current=current, versions=versions_list)
 
 
 # ─── Settimana 6 patch 6 — Pagina statistiche template ─────────────
@@ -1404,21 +1426,31 @@ def stats(reaction_id: int):
         return redirect(url_for("reactions.detail", reaction_id=rxn.id))
 
     from stoic_eln.services.template_stats import (
-        stats_for_template, render_sparkline_svg,
+        stats_for_template,
+        render_sparkline_svg,
     )
+
     stats_data = stats_for_template(rxn.template_code_base)
 
     sparkline_cost_per_g = render_sparkline_svg(
-        stats_data.points, metric="cost_per_g",
-        width=600, height=140,
+        stats_data.points,
+        metric="cost_per_g",
+        width=600,
+        height=140,
     )
     sparkline_yield = render_sparkline_svg(
-        stats_data.points, metric="yield_percent",
-        width=600, height=140, color="#198754",
+        stats_data.points,
+        metric="yield_percent",
+        width=600,
+        height=140,
+        color="#198754",
     )
     sparkline_cost_eur = render_sparkline_svg(
-        stats_data.points, metric="cost_eur",
-        width=600, height=140, color="#dc3545",
+        stats_data.points,
+        metric="cost_eur",
+        width=600,
+        height=140,
+        color="#dc3545",
     )
 
     return render_template(

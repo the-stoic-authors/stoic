@@ -47,6 +47,7 @@ class FormattedAmount:
         formatted: pre-rendered string with 3 decimals (e.g. "127.300")
         unit_label: same as unit, but explicit (for templates)
     """
+
     value: float
     unit: str
     formatted: str
@@ -73,8 +74,7 @@ def best_fit_mass(grams: float | None) -> FormattedAmount | None:
     if grams is None:
         return None
     if grams < 1.0:
-        return FormattedAmount(value=grams * 1000.0, unit="mg",
-                               formatted=_fmt3(grams * 1000.0))
+        return FormattedAmount(value=grams * 1000.0, unit="mg", formatted=_fmt3(grams * 1000.0))
     return FormattedAmount(value=grams, unit="g", formatted=_fmt3(grams))
 
 
@@ -88,8 +88,7 @@ def best_fit_volume(mL: float | None) -> FormattedAmount | None:
         return None
     if mL < 1000.0:
         return FormattedAmount(value=mL, unit="mL", formatted=_fmt3(mL))
-    return FormattedAmount(value=mL / 1000.0, unit="L",
-                           formatted=_fmt3(mL / 1000.0))
+    return FormattedAmount(value=mL / 1000.0, unit="L", formatted=_fmt3(mL / 1000.0))
 
 
 # ─── Conversions to canonical (g, mL, mmol) ──────────────────────────
@@ -154,8 +153,7 @@ def parse_scale_to_mmol(
 
     if substance is None:
         raise ScaleConversionError(
-            "Conversione di massa/volume richiede una sostanza con MW"
-            " (e densità per i liquidi)."
+            "Conversione di massa/volume richiede una sostanza con MW (e densità per i liquidi)."
         )
     mw = substance.molecular_weight
     if mw is None or mw <= 0:

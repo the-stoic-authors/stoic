@@ -35,6 +35,7 @@ def list_view():
     # field — coalesce across the two tables so a single sort key
     # works for both lot kinds.
     from stoic_eln.models.mixture import Mixture
+
     name_expr = func.coalesce(Substance.name, Mixture.name)
     sort_columns = {
         "substance": name_expr,
@@ -85,40 +86,49 @@ def list_view():
     # status filter (post-loaded; SQL-side filter for the obvious ones)
     today = _date.today()
     if status == "in_stock":
-        query = (query
-                 .filter(InventoryItem.is_active.is_(True))
-                 .filter(or_(
-                     InventoryItem.expiry_date.is_(None),
-                     InventoryItem.expiry_date > today + timedelta(days=30),
-                 ))
-                 .filter(or_(
-                     InventoryItem.quantity_g > 0,
-                     InventoryItem.quantity_mL > 0,
-                 )))
+        query = (
+            query.filter(InventoryItem.is_active.is_(True))
+            .filter(
+                or_(
+                    InventoryItem.expiry_date.is_(None),
+                    InventoryItem.expiry_date > today + timedelta(days=30),
+                )
+            )
+            .filter(
+                or_(
+                    InventoryItem.quantity_g > 0,
+                    InventoryItem.quantity_mL > 0,
+                )
+            )
+        )
     elif status == "expiring":
-        query = (query
-                 .filter(InventoryItem.is_active.is_(True))
-                 .filter(InventoryItem.expiry_date.isnot(None))
-                 .filter(InventoryItem.expiry_date >= today)
-                 .filter(InventoryItem.expiry_date <= today + timedelta(days=30)))
+        query = (
+            query.filter(InventoryItem.is_active.is_(True))
+            .filter(InventoryItem.expiry_date.isnot(None))
+            .filter(InventoryItem.expiry_date >= today)
+            .filter(InventoryItem.expiry_date <= today + timedelta(days=30))
+        )
     elif status == "expired":
-        query = (query
-                 .filter(InventoryItem.expiry_date.isnot(None))
-                 .filter(InventoryItem.expiry_date < today))
+        query = query.filter(InventoryItem.expiry_date.isnot(None)).filter(
+            InventoryItem.expiry_date < today
+        )
     elif status == "empty":
-        query = query.filter(or_(
-            InventoryItem.quantity_g <= 0,
-            InventoryItem.quantity_mL <= 0,
-        ))
+        query = query.filter(
+            or_(
+                InventoryItem.quantity_g <= 0,
+                InventoryItem.quantity_mL <= 0,
+            )
+        )
     elif status == "inactive":
         query = query.filter(InventoryItem.is_active.is_(False))
 
     # group filter
     if group_filter:
         from stoic_eln.models.group import Group
-        query = (query
-                 .join(Group, InventoryItem.group_id == Group.id)
-                 .filter(Group.slug == group_filter))
+
+        query = query.join(Group, InventoryItem.group_id == Group.id).filter(
+            Group.slug == group_filter
+        )
 
     # supplier filter (exact match on dropdown)
     if supplier_filter:
@@ -127,38 +137,45 @@ def list_view():
     # sort
     sort_col = sort_columns[sort]
     if direction == "desc":
-        query = query.order_by(sort_col.desc().nulls_last(),
-                                InventoryItem.created_at.desc())
+        query = query.order_by(sort_col.desc().nulls_last(), InventoryItem.created_at.desc())
     else:
-        query = query.order_by(sort_col.asc().nulls_last(),
-                                InventoryItem.created_at.desc())
+        query = query.order_by(sort_col.asc().nulls_last(), InventoryItem.created_at.desc())
 
     items = query.all()
 
     # Compute total for footer
-    items_total_cost = sum(
-        (it.total_cost_eur or 0.0) for it in items
-    )
+    items_total_cost = sum((it.total_cost_eur or 0.0) for it in items)
 
     # Distinct suppliers for the filter dropdown
-    suppliers = [r[0] for r in
-                 db.session.query(InventoryItem.supplier)
-                 .filter(InventoryItem.supplier.isnot(None))
-                 .distinct().order_by(InventoryItem.supplier.asc()).all()
-                 if r[0]]
+    suppliers = [
+        r[0]
+        for r in db.session.query(InventoryItem.supplier)
+        .filter(InventoryItem.supplier.isnot(None))
+        .distinct()
+        .order_by(InventoryItem.supplier.asc())
+        .all()
+        if r[0]
+    ]
     # Available groups
     from stoic_eln.models.group import Group
-    groups = (db.session.query(Group)
-              .filter(Group.is_active.is_(True))
-              .order_by(Group.is_default.desc(), Group.name.asc())
-              .all())
+
+    groups = (
+        db.session.query(Group)
+        .filter(Group.is_active.is_(True))
+        .order_by(Group.is_default.desc(), Group.name.asc())
+        .all()
+    )
 
     if request.headers.get("HX-Request"):
         return render_template(
             "inventory/_list_table.html",
             items=items,
-            q=q, status=status, sort=sort, direction=direction,
-            group_filter=group_filter, supplier_filter=supplier_filter,
+            q=q,
+            status=status,
+            sort=sort,
+            direction=direction,
+            group_filter=group_filter,
+            supplier_filter=supplier_filter,
             show_inactive=show_inactive,
             today=today,
             items_total_cost=items_total_cost,
@@ -167,8 +184,12 @@ def list_view():
     return render_template(
         "inventory/list.html",
         items=items,
-        q=q, status=status, sort=sort, direction=direction,
-        group_filter=group_filter, supplier_filter=supplier_filter,
+        q=q,
+        status=status,
+        sort=sort,
+        direction=direction,
+        group_filter=group_filter,
+        supplier_filter=supplier_filter,
         show_inactive=show_inactive,
         today=today,
         suppliers=suppliers,
@@ -212,6 +233,7 @@ def create(substance_id: int | None = None):
     elif raw_mixture_id:
         try:
             from stoic_eln.models.mixture import Mixture
+
             mix = db.session.get(Mixture, int(raw_mixture_id))
         except (TypeError, ValueError):
             mix = None
@@ -282,7 +304,11 @@ def create(substance_id: int | None = None):
             return redirect(url_for("mixtures.detail", mixture_id=mix.id))
 
     return render_template(
-        "inventory/form.html", form=form, substance=sub, mixture=mix, item=None,
+        "inventory/form.html",
+        form=form,
+        substance=sub,
+        mixture=mix,
+        item=None,
     )
 
 
@@ -325,10 +351,15 @@ def edit(item_id: int):
 
     # Attachments (Settimana 6 patch 10) — only available on existing lots
     from stoic_eln.services.attachments import list_attachments
+
     attachments_for_entity = list_attachments("inventory_item", item.id)
 
     return render_template(
-        "inventory/form.html", form=form, substance=sub, mixture=mix, item=item,
+        "inventory/form.html",
+        form=form,
+        substance=sub,
+        mixture=mix,
+        item=item,
         attachments_for_entity=attachments_for_entity,
     )
 
@@ -369,6 +400,7 @@ def reactivate(item_id: int):
 def label_form(item_id: int):
     """Render the print-options form for a single lot's label."""
     from stoic_eln.services.labels import LABEL_FORMATS
+
     item = db.session.get(InventoryItem, item_id)
     if item is None:
         abort(404)
@@ -393,6 +425,7 @@ def label_pdf(item_id: int):
     """
     from flask import Response
     from stoic_eln.services.labels import LABEL_FORMATS, render_labels_pdf
+
     item = db.session.get(InventoryItem, item_id)
     if item is None:
         abort(404)
@@ -412,11 +445,15 @@ def label_pdf(item_id: int):
         start_position = 0
 
     pdf = render_labels_pdf(
-        [item], fmt_key,
-        start_position=start_position, copies_per_item=copies,
+        [item],
+        fmt_key,
+        start_position=start_position,
+        copies_per_item=copies,
     )
     log_event(
-        action="print_label", entity_type="inventory_item", entity_id=item.id,
+        action="print_label",
+        entity_type="inventory_item",
+        entity_id=item.id,
         details={"format": fmt_key, "copies": copies},
     )
 

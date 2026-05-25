@@ -86,6 +86,7 @@ def create_app(
     # under TESTING and when BACKUP_SCHEDULER_DISABLED is set, so
     # the test suite stays deterministic. (Settimana 6 patch 14.0)
     from stoic_eln.services.scheduler import init_scheduler
+
     init_scheduler(app)
 
     return app
@@ -96,13 +97,12 @@ def _ensure_schema(app: Flask) -> None:
     # Importing the models package triggers all model class registrations
     # against db.metadata, so create_all() sees them.
     from stoic_eln import models  # noqa: F401
+
     with app.app_context():
         try:
             db.create_all()
         except Exception as e:
-            app.logger.warning(
-                "Could not auto-create tables on startup: %s", e
-            )
+            app.logger.warning("Could not auto-create tables on startup: %s", e)
 
 
 def _configure_logging(app: Flask) -> None:
@@ -218,6 +218,7 @@ def _maybe_enable_sqlcipher(app: Flask) -> None:
     def _verify(pp: str) -> bool:
         try:
             import sqlcipher3
+
             conn = sqlcipher3.connect(str(db_path))
             safe = pp.replace("'", "''")
             conn.execute(f"PRAGMA key='{safe}'")
@@ -235,7 +236,8 @@ def _maybe_enable_sqlcipher(app: Flask) -> None:
     with app.app_context():
         try:
             passphrase = passphrase_store.get_passphrase(
-                instance_path, verifier=_verify,
+                instance_path,
+                verifier=_verify,
             )
         except passphrase_store.PassphraseUnavailable as e:
             app.logger.error("Cannot resolve passphrase for encrypted DB: %s", e)
@@ -245,7 +247,8 @@ def _maybe_enable_sqlcipher(app: Flask) -> None:
             app.logger.error(
                 "Live DB at %s is SQLCipher-encrypted, but no passphrase "
                 "was obtained from the configured source (%s).",
-                db_path, passphrase_store.current_source(),
+                db_path,
+                passphrase_store.current_source(),
             )
             return
 
@@ -256,7 +259,8 @@ def _maybe_enable_sqlcipher(app: Flask) -> None:
         app.config["SQLALCHEMY_ENGINE_OPTIONS"] = opts
         app.logger.info(
             "SQLCipher enabled for live DB at %s (source=%s)",
-            db_path, passphrase_store.current_source(),
+            db_path,
+            passphrase_store.current_source(),
         )
 
 
@@ -324,25 +328,30 @@ def _register_template_context(app: Flask) -> None:
     # Register unit-formatting helpers as Jinja globals so templates
     # can render best-fit mass/volume strings inline.
     from stoic_eln.services import units as _units
+
     app.jinja_env.globals["best_fit_mass"] = _units.best_fit_mass
     app.jinja_env.globals["best_fit_volume"] = _units.best_fit_volume
 
     from stoic_eln.services import step_calc as _step_calc
+
     app.jinja_env.globals["compute_run_step_component"] = _step_calc.compute_run_step_component
 
     # Currency configuration (Settimana 6 patch 6.1) — `format_currency`
     # available as a global, and `|currency` as a filter, so templates
     # can simply write `{{ amount|currency }}` instead of hardcoding "€".
     from stoic_eln.services import currency as _currency
+
     app.jinja_env.globals["format_currency"] = _currency.format_currency
     app.jinja_env.globals["currency_glyph"] = _currency.currency_glyph
 
     def _currency_filter(amount, decimals=2):
         return _currency.format_currency(amount, decimals=decimals)
+
     app.jinja_env.filters["currency"] = _currency_filter
 
     # Markdown rendering for note bodies (Settimana 6 patch 9)
     from stoic_eln.services import markdown as _markdown
+
     app.jinja_env.filters["markdown"] = _markdown.render_markdown
 
     @app.context_processor
@@ -592,10 +601,10 @@ def _register_cli(app: Flask) -> None:
         click.echo(f"User '{username}' created with operator_code '{user.operator_code}'.")
 
     @app.cli.command("backup")
-    @click.option("--reason", default="cli",
-                  help="Tag stored in the audit log (default: 'cli').")
-    @click.option("--no-prune", is_flag=True,
-                  help="Skip pruning by retention policy after the backup.")
+    @click.option("--reason", default="cli", help="Tag stored in the audit log (default: 'cli').")
+    @click.option(
+        "--no-prune", is_flag=True, help="Skip pruning by retention policy after the backup."
+    )
     def backup_command(reason: str, no_prune: bool) -> None:
         """Run a database backup right now (atomic, gzipped).
 
@@ -604,6 +613,7 @@ def _register_cli(app: Flask) -> None:
         /settings/backups.
         """
         from stoic_eln.services import backup as backup_service
+
         try:
             bf = backup_service.create_backup(reason=reason)
             click.echo(f"Created: {bf.filename} ({bf.size_mb:.2f} MB)")
@@ -619,6 +629,7 @@ def _register_cli(app: Flask) -> None:
     def backups_list_command() -> None:
         """List existing backup files, newest first."""
         from stoic_eln.services import backup as backup_service
+
         items = backup_service.list_backups()
         if not items:
             click.echo("(no backups)")
@@ -631,9 +642,13 @@ def _register_cli(app: Flask) -> None:
             )
 
     @app.cli.command("backup-set-passphrase")
-    @click.option("--passphrase", prompt=True, hide_input=True,
-                  confirmation_prompt=True,
-                  help="The new passphrase (will be prompted if omitted).")
+    @click.option(
+        "--passphrase",
+        prompt=True,
+        hide_input=True,
+        confirmation_prompt=True,
+        help="The new passphrase (will be prompted if omitted).",
+    )
     def backup_set_passphrase_command(passphrase: str) -> None:
         """Set or change the backup encryption passphrase.
 
@@ -656,7 +671,8 @@ def _register_cli(app: Flask) -> None:
             raise click.Abort()
 
         path = backup_crypto.write_passphrase_file(
-            Path(app.instance_path), passphrase,
+            Path(app.instance_path),
+            passphrase,
         )
         click.echo(f"Passphrase saved to {path}.")
         click.echo("Future backups will be encrypted.")
@@ -664,11 +680,10 @@ def _register_cli(app: Flask) -> None:
         click.echo("Losing it makes the encrypted backups irrecoverable.")
 
     @app.cli.command("db-encrypt")
-    @click.option("--skip-backup", is_flag=True,
-                  help="Skip the safety backup. Not recommended.")
+    @click.option("--skip-backup", is_flag=True, help="Skip the safety backup. Not recommended.")
     @click.confirmation_option(
         prompt="This will encrypt your live database with SQLCipher. "
-               "Make sure Stoic is NOT running. Continue?"
+        "Make sure Stoic is NOT running. Continue?"
     )
     def db_encrypt_command(skip_backup: bool) -> None:
         """Encrypt the live database with SQLCipher (Settimana 6 patch 14.2).
@@ -701,8 +716,7 @@ def _register_cli(app: Flask) -> None:
 
         if not db_crypto.is_sqlcipher_available():
             click.echo(
-                "sqlcipher3 is not installed. Run:\n"
-                "  pip install sqlcipher3-wheels",
+                "sqlcipher3 is not installed. Run:\n  pip install sqlcipher3-wheels",
                 err=True,
             )
             raise click.Abort()
@@ -716,13 +730,12 @@ def _register_cli(app: Flask) -> None:
                 click.echo(f"Safety backup: {bf.filename} ({bf.size_mb:.2f} MB)")
             except Exception as e:
                 click.echo(f"Safety backup failed: {e}", err=True)
-                click.echo("Aborting. Re-run with --skip-backup to override.",
-                           err=True)
+                click.echo("Aborting. Re-run with --skip-backup to override.", err=True)
                 raise click.Abort() from e
         else:
             click.echo("(skipping safety backup as requested)")
 
-        db_path = Path(app.config["SQLALCHEMY_DATABASE_URI"][len("sqlite:///"):])
+        db_path = Path(app.config["SQLALCHEMY_DATABASE_URI"][len("sqlite:///") :])
         result = db_crypto.encrypt_db(db_path, passphrase)
         if not result.ok:
             click.echo(f"Encryption failed: {result.error}", err=True)
@@ -741,7 +754,7 @@ def _register_cli(app: Flask) -> None:
     @app.cli.command("db-decrypt")
     @click.confirmation_option(
         prompt="This will DECRYPT your live database to plain SQLite. "
-               "Stoic must not be running. Continue?"
+        "Stoic must not be running. Continue?"
     )
     def db_decrypt_command() -> None:
         """Decrypt the live database back to plain SQLite.
@@ -758,7 +771,7 @@ def _register_cli(app: Flask) -> None:
             click.echo("No passphrase configured.", err=True)
             raise click.Abort()
 
-        db_path = Path(app.config["SQLALCHEMY_DATABASE_URI"][len("sqlite:///"):])
+        db_path = Path(app.config["SQLALCHEMY_DATABASE_URI"][len("sqlite:///") :])
         result = db_crypto.decrypt_db(db_path, passphrase)
         if not result.ok:
             click.echo(f"Decryption failed: {result.error}", err=True)
@@ -770,15 +783,14 @@ def _register_cli(app: Flask) -> None:
 
         click.echo(f"DB decrypted in place: {db_path}")
         click.echo(f"  {result.table_count} tables")
-        click.echo(f"  Original (encrypted) sidelined: "
-                   f"{result.sidelined_path.name}")
+        click.echo(f"  Original (encrypted) sidelined: {result.sidelined_path.name}")
 
     @app.cli.command("db-status")
     def db_status_command() -> None:
         """Show whether the live DB is plain or SQLCipher-encrypted."""
         from stoic_eln.services import backup_crypto, db_crypto
 
-        db_path = Path(app.config["SQLALCHEMY_DATABASE_URI"][len("sqlite:///"):])
+        db_path = Path(app.config["SQLALCHEMY_DATABASE_URI"][len("sqlite:///") :])
         if not db_path.exists():
             click.echo(f"DB file not found: {db_path}")
             return
@@ -791,7 +803,9 @@ def _register_cli(app: Flask) -> None:
         click.echo(f"Size:       {size_mb:.2f} MB")
         click.echo(f"Encrypted:  {'yes (SQLCipher)' if encrypted else 'no (plain SQLite)'}")
         click.echo(f"Passphrase: {'configured' if passphrase else 'NOT configured'}")
-        click.echo(f"sqlcipher3: {'installed' if db_crypto.is_sqlcipher_available() else 'NOT installed'}")
+        click.echo(
+            f"sqlcipher3: {'installed' if db_crypto.is_sqlcipher_available() else 'NOT installed'}"
+        )
         if encrypted and not passphrase:
             click.echo("\nWARNING: DB is encrypted but no passphrase is configured.")
             click.echo("         Stoic will fail to start.")
@@ -820,17 +834,17 @@ def _register_cli(app: Flask) -> None:
         click.echo("")
 
         instance_path = Path(app.instance_path)
-        db_path_str = app.config["SQLALCHEMY_DATABASE_URI"][len("sqlite:///"):]
+        db_path_str = app.config["SQLALCHEMY_DATABASE_URI"][len("sqlite:///") :]
         db_path = Path(db_path_str)
-        db_is_encrypted = (
-            db_path.exists() and db_crypto.is_encrypted_db(db_path)
-        )
+        db_is_encrypted = db_path.exists() and db_crypto.is_encrypted_db(db_path)
 
         verifier = None
         if db_is_encrypted and db_crypto.is_sqlcipher_available():
+
             def verifier(pp: str) -> bool:
                 try:
                     import sqlcipher3
+
                     conn = sqlcipher3.connect(str(db_path))
                     safe = pp.replace("'", "''")
                     conn.execute(f"PRAGMA key='{safe}'")
@@ -850,8 +864,10 @@ def _register_cli(app: Flask) -> None:
             click.echo("FAILED: no passphrase obtained from source.", err=True)
             click.echo("")
             if source == passphrase_store.SOURCE_PROMPT:
-                click.echo("Hint: 'prompt' mode requires a TTY. Run this "
-                           "command directly in an interactive shell.")
+                click.echo(
+                    "Hint: 'prompt' mode requires a TTY. Run this "
+                    "command directly in an interactive shell."
+                )
             elif source == passphrase_store.SOURCE_FILE:
                 click.echo(f"Hint: 'file' mode expects {instance_path}/backup.key")
             elif source == passphrase_store.SOURCE_ENV:

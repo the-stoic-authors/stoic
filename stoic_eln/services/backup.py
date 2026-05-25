@@ -157,7 +157,7 @@ def get_settings() -> dict:
     return {
         "enabled": _bool("backup.enabled", True),
         "path": AppSetting.get("backup.path") or "backups",
-        "hour": _int("backup.hour", 3),         # 03:00 local time
+        "hour": _int("backup.hour", 3),  # 03:00 local time
         "minute": _int("backup.minute", 0),
         "keep_daily": _int("backup.keep_daily", 30),
         "keep_weekly": _int("backup.keep_weekly", 12),
@@ -173,12 +173,14 @@ def encryption_enabled() -> bool:
     (legacy behaviour from patch 14.0).
     """
     from stoic_eln.services import backup_crypto
+
     return backup_crypto.has_passphrase(Path(current_app.instance_path))
 
 
 def _get_passphrase() -> str | None:
     """Look up the configured passphrase, or None if not set."""
     from stoic_eln.services import backup_crypto
+
     return backup_crypto.resolve_passphrase(Path(current_app.instance_path))
 
 
@@ -211,16 +213,12 @@ def create_backup(reason: str = "manual") -> BackupFile:
     backup_dir = get_backup_dir()
     ts = _now_utc()
     stem = f"{_BACKUP_PREFIX}{_format_timestamp(ts)}"
-    raw_path = backup_dir / f"{stem}.db"      # uncompressed tmp
+    raw_path = backup_dir / f"{stem}.db"  # uncompressed tmp
     gz_path = backup_dir / f"{stem}{_BACKUP_SUFFIX}"  # intermediate
 
     passphrase = _get_passphrase()
     encrypted = passphrase is not None
-    final_path = (
-        backup_dir / f"{stem}{_BACKUP_SUFFIX_ENC}"
-        if encrypted
-        else gz_path
-    )
+    final_path = backup_dir / f"{stem}{_BACKUP_SUFFIX_ENC}" if encrypted else gz_path
 
     # SQLite online backup: copies pages while readers/writers
     # carry on. Safer than `cp` for live DBs with WAL mode.
@@ -232,6 +230,7 @@ def create_backup(reason: str = "manual") -> BackupFile:
     # the backup file is portable (readable with plain sqlite3,
     # subject to the 14.1 envelope encryption applied below).
     from stoic_eln.services import db_crypto
+
     src_is_encrypted = db_crypto.is_encrypted_db(src)
     if src_is_encrypted:
         live_passphrase = _get_passphrase()
@@ -242,19 +241,16 @@ def create_backup(reason: str = "manual") -> BackupFile:
                 "or create instance/backup.key."
             )
         if not db_crypto.is_sqlcipher_available():
-            raise RuntimeError(
-                "Live DB is encrypted but sqlcipher3 is not installed."
-            )
+            raise RuntimeError("Live DB is encrypted but sqlcipher3 is not installed.")
         import sqlcipher3
+
         src_conn = sqlcipher3.connect(str(src))
         try:
             safe = live_passphrase.replace("'", "''")
             src_conn.execute(f"PRAGMA key='{safe}'")
             # ATTACH the destination with empty KEY = plain output.
             # sqlcipher_export then writes plain pages there.
-            src_conn.execute(
-                f"ATTACH DATABASE '{raw_path}' AS plain KEY ''"
-            )
+            src_conn.execute(f"ATTACH DATABASE '{raw_path}' AS plain KEY ''")
             src_conn.execute("SELECT sqlcipher_export('plain')")
             src_conn.execute("DETACH DATABASE plain")
         finally:
@@ -280,6 +276,7 @@ def create_backup(reason: str = "manual") -> BackupFile:
     # Optional: encrypt the gzipped blob in-place.
     if encrypted:
         from stoic_eln.services import backup_crypto
+
         try:
             plaintext = gz_path.read_bytes()
             ciphertext = backup_crypto.encrypt_bytes(plaintext, passphrase)
@@ -308,11 +305,17 @@ def create_backup(reason: str = "manual") -> BackupFile:
     )
     logger.info(
         "backup created: %s (%.2f MB, reason=%s, encrypted=%s)",
-        final_path.name, size / (1024 * 1024), reason, encrypted,
+        final_path.name,
+        size / (1024 * 1024),
+        reason,
+        encrypted,
     )
 
     return BackupFile(
-        path=final_path, timestamp=ts, size_bytes=size, encrypted=encrypted,
+        path=final_path,
+        timestamp=ts,
+        size_bytes=size,
+        encrypted=encrypted,
     )
 
 
@@ -331,12 +334,14 @@ def list_backups() -> list[BackupFile]:
         ts = _parse_timestamp(p.name)
         if ts is None:
             continue  # not one of ours, ignore
-        out.append(BackupFile(
-            path=p,
-            timestamp=ts,
-            size_bytes=p.stat().st_size,
-            encrypted=_is_encrypted_filename(p.name),
-        ))
+        out.append(
+            BackupFile(
+                path=p,
+                timestamp=ts,
+                size_bytes=p.stat().st_size,
+                encrypted=_is_encrypted_filename(p.name),
+            )
+        )
     out.sort(key=lambda b: b.timestamp, reverse=True)
     return out
 
@@ -375,9 +380,7 @@ def restore_backup(filename: str) -> Path:
         raise ValueError(f"Filename doesn't look like a Stoic backup: {filename}")
 
     live_db = get_db_path()
-    sidelined_name = (
-        f"{live_db.stem}.pre-restore-{_format_timestamp(_now_utc())}.db"
-    )
+    sidelined_name = f"{live_db.stem}.pre-restore-{_format_timestamp(_now_utc())}.db"
 
     # Log + commit BEFORE touching the DB file. After the swap the
     # session is detached and we can't write the audit row anymore.
@@ -388,6 +391,7 @@ def restore_backup(filename: str) -> Path:
         details={"filename": filename, "sidelined_live": sidelined_name},
     )
     from stoic_eln.extensions import db as _db
+
     _db.session.commit()
     # Close the SQLAlchemy session and dispose the engine pool so
     # the file isn't held open while we rename/overwrite it.
@@ -406,9 +410,8 @@ def restore_backup(filename: str) -> Path:
     # SQLCipher-protected deployment would silently leave the
     # system with a plain DB — a major regression in protection.
     from stoic_eln.services import db_crypto as _db_crypto
-    previous_was_encrypted = (
-        sidelined is not None and _db_crypto.is_encrypted_db(sidelined)
-    )
+
+    previous_was_encrypted = sidelined is not None and _db_crypto.is_encrypted_db(sidelined)
 
     # Decompress (and decrypt if needed) backup into the live DB
     # path. For encrypted backups we must have a passphrase
@@ -426,6 +429,7 @@ def restore_backup(filename: str) -> Path:
                 "Cannot restore."
             )
         from stoic_eln.services import backup_crypto
+
         encrypted_blob = src.read_bytes()
         try:
             plaintext = backup_crypto.decrypt_bytes(encrypted_blob, passphrase)
@@ -433,13 +437,12 @@ def restore_backup(filename: str) -> Path:
             if sidelined is not None:
                 sidelined.rename(live_db)
             raise RuntimeError(
-                f"Cannot decrypt backup: {e}. Wrong passphrase or "
-                f"corrupted file."
+                f"Cannot decrypt backup: {e}. Wrong passphrase or corrupted file."
             ) from e
         # The decrypted plaintext is itself the gzipped SQLite dump.
         import io
-        with gzip.GzipFile(fileobj=io.BytesIO(plaintext), mode="rb") as r, \
-             live_db.open("wb") as w:
+
+        with gzip.GzipFile(fileobj=io.BytesIO(plaintext), mode="rb") as r, live_db.open("wb") as w:
             shutil.copyfileobj(r, w, length=1024 * 1024)
     else:
         # Legacy plain .db.gz: just decompress.
@@ -483,8 +486,9 @@ def restore_backup(filename: str) -> Path:
                         pass
                 logger.info("restored DB re-encrypted in place")
 
-    logger.warning("DB restored from %s (sidelined: %s)",
-                   filename, sidelined.name if sidelined else "<none>")
+    logger.warning(
+        "DB restored from %s (sidelined: %s)", filename, sidelined.name if sidelined else "<none>"
+    )
     return live_db
 
 

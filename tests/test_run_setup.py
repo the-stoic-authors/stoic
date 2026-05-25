@@ -25,10 +25,18 @@ from stoic_eln.services import run_setup
 @pytest.fixture
 def operator(app):
     with app.app_context():
-        u = User(username="op", full_name="Op", operator_code="OP",
-                 role="user", is_admin=False, is_active=True, locale="it")
+        u = User(
+            username="op",
+            full_name="Op",
+            operator_code="OP",
+            role="user",
+            is_admin=False,
+            is_active=True,
+            locale="it",
+        )
         u.set_password("x")
-        db.session.add(u); db.session.commit()
+        db.session.add(u)
+        db.session.commit()
         return u.id
 
 
@@ -36,59 +44,132 @@ def operator(app):
 def template_with_lots(app, operator):
     """A published reaction template with full inventory."""
     with app.app_context():
-        sm = Substance(name="Hexanoyl chloride", smiles="CCCCCC(=O)Cl",
-                       molecular_formula="C6H11ClO", molecular_weight=134.60)
-        rea = Substance(name="1,3-Benzodioxole", smiles="C1OC2=CC=CC=C2O1",
-                        molecular_formula="C7H6O2", molecular_weight=122.12)
-        cat = Substance(name="AlCl3", smiles="[Al+3].[Cl-].[Cl-].[Cl-]",
-                        molecular_formula="AlCl3", molecular_weight=133.34)
-        sol = Substance(name="DCM", smiles="ClCCl",
-                        molecular_formula="CH2Cl2", molecular_weight=84.93)
-        prod = Substance(name="MD600B", smiles="CCCCCC(=O)C1=CC2=C(C=C1)OCO2",
-                         molecular_formula="C13H16O3", molecular_weight=220.26)
-        db.session.add_all([sm, rea, cat, sol, prod]); db.session.flush()
+        sm = Substance(
+            name="Hexanoyl chloride",
+            smiles="CCCCCC(=O)Cl",
+            molecular_formula="C6H11ClO",
+            molecular_weight=134.60,
+        )
+        rea = Substance(
+            name="1,3-Benzodioxole",
+            smiles="C1OC2=CC=CC=C2O1",
+            molecular_formula="C7H6O2",
+            molecular_weight=122.12,
+        )
+        cat = Substance(
+            name="AlCl3",
+            smiles="[Al+3].[Cl-].[Cl-].[Cl-]",
+            molecular_formula="AlCl3",
+            molecular_weight=133.34,
+        )
+        sol = Substance(
+            name="DCM", smiles="ClCCl", molecular_formula="CH2Cl2", molecular_weight=84.93
+        )
+        prod = Substance(
+            name="MD600B",
+            smiles="CCCCCC(=O)C1=CC2=C(C=C1)OCO2",
+            molecular_formula="C13H16O3",
+            molecular_weight=220.26,
+        )
+        db.session.add_all([sm, rea, cat, sol, prod])
+        db.session.flush()
 
         # Lots with abundant quantities
         lots = [
-            InventoryItem(substance_id=sm.id, batch_code="SM-1",
-                          quantity_g=50.0, initial_quantity_g=50.0, is_active=True),
-            InventoryItem(substance_id=rea.id, batch_code="REA-1",
-                          quantity_g=50.0, initial_quantity_g=50.0, is_active=True),
-            InventoryItem(substance_id=cat.id, batch_code="CAT-1",
-                          quantity_g=100.0, initial_quantity_g=100.0, is_active=True),
-            InventoryItem(substance_id=sol.id, batch_code="SOL-1",
-                          quantity_mL=1000.0, initial_quantity_mL=1000.0, is_active=True),
+            InventoryItem(
+                substance_id=sm.id,
+                batch_code="SM-1",
+                quantity_g=50.0,
+                initial_quantity_g=50.0,
+                is_active=True,
+            ),
+            InventoryItem(
+                substance_id=rea.id,
+                batch_code="REA-1",
+                quantity_g=50.0,
+                initial_quantity_g=50.0,
+                is_active=True,
+            ),
+            InventoryItem(
+                substance_id=cat.id,
+                batch_code="CAT-1",
+                quantity_g=100.0,
+                initial_quantity_g=100.0,
+                is_active=True,
+            ),
+            InventoryItem(
+                substance_id=sol.id,
+                batch_code="SOL-1",
+                quantity_mL=1000.0,
+                initial_quantity_mL=1000.0,
+                is_active=True,
+            ),
         ]
-        db.session.add_all(lots); db.session.flush()
+        db.session.add_all(lots)
+        db.session.flush()
 
-        rxn = Reaction(code="RX-2026-0001", template_code="MD600B",
-                       status="published", title="Friedel-Crafts MD600B",
-                       duration_hours=12)
-        db.session.add(rxn); db.session.flush()
-        db.session.add_all([
-            ReactionComponent(reaction_id=rxn.id, substance_id=sm.id,
-                              role="starting_material", position=0,
-                              is_limiting=True, equivalents=1.0),
-            ReactionComponent(reaction_id=rxn.id, substance_id=rea.id,
-                              role="reagent", position=1, equivalents=0.95),
-            ReactionComponent(reaction_id=rxn.id, substance_id=cat.id,
-                              role="catalyst", position=2, equivalents=1.05),
-            ReactionComponent(reaction_id=rxn.id, substance_id=sol.id,
-                              role="solvent", position=3, concentration_M=0.6),
-            ReactionComponent(reaction_id=rxn.id, substance_id=prod.id,
-                              role="product", position=4),
-        ])
-        db.session.add_all([
-            ChecklistItem(reaction_id=rxn.id, text="Vetreria asciutta", position=0),
-            ChecklistItem(reaction_id=rxn.id, text="Ar collegato", position=1),
-        ])
+        rxn = Reaction(
+            code="RX-2026-0001",
+            template_code="MD600B",
+            status="published",
+            title="Friedel-Crafts MD600B",
+            duration_hours=12,
+        )
+        db.session.add(rxn)
+        db.session.flush()
+        db.session.add_all(
+            [
+                ReactionComponent(
+                    reaction_id=rxn.id,
+                    substance_id=sm.id,
+                    role="starting_material",
+                    position=0,
+                    is_limiting=True,
+                    equivalents=1.0,
+                ),
+                ReactionComponent(
+                    reaction_id=rxn.id,
+                    substance_id=rea.id,
+                    role="reagent",
+                    position=1,
+                    equivalents=0.95,
+                ),
+                ReactionComponent(
+                    reaction_id=rxn.id,
+                    substance_id=cat.id,
+                    role="catalyst",
+                    position=2,
+                    equivalents=1.05,
+                ),
+                ReactionComponent(
+                    reaction_id=rxn.id,
+                    substance_id=sol.id,
+                    role="solvent",
+                    position=3,
+                    concentration_M=0.6,
+                ),
+                ReactionComponent(
+                    reaction_id=rxn.id, substance_id=prod.id, role="product", position=4
+                ),
+            ]
+        )
+        db.session.add_all(
+            [
+                ChecklistItem(reaction_id=rxn.id, text="Vetreria asciutta", position=0),
+                ChecklistItem(reaction_id=rxn.id, text="Ar collegato", position=1),
+            ]
+        )
         db.session.commit()
         return {
             "reaction_id": rxn.id,
-            "substances": {"sm": sm.id, "rea": rea.id, "cat": cat.id,
-                           "sol": sol.id, "prod": prod.id},
-            "lots": {"sm": lots[0].id, "rea": lots[1].id,
-                     "cat": lots[2].id, "sol": lots[3].id},
+            "substances": {
+                "sm": sm.id,
+                "rea": rea.id,
+                "cat": cat.id,
+                "sol": sol.id,
+                "prod": prod.id,
+            },
+            "lots": {"sm": lots[0].id, "rea": lots[1].id, "cat": lots[2].id, "sol": lots[3].id},
         }
 
 
@@ -226,11 +307,14 @@ def test_start_run_blocked_by_insufficient_quantity(app, template_with_lots, ope
                 c.inventory_item_id = lot_ids["sm"]
                 c.actual_mass_g = 100.0  # too much
             elif c.role == "reagent":
-                c.inventory_item_id = lot_ids["rea"]; c.actual_mass_g = 0.580
+                c.inventory_item_id = lot_ids["rea"]
+                c.actual_mass_g = 0.580
             elif c.role == "catalyst":
-                c.inventory_item_id = lot_ids["cat"]; c.actual_mass_g = 0.700
+                c.inventory_item_id = lot_ids["cat"]
+                c.actual_mass_g = 0.700
             elif c.role == "solvent":
-                c.inventory_item_id = lot_ids["sol"]; c.actual_volume_mL = 8.33
+                c.inventory_item_id = lot_ids["sol"]
+                c.actual_volume_mL = 8.33
         db.session.commit()
 
         with pytest.raises(run_setup.RunStartError) as exc_info:
@@ -250,15 +334,20 @@ def test_complete_run_computes_yield(app, template_with_lots, operator):
         # Set up everything for start
         lot_ids = template_with_lots["lots"]
         for c in run.components:
-            if c.role == "product": continue
+            if c.role == "product":
+                continue
             elif c.role == "starting_material":
-                c.inventory_item_id = lot_ids["sm"]; c.actual_mass_g = 0.673
+                c.inventory_item_id = lot_ids["sm"]
+                c.actual_mass_g = 0.673
             elif c.role == "reagent":
-                c.inventory_item_id = lot_ids["rea"]; c.actual_mass_g = 0.580
+                c.inventory_item_id = lot_ids["rea"]
+                c.actual_mass_g = 0.580
             elif c.role == "catalyst":
-                c.inventory_item_id = lot_ids["cat"]; c.actual_mass_g = 0.700
+                c.inventory_item_id = lot_ids["cat"]
+                c.actual_mass_g = 0.700
             elif c.role == "solvent":
-                c.inventory_item_id = lot_ids["sol"]; c.actual_volume_mL = 8.33
+                c.inventory_item_id = lot_ids["sol"]
+                c.actual_volume_mL = 8.33
         db.session.commit()
 
         run_setup.start_run(run)
@@ -304,13 +393,17 @@ def test_complete_run_creates_inventory_lot_per_product(app, template_with_lots,
             if c.role == "product":
                 continue
             elif c.role == "starting_material":
-                c.inventory_item_id = lot_ids["sm"]; c.actual_mass_g = 0.673
+                c.inventory_item_id = lot_ids["sm"]
+                c.actual_mass_g = 0.673
             elif c.role == "reagent":
-                c.inventory_item_id = lot_ids["rea"]; c.actual_mass_g = 0.580
+                c.inventory_item_id = lot_ids["rea"]
+                c.actual_mass_g = 0.580
             elif c.role == "catalyst":
-                c.inventory_item_id = lot_ids["cat"]; c.actual_mass_g = 0.700
+                c.inventory_item_id = lot_ids["cat"]
+                c.actual_mass_g = 0.700
             elif c.role == "solvent":
-                c.inventory_item_id = lot_ids["sol"]; c.actual_volume_mL = 8.33
+                c.inventory_item_id = lot_ids["sol"]
+                c.actual_volume_mL = 8.33
         db.session.commit()
         run_setup.start_run(run)
         db.session.commit()
@@ -323,6 +416,7 @@ def test_complete_run_creates_inventory_lot_per_product(app, template_with_lots,
         db.session.commit()
 
         from stoic_eln.models.inventory import InventoryItem as Inv
+
         lots = db.session.query(Inv).filter(Inv.source_run_id == run.id).all()
         assert len(lots) == 1
         assert lots[0].batch_code == f"{run.code}-P1"
@@ -345,13 +439,17 @@ def test_complete_run_no_products_requires_force(app, template_with_lots, operat
             if c.role == "product":
                 continue
             elif c.role == "starting_material":
-                c.inventory_item_id = lot_ids["sm"]; c.actual_mass_g = 0.673
+                c.inventory_item_id = lot_ids["sm"]
+                c.actual_mass_g = 0.673
             elif c.role == "reagent":
-                c.inventory_item_id = lot_ids["rea"]; c.actual_mass_g = 0.580
+                c.inventory_item_id = lot_ids["rea"]
+                c.actual_mass_g = 0.580
             elif c.role == "catalyst":
-                c.inventory_item_id = lot_ids["cat"]; c.actual_mass_g = 0.700
+                c.inventory_item_id = lot_ids["cat"]
+                c.actual_mass_g = 0.700
             elif c.role == "solvent":
-                c.inventory_item_id = lot_ids["sol"]; c.actual_volume_mL = 8.33
+                c.inventory_item_id = lot_ids["sol"]
+                c.actual_volume_mL = 8.33
         db.session.commit()
         run_setup.start_run(run)
         db.session.commit()
@@ -368,6 +466,7 @@ def test_complete_run_no_products_requires_force(app, template_with_lots, operat
         assert run.is_failed is True
         # No inventory created
         from stoic_eln.models.inventory import InventoryItem as Inv
+
         lots = db.session.query(Inv).filter(Inv.source_run_id == run.id).all()
         assert lots == []
 
@@ -386,13 +485,17 @@ def test_complete_run_yield_over_100_warns(app, template_with_lots, operator):
             if c.role == "product":
                 continue
             elif c.role == "starting_material":
-                c.inventory_item_id = lot_ids["sm"]; c.actual_mass_g = 0.673
+                c.inventory_item_id = lot_ids["sm"]
+                c.actual_mass_g = 0.673
             elif c.role == "reagent":
-                c.inventory_item_id = lot_ids["rea"]; c.actual_mass_g = 0.580
+                c.inventory_item_id = lot_ids["rea"]
+                c.actual_mass_g = 0.580
             elif c.role == "catalyst":
-                c.inventory_item_id = lot_ids["cat"]; c.actual_mass_g = 0.700
+                c.inventory_item_id = lot_ids["cat"]
+                c.actual_mass_g = 0.700
             elif c.role == "solvent":
-                c.inventory_item_id = lot_ids["sol"]; c.actual_volume_mL = 8.33
+                c.inventory_item_id = lot_ids["sol"]
+                c.actual_volume_mL = 8.33
         db.session.commit()
         run_setup.start_run(run)
         db.session.commit()
@@ -420,34 +523,63 @@ def test_promote_draft_preserves_runs(app):
         historical records of an execution against that specific version.
     """
     from stoic_eln.extensions import db
-    from stoic_eln.models import (User, Substance, Reaction,
-                                   ReactionComponent, InventoryItem, Run)
+    from stoic_eln.models import User, Substance, Reaction, ReactionComponent, InventoryItem, Run
     from stoic_eln.services import reaction_clone, run_setup
 
     with app.app_context():
-        u = User(username="r", full_name="R", operator_code="RR",
-                 role="admin", is_admin=True, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.flush()
+        u = User(
+            username="r",
+            full_name="R",
+            operator_code="RR",
+            role="admin",
+            is_admin=True,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.flush()
         sm = Substance(name="SM", molecular_weight=200.0)
         prod = Substance(name="P", molecular_weight=300.0)
-        db.session.add_all([sm, prod]); db.session.flush()
-        sm_lot = InventoryItem(substance_id=sm.id, batch_code="L1",
-                               quantity_g=10, initial_quantity_g=10, is_active=True)
-        db.session.add(sm_lot); db.session.flush()
+        db.session.add_all([sm, prod])
+        db.session.flush()
+        sm_lot = InventoryItem(
+            substance_id=sm.id,
+            batch_code="L1",
+            quantity_g=10,
+            initial_quantity_g=10,
+            is_active=True,
+        )
+        db.session.add(sm_lot)
+        db.session.flush()
 
         # Create a published template (v1)
-        rxn = Reaction(code="RX-1", template_code="TEST.1",
-                       template_code_base="TEST", version_number=1,
-                       status="published", title="Original",
-                       default_scale_mmol=1.0)
-        db.session.add(rxn); db.session.flush()
-        db.session.add_all([
-            ReactionComponent(reaction_id=rxn.id, substance_id=sm.id,
-                              role="starting_material", position=0,
-                              is_limiting=True, equivalents=1.0),
-            ReactionComponent(reaction_id=rxn.id, substance_id=prod.id,
-                              role="product", position=1),
-        ])
+        rxn = Reaction(
+            code="RX-1",
+            template_code="TEST.1",
+            template_code_base="TEST",
+            version_number=1,
+            status="published",
+            title="Original",
+            default_scale_mmol=1.0,
+        )
+        db.session.add(rxn)
+        db.session.flush()
+        db.session.add_all(
+            [
+                ReactionComponent(
+                    reaction_id=rxn.id,
+                    substance_id=sm.id,
+                    role="starting_material",
+                    position=0,
+                    is_limiting=True,
+                    equivalents=1.0,
+                ),
+                ReactionComponent(
+                    reaction_id=rxn.id, substance_id=prod.id, role="product", position=1
+                ),
+            ]
+        )
         db.session.commit()
 
         # Create a run from this template (v1)
@@ -499,23 +631,32 @@ def test_update_field_auto_save_uses_field_name(app, client):
     from stoic_eln.models import User, Reaction
 
     with app.app_context():
-        u = User(username="r", full_name="R", operator_code="RR",
-                 role="admin", is_admin=True, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.flush()
-        rxn = Reaction(code="R-1", template_code=None, status="draft",
-                       title="Old title")
-        db.session.add(rxn); db.session.commit()
+        u = User(
+            username="r",
+            full_name="R",
+            operator_code="RR",
+            role="admin",
+            is_admin=True,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.flush()
+        rxn = Reaction(code="R-1", template_code=None, status="draft", title="Old title")
+        db.session.add(rxn)
+        db.session.commit()
         rxn_id = rxn.id
 
     # Login (CSRF disabled in test config)
-    client.post("/auth/login", data={"username": "r",
-                                     "password": "x", "submit": "x"})
+    client.post("/auth/login", data={"username": "r", "password": "x", "submit": "x"})
 
     # Auto-save: send field=title and title=NewTitle (no "value" key)
-    r = client.post(f"/reactions/{rxn_id}/field",
-                    data={"field": "title",
-                          "title": "New auto-saved title"},
-                    headers={"HX-Request": "true"})
+    r = client.post(
+        f"/reactions/{rxn_id}/field",
+        data={"field": "title", "title": "New auto-saved title"},
+        headers={"HX-Request": "true"},
+    )
     assert r.status_code == 204
 
     with app.app_context():
@@ -523,9 +664,7 @@ def test_update_field_auto_save_uses_field_name(app, client):
         assert rxn.title == "New auto-saved title"
 
     # Legacy: still works with a generic "value" key
-    r = client.post(f"/reactions/{rxn_id}/field",
-                    data={"field": "title",
-                          "value": "Legacy way"})
+    r = client.post(f"/reactions/{rxn_id}/field", data={"field": "title", "value": "Legacy way"})
     assert r.status_code in (200, 302)
 
     with app.app_context():
@@ -540,18 +679,32 @@ def test_promote_first_version_creates_v1(app):
     from stoic_eln.services import reaction_clone
 
     with app.app_context():
-        u = User(username="r", full_name="R", operator_code="RR",
-                 role="admin", is_admin=True, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.flush()
+        u = User(
+            username="r",
+            full_name="R",
+            operator_code="RR",
+            role="admin",
+            is_admin=True,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.flush()
 
         # Create a draft from scratch with base 'MD600B'
         from stoic_eln.services.code_generator import generate_reaction_code
+
         draft = Reaction(
             code=generate_reaction_code(),
-            template_code=None, template_code_base="MD600B",
-            status="draft", title="New Reaction", default_scale_mmol=1.0,
+            template_code=None,
+            template_code_base="MD600B",
+            status="draft",
+            title="New Reaction",
+            default_scale_mmol=1.0,
         )
-        db.session.add(draft); db.session.commit()
+        db.session.add(draft)
+        db.session.commit()
 
         published = reaction_clone.promote_draft(draft)
         db.session.commit()
@@ -571,16 +724,31 @@ def test_promote_three_versions(app):
     from stoic_eln.services.code_generator import generate_reaction_code
 
     with app.app_context():
-        u = User(username="r", full_name="R", operator_code="RR",
-                 role="admin", is_admin=True, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.flush()
+        u = User(
+            username="r",
+            full_name="R",
+            operator_code="RR",
+            role="admin",
+            is_admin=True,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.flush()
 
         # v1
-        draft1 = Reaction(code=generate_reaction_code(),
-                          template_code=None, template_code_base="MD600B",
-                          status="draft", title="v1")
-        db.session.add(draft1); db.session.commit()
-        v1 = reaction_clone.promote_draft(draft1); db.session.commit()
+        draft1 = Reaction(
+            code=generate_reaction_code(),
+            template_code=None,
+            template_code_base="MD600B",
+            status="draft",
+            title="v1",
+        )
+        db.session.add(draft1)
+        db.session.commit()
+        v1 = reaction_clone.promote_draft(draft1)
+        db.session.commit()
         assert v1.template_code == "MD600B.1"
 
         # v2
@@ -588,7 +756,8 @@ def test_promote_three_versions(app):
         db.session.commit()
         draft2.title = "v2"
         db.session.commit()
-        v2 = reaction_clone.promote_draft(draft2); db.session.commit()
+        v2 = reaction_clone.promote_draft(draft2)
+        db.session.commit()
         assert v2.template_code == "MD600B.2"
         # v1 archived now
         v1_refresh = db.session.get(Reaction, v1.id)
@@ -599,7 +768,8 @@ def test_promote_three_versions(app):
         db.session.commit()
         draft3.title = "v3"
         db.session.commit()
-        v3 = reaction_clone.promote_draft(draft3); db.session.commit()
+        v3 = reaction_clone.promote_draft(draft3)
+        db.session.commit()
         assert v3.template_code == "MD600B.3"
         assert v3.parent_version_id == v2.id
 
@@ -608,11 +778,18 @@ def test_promote_three_versions(app):
         assert v2_refresh.is_archived is True
         # Only one current version
         from sqlalchemy import and_
-        currents = (db.session.query(Reaction)
-                      .filter(and_(Reaction.template_code_base == "MD600B",
-                                    Reaction.is_archived.is_(False),
-                                    Reaction.status == "published"))
-                      .all())
+
+        currents = (
+            db.session.query(Reaction)
+            .filter(
+                and_(
+                    Reaction.template_code_base == "MD600B",
+                    Reaction.is_archived.is_(False),
+                    Reaction.status == "published",
+                )
+            )
+            .all()
+        )
         assert len(currents) == 1
         assert currents[0].id == v3.id
 
@@ -620,29 +797,52 @@ def test_promote_three_versions(app):
 def test_duplicate_creates_independent_draft(app):
     """duplicate_for_new copies content but breaks the family link."""
     from stoic_eln.extensions import db
-    from stoic_eln.models import (User, Substance, Reaction,
-                                   ReactionComponent)
+    from stoic_eln.models import User, Substance, Reaction, ReactionComponent
     from stoic_eln.services import reaction_clone
 
     with app.app_context():
-        u = User(username="r", full_name="R", operator_code="RR",
-                 role="admin", is_admin=True, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.flush()
+        u = User(
+            username="r",
+            full_name="R",
+            operator_code="RR",
+            role="admin",
+            is_admin=True,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.flush()
         sm = Substance(name="SM", molecular_weight=200.0)
         prod = Substance(name="P", molecular_weight=300.0)
-        db.session.add_all([sm, prod]); db.session.flush()
+        db.session.add_all([sm, prod])
+        db.session.flush()
 
-        src = Reaction(code="RX-1", template_code="MD600B.1",
-                       template_code_base="MD600B", version_number=1,
-                       status="published", title="Source")
-        db.session.add(src); db.session.flush()
-        db.session.add_all([
-            ReactionComponent(reaction_id=src.id, substance_id=sm.id,
-                              role="starting_material", position=0,
-                              is_limiting=True, equivalents=1.0),
-            ReactionComponent(reaction_id=src.id, substance_id=prod.id,
-                              role="product", position=1),
-        ])
+        src = Reaction(
+            code="RX-1",
+            template_code="MD600B.1",
+            template_code_base="MD600B",
+            version_number=1,
+            status="published",
+            title="Source",
+        )
+        db.session.add(src)
+        db.session.flush()
+        db.session.add_all(
+            [
+                ReactionComponent(
+                    reaction_id=src.id,
+                    substance_id=sm.id,
+                    role="starting_material",
+                    position=0,
+                    is_limiting=True,
+                    equivalents=1.0,
+                ),
+                ReactionComponent(
+                    reaction_id=src.id, substance_id=prod.id, role="product", position=1
+                ),
+            ]
+        )
         db.session.commit()
 
         dup = reaction_clone.duplicate_for_new(src)
@@ -663,6 +863,7 @@ def test_duplicate_creates_independent_draft(app):
 def test_template_code_base_rejects_dot(app):
     """validate_base() rejects codes containing a dot (reserved for version suffix)."""
     from stoic_eln.services.template_code import validate_base, TemplateCodeError
+
     with app.app_context():
         with pytest.raises(TemplateCodeError):
             validate_base("MD600B.5")  # user trying to add version manually
@@ -671,32 +872,51 @@ def test_template_code_base_rejects_dot(app):
 def test_add_step_component_returns_partial_for_htmx(app, client):
     """add_step_component returns step_card partial for HTMX requests."""
     from stoic_eln.extensions import db
-    from stoic_eln.models import (User, Substance, Reaction)
+    from stoic_eln.models import User, Substance, Reaction
     from stoic_eln.models.reaction_step import ReactionStep
 
     with app.app_context():
-        u = User(username="r", full_name="R", operator_code="RR",
-                 role="admin", is_admin=True, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.flush()
+        u = User(
+            username="r",
+            full_name="R",
+            operator_code="RR",
+            role="admin",
+            is_admin=True,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.flush()
         sub = Substance(name="DCM", molecular_weight=84.93, density=1.33)
-        db.session.add(sub); db.session.flush()
-        rxn = Reaction(code="RX-1", template_code=None,
-                       template_code_base="TEST",
-                       status="draft", title="T", default_scale_mmol=1.0,
-                       created_by_id=u.id)
-        db.session.add(rxn); db.session.flush()
-        step = ReactionStep(reaction_id=rxn.id, kind="workup",
-                            title="Workup", position=0)
-        db.session.add(step); db.session.commit()
+        db.session.add(sub)
+        db.session.flush()
+        rxn = Reaction(
+            code="RX-1",
+            template_code=None,
+            template_code_base="TEST",
+            status="draft",
+            title="T",
+            default_scale_mmol=1.0,
+            created_by_id=u.id,
+        )
+        db.session.add(rxn)
+        db.session.flush()
+        step = ReactionStep(reaction_id=rxn.id, kind="workup", title="Workup", position=0)
+        db.session.add(step)
+        db.session.commit()
         sub_id, sid = sub.id, step.id
 
-    client.post("/auth/login",
-                data={"username": "r", "password": "x", "submit": "x"})
+    client.post("/auth/login", data={"username": "r", "password": "x", "submit": "x"})
 
     r = client.post(
         f"/reactions/steps/{sid}/components/new",
-        data={"substance_id": str(sub_id), "role": "solvent",
-              "ratio_value": "5", "ratio_kind": "mL_per_mmol"},
+        data={
+            "substance_id": str(sub_id),
+            "role": "solvent",
+            "ratio_value": "5",
+            "ratio_kind": "mL_per_mmol",
+        },
         headers={"HX-Request": "true"},
     )
     assert r.status_code == 200
@@ -713,25 +933,39 @@ def test_add_component_returns_partial_for_htmx(app, client):
     from stoic_eln.models import User, Substance, Reaction
 
     with app.app_context():
-        u = User(username="r", full_name="R", operator_code="RR",
-                 role="admin", is_admin=True, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.flush()
+        u = User(
+            username="r",
+            full_name="R",
+            operator_code="RR",
+            role="admin",
+            is_admin=True,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.flush()
         sub = Substance(name="MyReagent", molecular_weight=100.0)
-        db.session.add(sub); db.session.flush()
-        rxn = Reaction(code="RX-1", template_code=None,
-                       template_code_base="TEST",
-                       status="draft", title="T", default_scale_mmol=1.0,
-                       created_by_id=u.id)
-        db.session.add(rxn); db.session.commit()
+        db.session.add(sub)
+        db.session.flush()
+        rxn = Reaction(
+            code="RX-1",
+            template_code=None,
+            template_code_base="TEST",
+            status="draft",
+            title="T",
+            default_scale_mmol=1.0,
+            created_by_id=u.id,
+        )
+        db.session.add(rxn)
+        db.session.commit()
         sub_id, rid = sub.id, rxn.id
 
-    client.post("/auth/login",
-                data={"username": "r", "password": "x", "submit": "x"})
+    client.post("/auth/login", data={"username": "r", "password": "x", "submit": "x"})
 
     r = client.post(
         f"/reactions/{rid}/components/new",
-        data={"substance_id": str(sub_id), "role": "reagent",
-              "equivalents": "1.5"},
+        data={"substance_id": str(sub_id), "role": "reagent", "equivalents": "1.5"},
         headers={"HX-Request": "true"},
     )
     assert r.status_code == 200
@@ -746,22 +980,40 @@ def test_run_button_hidden_on_drafts_in_list(app, client):
     from stoic_eln.models import User, Reaction
 
     with app.app_context():
-        u = User(username="r", full_name="R", operator_code="RR",
-                 role="admin", is_admin=True, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.flush()
+        u = User(
+            username="r",
+            full_name="R",
+            operator_code="RR",
+            role="admin",
+            is_admin=True,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.flush()
         # One published, one draft
-        pub = Reaction(code="RX-1", template_code="TEST.1",
-                       template_code_base="TEST", version_number=1,
-                       status="published", title="Published one")
-        drf = Reaction(code="RX-2", template_code=None,
-                       template_code_base="OTHER",
-                       status="draft", title="Draft one",
-                       created_by_id=u.id)
-        db.session.add_all([pub, drf]); db.session.commit()
+        pub = Reaction(
+            code="RX-1",
+            template_code="TEST.1",
+            template_code_base="TEST",
+            version_number=1,
+            status="published",
+            title="Published one",
+        )
+        drf = Reaction(
+            code="RX-2",
+            template_code=None,
+            template_code_base="OTHER",
+            status="draft",
+            title="Draft one",
+            created_by_id=u.id,
+        )
+        db.session.add_all([pub, drf])
+        db.session.commit()
         pub_id, drf_id = pub.id, drf.id
 
-    client.post("/auth/login",
-                data={"username": "r", "password": "x", "submit": "x"})
+    client.post("/auth/login", data={"username": "r", "password": "x", "submit": "x"})
 
     r = client.get("/reactions/")
     text = r.data.decode()
@@ -778,15 +1030,30 @@ def test_draft_display_code_shows_future_version(app):
     from stoic_eln.services import reaction_clone
 
     with app.app_context():
-        u = User(username="r", full_name="R", operator_code="RR",
-                 role="admin", is_admin=True, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.flush()
+        u = User(
+            username="r",
+            full_name="R",
+            operator_code="RR",
+            role="admin",
+            is_admin=True,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.flush()
 
         # Published v1
-        pub = Reaction(code="RX-1", template_code="MD600B.1",
-                       template_code_base="MD600B", version_number=1,
-                       status="published", title="Original")
-        db.session.add(pub); db.session.commit()
+        pub = Reaction(
+            code="RX-1",
+            template_code="MD600B.1",
+            template_code_base="MD600B",
+            version_number=1,
+            status="published",
+            title="Original",
+        )
+        db.session.add(pub)
+        db.session.commit()
 
         # Clone for editing → draft should show MD600B.2
         draft = reaction_clone.clone_for_editing(pub)
@@ -797,17 +1064,28 @@ def test_draft_display_code_shows_future_version(app):
 
         # A brand-new draft (no parent) with base 'NEWFAM' shows 'NEWFAM.1'
         from stoic_eln.services.code_generator import generate_reaction_code
-        d = Reaction(code=generate_reaction_code(),
-                     template_code=None, template_code_base="NEWFAM",
-                     status="draft", title="New thing")
-        db.session.add(d); db.session.commit()
+
+        d = Reaction(
+            code=generate_reaction_code(),
+            template_code=None,
+            template_code_base="NEWFAM",
+            status="draft",
+            title="New thing",
+        )
+        db.session.add(d)
+        db.session.commit()
         assert d.draft_display_code == "NEWFAM.1"
 
         # A draft with no base typed yet shows '—'
-        d2 = Reaction(code=generate_reaction_code(),
-                      template_code=None, template_code_base=None,
-                      status="draft", title="Empty")
-        db.session.add(d2); db.session.commit()
+        d2 = Reaction(
+            code=generate_reaction_code(),
+            template_code=None,
+            template_code_base=None,
+            status="draft",
+            title="Empty",
+        )
+        db.session.add(d2)
+        db.session.commit()
         assert d2.draft_display_code == "—"
 
 
@@ -820,26 +1098,36 @@ def test_cancel_draft_does_not_bump_version(app):
 
     with app.app_context():
         # v1
-        d = Reaction(code=generate_reaction_code(),
-                     template_code=None, template_code_base="MYTEMP",
-                     status="draft", title="t")
-        db.session.add(d); db.session.commit()
-        v1 = reaction_clone.promote_draft(d); db.session.commit()
+        d = Reaction(
+            code=generate_reaction_code(),
+            template_code=None,
+            template_code_base="MYTEMP",
+            status="draft",
+            title="t",
+        )
+        db.session.add(d)
+        db.session.commit()
+        v1 = reaction_clone.promote_draft(d)
+        db.session.commit()
         assert v1.template_code == "MYTEMP.1"
 
         # Modifica → bozza → cancella
-        d2 = reaction_clone.clone_for_editing(v1); db.session.commit()
-        reaction_clone.discard_draft(d2); db.session.commit()
+        d2 = reaction_clone.clone_for_editing(v1)
+        db.session.commit()
+        reaction_clone.discard_draft(d2)
+        db.session.commit()
 
         # Confirm draft is gone
         all_rxn = db.session.query(Reaction).all()
         assert len(all_rxn) == 1, "draft should be deleted, leaving only v1"
 
         # Modifica → bozza → pubblica → must be v2 (not v3)
-        d3 = reaction_clone.clone_for_editing(v1); db.session.commit()
+        d3 = reaction_clone.clone_for_editing(v1)
+        db.session.commit()
         d3.title = "v2"
         db.session.commit()
-        v2 = reaction_clone.promote_draft(d3); db.session.commit()
+        v2 = reaction_clone.promote_draft(d3)
+        db.session.commit()
 
         assert v2.template_code == "MYTEMP.2"
         assert v2.version_number == 2
@@ -848,36 +1136,62 @@ def test_cancel_draft_does_not_bump_version(app):
 def test_pdf_summary_renders_basic_run(app, client):
     """A completed run can render its summary PDF."""
     from stoic_eln.extensions import db
-    from stoic_eln.models import (User, Substance, Reaction,
-                                   ReactionComponent, InventoryItem)
+    from stoic_eln.models import User, Substance, Reaction, ReactionComponent, InventoryItem
     from stoic_eln.services import run_setup
     from stoic_eln.services.pdf_run import render_run_summary
 
     with app.app_context():
-        u = User(username="ric", full_name="R", operator_code="RIC",
-                 role="admin", is_admin=True, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.flush()
-        sm = Substance(name="SM", molecular_weight=200.0,
-                       smiles="c1ccc(Br)cc1")
-        prod = Substance(name="Prod", molecular_weight=300.0,
-                         smiles="c1ccc(c1)c1ccccc1")
-        db.session.add_all([sm, prod]); db.session.flush()
-        sm_lot = InventoryItem(substance_id=sm.id, batch_code="L1",
-                               quantity_g=10, initial_quantity_g=10,
-                               is_active=True)
-        db.session.add(sm_lot); db.session.flush()
-        rxn = Reaction(code="RX-1", template_code="T.1",
-                       template_code_base="T", version_number=1,
-                       status="published", title="Test",
-                       default_scale_mmol=1.0)
-        db.session.add(rxn); db.session.flush()
-        db.session.add_all([
-            ReactionComponent(reaction_id=rxn.id, substance_id=sm.id,
-                              role="starting_material", position=0,
-                              is_limiting=True, equivalents=1.0),
-            ReactionComponent(reaction_id=rxn.id, substance_id=prod.id,
-                              role="product", position=1),
-        ])
+        u = User(
+            username="ric",
+            full_name="R",
+            operator_code="RIC",
+            role="admin",
+            is_admin=True,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.flush()
+        sm = Substance(name="SM", molecular_weight=200.0, smiles="c1ccc(Br)cc1")
+        prod = Substance(name="Prod", molecular_weight=300.0, smiles="c1ccc(c1)c1ccccc1")
+        db.session.add_all([sm, prod])
+        db.session.flush()
+        sm_lot = InventoryItem(
+            substance_id=sm.id,
+            batch_code="L1",
+            quantity_g=10,
+            initial_quantity_g=10,
+            is_active=True,
+        )
+        db.session.add(sm_lot)
+        db.session.flush()
+        rxn = Reaction(
+            code="RX-1",
+            template_code="T.1",
+            template_code_base="T",
+            version_number=1,
+            status="published",
+            title="Test",
+            default_scale_mmol=1.0,
+        )
+        db.session.add(rxn)
+        db.session.flush()
+        db.session.add_all(
+            [
+                ReactionComponent(
+                    reaction_id=rxn.id,
+                    substance_id=sm.id,
+                    role="starting_material",
+                    position=0,
+                    is_limiting=True,
+                    equivalents=1.0,
+                ),
+                ReactionComponent(
+                    reaction_id=rxn.id, substance_id=prod.id, role="product", position=1
+                ),
+            ]
+        )
         db.session.commit()
 
         run = run_setup.create_draft(rxn, u)
@@ -885,15 +1199,18 @@ def test_pdf_summary_renders_basic_run(app, client):
         run.scale_input_unit = "mmol"
         run.scale_mmol = 5.0
         db.session.commit()
-        run_setup.recompute_targets(run); db.session.commit()
+        run_setup.recompute_targets(run)
+        db.session.commit()
         cs = {c.role: c for c in run.components}
         cs["starting_material"].inventory_item_id = sm_lot.id
         cs["starting_material"].actual_mass_g = 1.0
         db.session.commit()
-        run_setup.start_run(run); db.session.commit()
+        run_setup.start_run(run)
+        db.session.commit()
         cs["product"].actual_mass_g = 0.5
         db.session.commit()
-        run_setup.complete_run(run); db.session.commit()
+        run_setup.complete_run(run)
+        db.session.commit()
 
         pdf_bytes = render_run_summary(run)
 
@@ -906,49 +1223,95 @@ def test_pdf_summary_renders_basic_run(app, client):
 def test_pdf_full_renders_with_steps(app, client):
     """A run with workup step renders the full PDF including the step."""
     from stoic_eln.extensions import db
-    from stoic_eln.models import (User, Substance, Reaction,
-                                   ReactionComponent, ReactionStep,
-                                   ReactionStepComponent, InventoryItem,
-                                   ChecklistItem)
+    from stoic_eln.models import (
+        User,
+        Substance,
+        Reaction,
+        ReactionComponent,
+        ReactionStep,
+        ReactionStepComponent,
+        InventoryItem,
+        ChecklistItem,
+    )
     from stoic_eln.services import run_setup
     from stoic_eln.services.pdf_run import render_run_full
 
     with app.app_context():
-        u = User(username="ric", full_name="R", operator_code="RIC",
-                 role="admin", is_admin=True, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.flush()
+        u = User(
+            username="ric",
+            full_name="R",
+            operator_code="RIC",
+            role="admin",
+            is_admin=True,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.flush()
         sm = Substance(name="SM", molecular_weight=200.0)
         prod = Substance(name="Prod", molecular_weight=300.0)
-        nh4cl = Substance(name="NH4Cl saturo", molecular_weight=53.49,
-                          state="liquid", density=1.0)
-        db.session.add_all([sm, prod, nh4cl]); db.session.flush()
-        sm_lot = InventoryItem(substance_id=sm.id, batch_code="L1",
-                               quantity_g=10, initial_quantity_g=10,
-                               is_active=True)
-        db.session.add(sm_lot); db.session.flush()
-        rxn = Reaction(code="RX-1", template_code="T.1",
-                       template_code_base="T", version_number=1,
-                       status="published", title="With workup",
-                       procedure="Heat. Cool. Quench.",
-                       temperature_c=80.0, duration_hours=12.0,
-                       atmosphere="Ar")
-        db.session.add(rxn); db.session.flush()
-        db.session.add_all([
-            ReactionComponent(reaction_id=rxn.id, substance_id=sm.id,
-                              role="starting_material", position=0,
-                              is_limiting=True, equivalents=1.0),
-            ReactionComponent(reaction_id=rxn.id, substance_id=prod.id,
-                              role="product", position=1),
-        ])
-        db.session.add(ChecklistItem(reaction_id=rxn.id,
-                                     text="Vetreria asciutta", position=0))
-        step = ReactionStep(reaction_id=rxn.id, kind="workup",
-                            title="Workup acquoso",
-                            description="Wash and dry.", position=0)
-        db.session.add(step); db.session.flush()
-        db.session.add(ReactionStepComponent(
-            step_id=step.id, substance_id=nh4cl.id, role="solvent",
-            ratio_value=5.0, ratio_kind="mL_per_mmol", position=0))
+        nh4cl = Substance(name="NH4Cl saturo", molecular_weight=53.49, state="liquid", density=1.0)
+        db.session.add_all([sm, prod, nh4cl])
+        db.session.flush()
+        sm_lot = InventoryItem(
+            substance_id=sm.id,
+            batch_code="L1",
+            quantity_g=10,
+            initial_quantity_g=10,
+            is_active=True,
+        )
+        db.session.add(sm_lot)
+        db.session.flush()
+        rxn = Reaction(
+            code="RX-1",
+            template_code="T.1",
+            template_code_base="T",
+            version_number=1,
+            status="published",
+            title="With workup",
+            procedure="Heat. Cool. Quench.",
+            temperature_c=80.0,
+            duration_hours=12.0,
+            atmosphere="Ar",
+        )
+        db.session.add(rxn)
+        db.session.flush()
+        db.session.add_all(
+            [
+                ReactionComponent(
+                    reaction_id=rxn.id,
+                    substance_id=sm.id,
+                    role="starting_material",
+                    position=0,
+                    is_limiting=True,
+                    equivalents=1.0,
+                ),
+                ReactionComponent(
+                    reaction_id=rxn.id, substance_id=prod.id, role="product", position=1
+                ),
+            ]
+        )
+        db.session.add(ChecklistItem(reaction_id=rxn.id, text="Vetreria asciutta", position=0))
+        step = ReactionStep(
+            reaction_id=rxn.id,
+            kind="workup",
+            title="Workup acquoso",
+            description="Wash and dry.",
+            position=0,
+        )
+        db.session.add(step)
+        db.session.flush()
+        db.session.add(
+            ReactionStepComponent(
+                step_id=step.id,
+                substance_id=nh4cl.id,
+                role="solvent",
+                ratio_value=5.0,
+                ratio_kind="mL_per_mmol",
+                position=0,
+            )
+        )
         db.session.commit()
 
         run = run_setup.create_draft(rxn, u)
@@ -956,15 +1319,18 @@ def test_pdf_full_renders_with_steps(app, client):
         run.scale_input_unit = "mmol"
         run.scale_mmol = 5.0
         db.session.commit()
-        run_setup.recompute_targets(run); db.session.commit()
+        run_setup.recompute_targets(run)
+        db.session.commit()
         cs = {c.role: c for c in run.components}
         cs["starting_material"].inventory_item_id = sm_lot.id
         cs["starting_material"].actual_mass_g = 1.0
         db.session.commit()
-        run_setup.start_run(run); db.session.commit()
+        run_setup.start_run(run)
+        db.session.commit()
         cs["product"].actual_mass_g = 0.5
         db.session.commit()
-        run_setup.complete_run(run); db.session.commit()
+        run_setup.complete_run(run)
+        db.session.commit()
 
         pdf_bytes = render_run_full(run)
 
@@ -979,28 +1345,51 @@ def test_pdf_full_renders_with_steps(app, client):
 def test_pdf_endpoint_returns_pdf_content_type(app, client):
     """The /runs/<id>/pdf endpoint streams a PDF with correct headers."""
     from stoic_eln.extensions import db
-    from stoic_eln.models import (User, Substance, Reaction,
-                                   ReactionComponent)
+    from stoic_eln.models import User, Substance, Reaction, ReactionComponent
     from stoic_eln.services import run_setup
 
     with app.app_context():
-        u = User(username="r", full_name="R", operator_code="RR",
-                 role="admin", is_admin=True, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.flush()
+        u = User(
+            username="r",
+            full_name="R",
+            operator_code="RR",
+            role="admin",
+            is_admin=True,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.flush()
         sm = Substance(name="SM", molecular_weight=200.0)
         prod = Substance(name="P", molecular_weight=300.0)
-        db.session.add_all([sm, prod]); db.session.flush()
-        rxn = Reaction(code="RX-1", template_code="T.1",
-                       template_code_base="T", version_number=1,
-                       status="published", title="Test")
-        db.session.add(rxn); db.session.flush()
-        db.session.add_all([
-            ReactionComponent(reaction_id=rxn.id, substance_id=sm.id,
-                              role="starting_material", position=0,
-                              is_limiting=True, equivalents=1.0),
-            ReactionComponent(reaction_id=rxn.id, substance_id=prod.id,
-                              role="product", position=1),
-        ])
+        db.session.add_all([sm, prod])
+        db.session.flush()
+        rxn = Reaction(
+            code="RX-1",
+            template_code="T.1",
+            template_code_base="T",
+            version_number=1,
+            status="published",
+            title="Test",
+        )
+        db.session.add(rxn)
+        db.session.flush()
+        db.session.add_all(
+            [
+                ReactionComponent(
+                    reaction_id=rxn.id,
+                    substance_id=sm.id,
+                    role="starting_material",
+                    position=0,
+                    is_limiting=True,
+                    equivalents=1.0,
+                ),
+                ReactionComponent(
+                    reaction_id=rxn.id, substance_id=prod.id, role="product", position=1
+                ),
+            ]
+        )
         db.session.commit()
         # Just create a draft run — we don't need to complete it for PDF
         run = run_setup.create_draft(rxn, u)
@@ -1030,23 +1419,25 @@ def test_group_default_created_via_first_lot_insert(app):
 
     with app.app_context():
         s = Substance(name="X", molecular_weight=100.0)
-        db.session.add(s); db.session.flush()
+        db.session.add(s)
+        db.session.flush()
 
         # Before: no Default group exists
         assert db.session.query(Group).filter(Group.slug == "default").count() == 0
 
         # Insert lot WITHOUT explicit group_id
         lot = InventoryItem(
-            substance_id=s.id, batch_code="L1",
-            quantity_g=10, initial_quantity_g=10, is_active=True,
+            substance_id=s.id,
+            batch_code="L1",
+            quantity_g=10,
+            initial_quantity_g=10,
+            is_active=True,
         )
         db.session.add(lot)
         db.session.commit()
 
         # After: Default group exists, lot points to it
-        default_g = (db.session.query(Group)
-                     .filter(Group.slug == "default")
-                     .one_or_none())
+        default_g = db.session.query(Group).filter(Group.slug == "default").one_or_none()
         assert default_g is not None
         assert default_g.is_default is True
 
@@ -1063,21 +1454,34 @@ def test_inventory_cost_per_mole(app):
         # Solid: MW=100, 5g, €100 → 100€/0.05mol = 2000€/mol
         solid = Substance(name="Solid", molecular_weight=100.0, state="solid")
         # Liquid: MW=80, density=0.8, 100mL → 80g → 1mol; €100 → 100€/mol
-        liquid = Substance(name="Liquid", molecular_weight=80.0,
-                           density=0.8, state="liquid")
+        liquid = Substance(name="Liquid", molecular_weight=80.0, density=0.8, state="liquid")
         no_mw = Substance(name="NoMW", state="solid")
-        db.session.add_all([solid, liquid, no_mw]); db.session.flush()
+        db.session.add_all([solid, liquid, no_mw])
+        db.session.flush()
 
-        l1 = InventoryItem(substance_id=solid.id, quantity_g=5.0,
-                           initial_quantity_g=5.0, total_cost_eur=100.0,
-                           is_active=True)
-        l2 = InventoryItem(substance_id=liquid.id, quantity_mL=100.0,
-                           initial_quantity_mL=100.0, total_cost_eur=100.0,
-                           is_active=True)
-        l3 = InventoryItem(substance_id=no_mw.id, quantity_g=10.0,
-                           initial_quantity_g=10.0, total_cost_eur=50.0,
-                           is_active=True)
-        db.session.add_all([l1, l2, l3]); db.session.commit()
+        l1 = InventoryItem(
+            substance_id=solid.id,
+            quantity_g=5.0,
+            initial_quantity_g=5.0,
+            total_cost_eur=100.0,
+            is_active=True,
+        )
+        l2 = InventoryItem(
+            substance_id=liquid.id,
+            quantity_mL=100.0,
+            initial_quantity_mL=100.0,
+            total_cost_eur=100.0,
+            is_active=True,
+        )
+        l3 = InventoryItem(
+            substance_id=no_mw.id,
+            quantity_g=10.0,
+            initial_quantity_g=10.0,
+            total_cost_eur=50.0,
+            is_active=True,
+        )
+        db.session.add_all([l1, l2, l3])
+        db.session.commit()
 
         assert l1.cost_per_mole == 2000.0
         assert l2.cost_per_mole == 100.0
@@ -1092,21 +1496,33 @@ def test_inventory_status_helpers(app):
 
     with app.app_context():
         s = Substance(name="X", molecular_weight=100.0)
-        db.session.add(s); db.session.flush()
+        db.session.add(s)
+        db.session.flush()
 
         today = date.today()
-        in_stock = InventoryItem(substance_id=s.id, quantity_g=5.0,
-                                 initial_quantity_g=5.0, is_active=True)
-        expiring = InventoryItem(substance_id=s.id, quantity_g=5.0,
-                                 initial_quantity_g=5.0, is_active=True,
-                                 expiry_date=today + timedelta(days=15))
-        expired = InventoryItem(substance_id=s.id, quantity_g=5.0,
-                                initial_quantity_g=5.0, is_active=True,
-                                expiry_date=today - timedelta(days=5))
-        empty = InventoryItem(substance_id=s.id, quantity_g=0.0,
-                              initial_quantity_g=10.0, is_active=True)
-        inactive = InventoryItem(substance_id=s.id, quantity_g=5.0,
-                                 initial_quantity_g=5.0, is_active=False)
+        in_stock = InventoryItem(
+            substance_id=s.id, quantity_g=5.0, initial_quantity_g=5.0, is_active=True
+        )
+        expiring = InventoryItem(
+            substance_id=s.id,
+            quantity_g=5.0,
+            initial_quantity_g=5.0,
+            is_active=True,
+            expiry_date=today + timedelta(days=15),
+        )
+        expired = InventoryItem(
+            substance_id=s.id,
+            quantity_g=5.0,
+            initial_quantity_g=5.0,
+            is_active=True,
+            expiry_date=today - timedelta(days=5),
+        )
+        empty = InventoryItem(
+            substance_id=s.id, quantity_g=0.0, initial_quantity_g=10.0, is_active=True
+        )
+        inactive = InventoryItem(
+            substance_id=s.id, quantity_g=5.0, initial_quantity_g=5.0, is_active=False
+        )
         db.session.add_all([in_stock, expiring, expired, empty, inactive])
         db.session.commit()
 
@@ -1124,24 +1540,42 @@ def test_inventory_list_filters_by_status(app, client):
     from stoic_eln.models import User, Substance, InventoryItem
 
     with app.app_context():
-        u = User(username="r", full_name="R", operator_code="RR",
-                 role="admin", is_admin=True, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.flush()
+        u = User(
+            username="r",
+            full_name="R",
+            operator_code="RR",
+            role="admin",
+            is_admin=True,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.flush()
         s = Substance(name="THF", molecular_weight=72.0, cas_number="109-99-9")
-        db.session.add(s); db.session.flush()
+        db.session.add(s)
+        db.session.flush()
 
         today = date.today()
-        in_stock_lot = InventoryItem(substance_id=s.id, batch_code="THF-NEW",
-                                     quantity_mL=1000, initial_quantity_mL=1000,
-                                     is_active=True)
-        expired_lot = InventoryItem(substance_id=s.id, batch_code="THF-OLD",
-                                    quantity_mL=500, initial_quantity_mL=500,
-                                    is_active=True,
-                                    expiry_date=today - timedelta(days=5))
-        db.session.add_all([in_stock_lot, expired_lot]); db.session.commit()
+        in_stock_lot = InventoryItem(
+            substance_id=s.id,
+            batch_code="THF-NEW",
+            quantity_mL=1000,
+            initial_quantity_mL=1000,
+            is_active=True,
+        )
+        expired_lot = InventoryItem(
+            substance_id=s.id,
+            batch_code="THF-OLD",
+            quantity_mL=500,
+            initial_quantity_mL=500,
+            is_active=True,
+            expiry_date=today - timedelta(days=5),
+        )
+        db.session.add_all([in_stock_lot, expired_lot])
+        db.session.commit()
 
-    client.post("/auth/login",
-                data={"username": "r", "password": "x", "submit": "x"})
+    client.post("/auth/login", data={"username": "r", "password": "x", "submit": "x"})
 
     # Default: shows both
     r = client.get("/inventory/")
@@ -1170,8 +1604,7 @@ def test_group_service_ensure_default(app):
         g2 = ensure_default_group()
         assert g2.id == g1.id  # idempotent
 
-        all_default = (db.session.query(Group)
-                       .filter(Group.slug == "default").count())
+        all_default = db.session.query(Group).filter(Group.slug == "default").count()
         assert all_default == 1
 
 
@@ -1185,24 +1618,33 @@ def test_substance_is_low_stock(app):
     from stoic_eln.models import Substance, InventoryItem
 
     with app.app_context():
-        s = Substance(name="X", molecular_weight=100.0,
-                      low_stock_threshold_g=5.0)
-        db.session.add(s); db.session.flush()
+        s = Substance(name="X", molecular_weight=100.0, low_stock_threshold_g=5.0)
+        db.session.add(s)
+        db.session.flush()
 
         # Two active lots: total 4g — under threshold of 5g
-        db.session.add_all([
-            InventoryItem(substance_id=s.id, quantity_g=2.0,
-                          initial_quantity_g=2.0, is_active=True),
-            InventoryItem(substance_id=s.id, quantity_g=2.0,
-                          initial_quantity_g=2.0, is_active=True),
-            # And one EXPIRED — should not count
-            InventoryItem(substance_id=s.id, quantity_g=10.0,
-                          initial_quantity_g=10.0, is_active=True,
-                          expiry_date=date.today() - timedelta(days=5)),
-            # And one INACTIVE — should not count
-            InventoryItem(substance_id=s.id, quantity_g=20.0,
-                          initial_quantity_g=20.0, is_active=False),
-        ])
+        db.session.add_all(
+            [
+                InventoryItem(
+                    substance_id=s.id, quantity_g=2.0, initial_quantity_g=2.0, is_active=True
+                ),
+                InventoryItem(
+                    substance_id=s.id, quantity_g=2.0, initial_quantity_g=2.0, is_active=True
+                ),
+                # And one EXPIRED — should not count
+                InventoryItem(
+                    substance_id=s.id,
+                    quantity_g=10.0,
+                    initial_quantity_g=10.0,
+                    is_active=True,
+                    expiry_date=date.today() - timedelta(days=5),
+                ),
+                # And one INACTIVE — should not count
+                InventoryItem(
+                    substance_id=s.id, quantity_g=20.0, initial_quantity_g=20.0, is_active=False
+                ),
+            ]
+        )
         db.session.commit()
 
         # Refresh from DB to be sure
@@ -1224,28 +1666,45 @@ def test_inventory_alerts_summary(app):
 
     with app.app_context():
         today = date.today()
-        s_low = Substance(name="LowSub", molecular_weight=100.0,
-                          low_stock_threshold_g=10.0)
-        s_normal = Substance(name="NormalSub", molecular_weight=100.0,
-                             low_stock_threshold_g=1.0)
-        db.session.add_all([s_low, s_normal]); db.session.flush()
+        s_low = Substance(name="LowSub", molecular_weight=100.0, low_stock_threshold_g=10.0)
+        s_normal = Substance(name="NormalSub", molecular_weight=100.0, low_stock_threshold_g=1.0)
+        db.session.add_all([s_low, s_normal])
+        db.session.flush()
 
         # LowSub: 5g total active < threshold 10g → low stock
-        db.session.add(InventoryItem(substance_id=s_low.id, quantity_g=5.0,
-                                     initial_quantity_g=5.0, is_active=True))
+        db.session.add(
+            InventoryItem(
+                substance_id=s_low.id, quantity_g=5.0, initial_quantity_g=5.0, is_active=True
+            )
+        )
         # NormalSub: 10g total > threshold 1g → not low
-        db.session.add(InventoryItem(substance_id=s_normal.id, quantity_g=10.0,
-                                     initial_quantity_g=10.0, is_active=True))
+        db.session.add(
+            InventoryItem(
+                substance_id=s_normal.id, quantity_g=10.0, initial_quantity_g=10.0, is_active=True
+            )
+        )
         # Expired lot
-        db.session.add(InventoryItem(substance_id=s_normal.id, batch_code="EXP",
-                                     quantity_g=2.0, initial_quantity_g=2.0,
-                                     is_active=True,
-                                     expiry_date=today - timedelta(days=10)))
+        db.session.add(
+            InventoryItem(
+                substance_id=s_normal.id,
+                batch_code="EXP",
+                quantity_g=2.0,
+                initial_quantity_g=2.0,
+                is_active=True,
+                expiry_date=today - timedelta(days=10),
+            )
+        )
         # Expiring soon lot
-        db.session.add(InventoryItem(substance_id=s_normal.id, batch_code="SOON",
-                                     quantity_g=3.0, initial_quantity_g=3.0,
-                                     is_active=True,
-                                     expiry_date=today + timedelta(days=15)))
+        db.session.add(
+            InventoryItem(
+                substance_id=s_normal.id,
+                batch_code="SOON",
+                quantity_g=3.0,
+                initial_quantity_g=3.0,
+                is_active=True,
+                expiry_date=today + timedelta(days=15),
+            )
+        )
         db.session.commit()
 
         summary = get_summary()
@@ -1265,25 +1724,45 @@ def test_dashboard_renders_with_alerts(app, client):
     from stoic_eln.models import User, Substance, InventoryItem
 
     with app.app_context():
-        u = User(username="r", full_name="R", operator_code="RR",
-                 role="admin", is_admin=True, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.flush()
-        s = Substance(name="Pd(OAc)2", molecular_weight=224.51,
-                      low_stock_threshold_g=5.0)
-        db.session.add(s); db.session.flush()
+        u = User(
+            username="r",
+            full_name="R",
+            operator_code="RR",
+            role="admin",
+            is_admin=True,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.flush()
+        s = Substance(name="Pd(OAc)2", molecular_weight=224.51, low_stock_threshold_g=5.0)
+        db.session.add(s)
+        db.session.flush()
         # Make it low stock (1g vs 5g threshold)
-        db.session.add(InventoryItem(substance_id=s.id, batch_code="L1",
-                                     quantity_g=1.0, initial_quantity_g=5.0,
-                                     is_active=True))
+        db.session.add(
+            InventoryItem(
+                substance_id=s.id,
+                batch_code="L1",
+                quantity_g=1.0,
+                initial_quantity_g=5.0,
+                is_active=True,
+            )
+        )
         # And one expired
-        db.session.add(InventoryItem(substance_id=s.id, batch_code="OLD",
-                                     quantity_g=10.0, initial_quantity_g=10.0,
-                                     is_active=True,
-                                     expiry_date=date.today() - timedelta(days=3)))
+        db.session.add(
+            InventoryItem(
+                substance_id=s.id,
+                batch_code="OLD",
+                quantity_g=10.0,
+                initial_quantity_g=10.0,
+                is_active=True,
+                expiry_date=date.today() - timedelta(days=3),
+            )
+        )
         db.session.commit()
 
-    client.post("/auth/login",
-                data={"username": "r", "password": "x", "submit": "x"})
+    client.post("/auth/login", data={"username": "r", "password": "x", "submit": "x"})
 
     r = client.get("/dashboard")
     assert r.status_code == 200
@@ -1300,19 +1779,29 @@ def test_update_low_stock_route(app, client):
     from stoic_eln.models import User, Substance
 
     with app.app_context():
-        u = User(username="r", full_name="R", operator_code="RR",
-                 role="admin", is_admin=True, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.flush()
+        u = User(
+            username="r",
+            full_name="R",
+            operator_code="RR",
+            role="admin",
+            is_admin=True,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.flush()
         s = Substance(name="X", molecular_weight=100.0)
-        db.session.add(s); db.session.commit()
+        db.session.add(s)
+        db.session.commit()
         sid = s.id
 
-    client.post("/auth/login",
-                data={"username": "r", "password": "x", "submit": "x"})
+    client.post("/auth/login", data={"username": "r", "password": "x", "submit": "x"})
 
-    r = client.post(f"/substances/{sid}/low_stock",
-                    data={"low_stock_threshold_g": "2.5",
-                          "low_stock_threshold_mL": ""})
+    r = client.post(
+        f"/substances/{sid}/low_stock",
+        data={"low_stock_threshold_g": "2.5", "low_stock_threshold_mL": ""},
+    )
     assert r.status_code == 302
 
     with app.app_context():
@@ -1321,9 +1810,10 @@ def test_update_low_stock_route(app, client):
         assert s_after.low_stock_threshold_mL is None
 
     # Clear thresholds
-    r = client.post(f"/substances/{sid}/low_stock",
-                    data={"low_stock_threshold_g": "",
-                          "low_stock_threshold_mL": ""})
+    r = client.post(
+        f"/substances/{sid}/low_stock",
+        data={"low_stock_threshold_g": "", "low_stock_threshold_mL": ""},
+    )
     with app.app_context():
         s_after = db.session.get(Substance, sid)
         assert s_after.low_stock_threshold_g is None
@@ -1339,22 +1829,35 @@ def test_order_create_planned(app, client):
     from stoic_eln.models import User, Substance, Order
 
     with app.app_context():
-        u = User(username="r", full_name="R", operator_code="RR",
-                 role="admin", is_admin=True, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.flush()
+        u = User(
+            username="r",
+            full_name="R",
+            operator_code="RR",
+            role="admin",
+            is_admin=True,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.flush()
         s = Substance(name="Pd(OAc)2", molecular_weight=224.51)
-        db.session.add(s); db.session.commit()
+        db.session.add(s)
+        db.session.commit()
         sid = s.id
 
-    client.post("/auth/login", data={"username":"r","password":"x","submit":"x"})
+    client.post("/auth/login", data={"username": "r", "password": "x", "submit": "x"})
 
-    r = client.post("/orders/new", data={
-        "csrf_token": "",
-        "substance_id": str(sid),
-        "supplier": "Sigma-Aldrich",
-        "ordered_quantity_g": "5.0",
-        "ordered_total_eur": "380.00",
-    })
+    r = client.post(
+        "/orders/new",
+        data={
+            "csrf_token": "",
+            "substance_id": str(sid),
+            "supplier": "Sigma-Aldrich",
+            "ordered_quantity_g": "5.0",
+            "ordered_total_eur": "380.00",
+        },
+    )
     assert r.status_code == 302
 
     with app.app_context():
@@ -1373,36 +1876,58 @@ def test_order_full_lifecycle(app, client):
     from stoic_eln.models import User, Substance, Order, InventoryItem
 
     with app.app_context():
-        u = User(username="r", full_name="R", operator_code="RR",
-                 role="admin", is_admin=True, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.flush()
+        u = User(
+            username="r",
+            full_name="R",
+            operator_code="RR",
+            role="admin",
+            is_admin=True,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.flush()
         s = Substance(name="X", molecular_weight=100.0)
-        db.session.add(s); db.session.commit()
+        db.session.add(s)
+        db.session.commit()
         sid = s.id
 
-    client.post("/auth/login", data={"username":"r","password":"x","submit":"x"})
+    client.post("/auth/login", data={"username": "r", "password": "x", "submit": "x"})
 
     # 1. Plan
-    client.post("/orders/new", data={
-        "csrf_token": "", "substance_id": str(sid),
-        "ordered_quantity_g": "10",
-    })
+    client.post(
+        "/orders/new",
+        data={
+            "csrf_token": "",
+            "substance_id": str(sid),
+            "ordered_quantity_g": "10",
+        },
+    )
     with app.app_context():
         oid = db.session.query(Order).first().id
 
     # 2. Mark as ordered
-    client.post(f"/orders/{oid}/mark_ordered", data={
-        "csrf_token": "", "ordered_at": date.today().isoformat(),
-    })
+    client.post(
+        f"/orders/{oid}/mark_ordered",
+        data={
+            "csrf_token": "",
+            "ordered_at": date.today().isoformat(),
+        },
+    )
     with app.app_context():
         assert db.session.get(Order, oid).status == "ordered"
 
     # 3. Receive
-    client.post(f"/orders/{oid}/receive", data={
-        "csrf_token": "", "received_quantity_g": "10",
-        "received_at": date.today().isoformat(),
-        "batch_code": "TEST-A",
-    })
+    client.post(
+        f"/orders/{oid}/receive",
+        data={
+            "csrf_token": "",
+            "received_quantity_g": "10",
+            "received_at": date.today().isoformat(),
+            "batch_code": "TEST-A",
+        },
+    )
     with app.app_context():
         o = db.session.get(Order, oid)
         assert o.status == "received"
@@ -1419,26 +1944,44 @@ def test_order_partial_receipt(app, client):
     from stoic_eln.models import User, Substance, Order
 
     with app.app_context():
-        u = User(username="r", full_name="R", operator_code="RR",
-                 role="admin", is_admin=True, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.flush()
+        u = User(
+            username="r",
+            full_name="R",
+            operator_code="RR",
+            role="admin",
+            is_admin=True,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.flush()
         s = Substance(name="X", molecular_weight=100.0)
-        db.session.add(s); db.session.commit()
+        db.session.add(s)
+        db.session.commit()
         sid = s.id
 
-    client.post("/auth/login", data={"username":"r","password":"x","submit":"x"})
-    client.post("/orders/new", data={
-        "csrf_token": "", "substance_id": str(sid),
-        "ordered_quantity_g": "10",
-    })
+    client.post("/auth/login", data={"username": "r", "password": "x", "submit": "x"})
+    client.post(
+        "/orders/new",
+        data={
+            "csrf_token": "",
+            "substance_id": str(sid),
+            "ordered_quantity_g": "10",
+        },
+    )
     with app.app_context():
         oid = db.session.query(Order).first().id
 
     # Receive only 7g
-    client.post(f"/orders/{oid}/receive", data={
-        "csrf_token": "", "received_quantity_g": "7",
-        "partial_reason": "Esauriti, spedito solo 7g",
-    })
+    client.post(
+        f"/orders/{oid}/receive",
+        data={
+            "csrf_token": "",
+            "received_quantity_g": "7",
+            "partial_reason": "Esauriti, spedito solo 7g",
+        },
+    )
     with app.app_context():
         o = db.session.get(Order, oid)
         assert o.status == "received_partial"
@@ -1452,24 +1995,42 @@ def test_order_cancel(app, client):
     from stoic_eln.models import User, Substance, Order
 
     with app.app_context():
-        u = User(username="r", full_name="R", operator_code="RR",
-                 role="admin", is_admin=True, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.flush()
+        u = User(
+            username="r",
+            full_name="R",
+            operator_code="RR",
+            role="admin",
+            is_admin=True,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.flush()
         s = Substance(name="X", molecular_weight=100.0)
-        db.session.add(s); db.session.commit()
+        db.session.add(s)
+        db.session.commit()
         sid = s.id
 
-    client.post("/auth/login", data={"username":"r","password":"x","submit":"x"})
-    client.post("/orders/new", data={
-        "csrf_token": "", "substance_id": str(sid),
-        "ordered_quantity_g": "5",
-    })
+    client.post("/auth/login", data={"username": "r", "password": "x", "submit": "x"})
+    client.post(
+        "/orders/new",
+        data={
+            "csrf_token": "",
+            "substance_id": str(sid),
+            "ordered_quantity_g": "5",
+        },
+    )
     with app.app_context():
         oid = db.session.query(Order).first().id
 
-    client.post(f"/orders/{oid}/cancel", data={
-        "csrf_token": "", "reason": "Cambio fornitore",
-    })
+    client.post(
+        f"/orders/{oid}/cancel",
+        data={
+            "csrf_token": "",
+            "reason": "Cambio fornitore",
+        },
+    )
     with app.app_context():
         o = db.session.get(Order, oid)
         assert o.status == "cancelled"
@@ -1482,25 +2043,43 @@ def test_order_cannot_receive_twice(app, client):
     from stoic_eln.models import User, Substance, Order, InventoryItem
 
     with app.app_context():
-        u = User(username="r", full_name="R", operator_code="RR",
-                 role="admin", is_admin=True, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.flush()
+        u = User(
+            username="r",
+            full_name="R",
+            operator_code="RR",
+            role="admin",
+            is_admin=True,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.flush()
         s = Substance(name="X", molecular_weight=100.0)
-        db.session.add(s); db.session.commit()
+        db.session.add(s)
+        db.session.commit()
         sid = s.id
 
-    client.post("/auth/login", data={"username":"r","password":"x","submit":"x"})
-    client.post("/orders/new", data={
-        "csrf_token": "", "substance_id": str(sid),
-        "ordered_quantity_g": "3",
-    })
+    client.post("/auth/login", data={"username": "r", "password": "x", "submit": "x"})
+    client.post(
+        "/orders/new",
+        data={
+            "csrf_token": "",
+            "substance_id": str(sid),
+            "ordered_quantity_g": "3",
+        },
+    )
     with app.app_context():
         oid = db.session.query(Order).first().id
 
     # First receipt
-    client.post(f"/orders/{oid}/receive", data={
-        "csrf_token": "", "received_quantity_g": "3",
-    })
+    client.post(
+        f"/orders/{oid}/receive",
+        data={
+            "csrf_token": "",
+            "received_quantity_g": "3",
+        },
+    )
     # Lots count: 1
     with app.app_context():
         n_lots = db.session.query(InventoryItem).count()
@@ -1524,15 +2103,21 @@ def test_shopping_list_low_stock_quantity(app):
     from stoic_eln.services.shopping_list import build_shopping_list
 
     with app.app_context():
-        s = Substance(name="Pd(OAc)2", molecular_weight=224.51,
-                      low_stock_threshold_g=5.0)
-        db.session.add(s); db.session.flush()
+        s = Substance(name="Pd(OAc)2", molecular_weight=224.51, low_stock_threshold_g=5.0)
+        db.session.add(s)
+        db.session.flush()
         # 1g remaining of 5g threshold → low stock
-        db.session.add(InventoryItem(
-            substance_id=s.id, batch_code="A",
-            quantity_g=1.0, initial_quantity_g=5.0,
-            total_cost_eur=380.0, supplier="Sigma",
-            is_active=True))
+        db.session.add(
+            InventoryItem(
+                substance_id=s.id,
+                batch_code="A",
+                quantity_g=1.0,
+                initial_quantity_g=5.0,
+                total_cost_eur=380.0,
+                supplier="Sigma",
+                is_active=True,
+            )
+        )
         db.session.commit()
 
         suggestions = build_shopping_list()
@@ -1553,15 +2138,21 @@ def test_shopping_list_empty_substance(app):
     from stoic_eln.services.shopping_list import build_shopping_list
 
     with app.app_context():
-        s = Substance(name="AlCl3", molecular_weight=133.34,
-                      low_stock_threshold_g=20.0)
-        db.session.add(s); db.session.flush()
+        s = Substance(name="AlCl3", molecular_weight=133.34, low_stock_threshold_g=20.0)
+        db.session.add(s)
+        db.session.flush()
         # Empty lot — was 100g, now 0g
-        db.session.add(InventoryItem(
-            substance_id=s.id, batch_code="OLD",
-            quantity_g=0.0, initial_quantity_g=100.0,
-            total_cost_eur=42.0, supplier="Acros",
-            is_active=True))
+        db.session.add(
+            InventoryItem(
+                substance_id=s.id,
+                batch_code="OLD",
+                quantity_g=0.0,
+                initial_quantity_g=100.0,
+                total_cost_eur=42.0,
+                supplier="Acros",
+                is_active=True,
+            )
+        )
         db.session.commit()
 
         suggestions = build_shopping_list()
@@ -1578,16 +2169,19 @@ def test_shopping_list_skips_when_open_order(app):
 
     with app.app_context():
         g = Group(slug="default", name="Default", is_default=True, is_active=True)
-        db.session.add(g); db.session.flush()
+        db.session.add(g)
+        db.session.flush()
 
-        s = Substance(name="X", molecular_weight=100.0,
-                      low_stock_threshold_g=5.0)
-        db.session.add(s); db.session.flush()
-        db.session.add(InventoryItem(substance_id=s.id, quantity_g=1.0,
-                                     initial_quantity_g=5.0, is_active=True))
+        s = Substance(name="X", molecular_weight=100.0, low_stock_threshold_g=5.0)
+        db.session.add(s)
+        db.session.flush()
+        db.session.add(
+            InventoryItem(substance_id=s.id, quantity_g=1.0, initial_quantity_g=5.0, is_active=True)
+        )
         # An existing planned order
-        db.session.add(Order(substance_id=s.id, group_id=g.id,
-                             ordered_quantity_g=7.5, status="planned"))
+        db.session.add(
+            Order(substance_id=s.id, group_id=g.id, ordered_quantity_g=7.5, status="planned")
+        )
         db.session.commit()
 
         # Default: empty list (substance has open order → suppressed)
@@ -1605,15 +2199,18 @@ def test_shopping_list_flags_disable_categories(app):
     from stoic_eln.extensions import db
     from stoic_eln.models import Substance, InventoryItem
     from stoic_eln.services.shopping_list import (
-        build_shopping_list, set_flags, get_flags,
+        build_shopping_list,
+        set_flags,
+        get_flags,
     )
 
     with app.app_context():
-        s = Substance(name="X", molecular_weight=100.0,
-                      low_stock_threshold_g=5.0)
-        db.session.add(s); db.session.flush()
-        db.session.add(InventoryItem(substance_id=s.id, quantity_g=1.0,
-                                     initial_quantity_g=5.0, is_active=True))
+        s = Substance(name="X", molecular_weight=100.0, low_stock_threshold_g=5.0)
+        db.session.add(s)
+        db.session.flush()
+        db.session.add(
+            InventoryItem(substance_id=s.id, quantity_g=1.0, initial_quantity_g=5.0, is_active=True)
+        )
         db.session.commit()
 
         # All on (default)
@@ -1621,8 +2218,7 @@ def test_shopping_list_flags_disable_categories(app):
         assert len(suggestions) == 1
 
         # All off
-        set_flags(include_low_stock=False, include_empty=False,
-                  include_expiring=False)
+        set_flags(include_low_stock=False, include_empty=False, include_expiring=False)
         suggestions = build_shopping_list()
         assert suggestions == []
 
@@ -1633,37 +2229,59 @@ def test_shopping_list_flags_disable_categories(app):
 def test_shopping_list_bulk_create(app, client):
     """POST to bulk-create orders from selected substances."""
     from stoic_eln.extensions import db
-    from stoic_eln.models import (User, Substance, InventoryItem, Order, Group)
+    from stoic_eln.models import User, Substance, InventoryItem, Order, Group
 
     with app.app_context():
         g = Group(slug="default", name="Default", is_default=True, is_active=True)
-        db.session.add(g); db.session.flush()
-        u = User(username="r", full_name="R", operator_code="RR",
-                 role="admin", is_admin=True, is_active=True, locale="it",
-                 default_group_id=g.id)
-        u.set_password("x"); db.session.add(u); db.session.flush()
-        s1 = Substance(name="Sub1", molecular_weight=100.0,
-                       low_stock_threshold_g=5.0)
-        s2 = Substance(name="Sub2", molecular_weight=100.0,
-                       low_stock_threshold_g=10.0)
-        db.session.add_all([s1, s2]); db.session.flush()
-        db.session.add_all([
-            InventoryItem(substance_id=s1.id, quantity_g=1.0,
-                          initial_quantity_g=5.0, total_cost_eur=50.0,
-                          is_active=True),
-            InventoryItem(substance_id=s2.id, quantity_g=2.0,
-                          initial_quantity_g=10.0, total_cost_eur=80.0,
-                          is_active=True),
-        ])
+        db.session.add(g)
+        db.session.flush()
+        u = User(
+            username="r",
+            full_name="R",
+            operator_code="RR",
+            role="admin",
+            is_admin=True,
+            is_active=True,
+            locale="it",
+            default_group_id=g.id,
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.flush()
+        s1 = Substance(name="Sub1", molecular_weight=100.0, low_stock_threshold_g=5.0)
+        s2 = Substance(name="Sub2", molecular_weight=100.0, low_stock_threshold_g=10.0)
+        db.session.add_all([s1, s2])
+        db.session.flush()
+        db.session.add_all(
+            [
+                InventoryItem(
+                    substance_id=s1.id,
+                    quantity_g=1.0,
+                    initial_quantity_g=5.0,
+                    total_cost_eur=50.0,
+                    is_active=True,
+                ),
+                InventoryItem(
+                    substance_id=s2.id,
+                    quantity_g=2.0,
+                    initial_quantity_g=10.0,
+                    total_cost_eur=80.0,
+                    is_active=True,
+                ),
+            ]
+        )
         db.session.commit()
         s1_id, s2_id = s1.id, s2.id
 
-    client.post("/auth/login", data={"username":"r","password":"x","submit":"x"})
+    client.post("/auth/login", data={"username": "r", "password": "x", "submit": "x"})
 
-    r = client.post("/orders/shopping_list/create_orders", data={
-        "csrf_token": "",
-        "substance_id": [str(s1_id), str(s2_id)],
-    })
+    r = client.post(
+        "/orders/shopping_list/create_orders",
+        data={
+            "csrf_token": "",
+            "substance_id": [str(s1_id), str(s2_id)],
+        },
+    )
     assert r.status_code == 302
 
     with app.app_context():
@@ -1682,22 +2300,33 @@ def test_order_form_prefill_from_query_string(app, client):
     from stoic_eln.models import User, Substance
 
     with app.app_context():
-        u = User(username="r", full_name="R", operator_code="RR",
-                 role="admin", is_admin=True, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.flush()
+        u = User(
+            username="r",
+            full_name="R",
+            operator_code="RR",
+            role="admin",
+            is_admin=True,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.flush()
         s = Substance(name="Pd(OAc)2", molecular_weight=224.51)
-        db.session.add(s); db.session.commit()
+        db.session.add(s)
+        db.session.commit()
         sid = s.id
 
-    client.post("/auth/login",
-                data={"username":"r","password":"x","submit":"x"})
+    client.post("/auth/login", data={"username": "r", "password": "x", "submit": "x"})
 
-    r = client.get(f"/orders/new"
-                   f"?substance_id={sid}"
-                   f"&ordered_quantity_g=7.5"
-                   f"&ordered_total_eur=570"
-                   f"&supplier=Sigma-Aldrich"
-                   f"&catalogue_number=379875-5G")
+    r = client.get(
+        f"/orders/new"
+        f"?substance_id={sid}"
+        f"&ordered_quantity_g=7.5"
+        f"&ordered_total_eur=570"
+        f"&supplier=Sigma-Aldrich"
+        f"&catalogue_number=379875-5G"
+    )
     assert r.status_code == 200
     text = r.data.decode()
     # Quantity, cost, supplier, catalogue should be in the form values
@@ -1711,37 +2340,55 @@ def test_shopping_list_excludes_planned_after_creation(app, client):
     """After creating planned orders from the shopping list, those
     substances are EXCLUDED from the next list."""
     from stoic_eln.extensions import db
-    from stoic_eln.models import (User, Substance, InventoryItem, Group)
+    from stoic_eln.models import User, Substance, InventoryItem, Group
     from stoic_eln.services.shopping_list import build_shopping_list
 
     with app.app_context():
         g = Group(slug="default", name="Default", is_default=True, is_active=True)
-        db.session.add(g); db.session.flush()
-        u = User(username="r", full_name="R", operator_code="RR",
-                 role="admin", is_admin=True, is_active=True, locale="it",
-                 default_group_id=g.id)
-        u.set_password("x"); db.session.add(u); db.session.flush()
-        s = Substance(name="Sub", molecular_weight=100.0,
-                      low_stock_threshold_g=5.0)
-        db.session.add(s); db.session.flush()
-        db.session.add(InventoryItem(substance_id=s.id, quantity_g=1.0,
-                                     initial_quantity_g=5.0,
-                                     total_cost_eur=50.0, is_active=True))
+        db.session.add(g)
+        db.session.flush()
+        u = User(
+            username="r",
+            full_name="R",
+            operator_code="RR",
+            role="admin",
+            is_admin=True,
+            is_active=True,
+            locale="it",
+            default_group_id=g.id,
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.flush()
+        s = Substance(name="Sub", molecular_weight=100.0, low_stock_threshold_g=5.0)
+        db.session.add(s)
+        db.session.flush()
+        db.session.add(
+            InventoryItem(
+                substance_id=s.id,
+                quantity_g=1.0,
+                initial_quantity_g=5.0,
+                total_cost_eur=50.0,
+                is_active=True,
+            )
+        )
         db.session.commit()
         sid = s.id
 
-    client.post("/auth/login",
-                data={"username":"r","password":"x","submit":"x"})
+    client.post("/auth/login", data={"username": "r", "password": "x", "submit": "x"})
 
     # Before: 1 suggestion
     with app.app_context():
         assert len(build_shopping_list()) == 1
 
     # Create an order from the shopping list
-    client.post("/orders/shopping_list/create_orders", data={
-        "csrf_token": "",
-        "substance_id": [str(sid)],
-    })
+    client.post(
+        "/orders/shopping_list/create_orders",
+        data={
+            "csrf_token": "",
+            "substance_id": [str(sid)],
+        },
+    )
 
     # After: 0 suggestions (the substance has an open planned order)
     with app.app_context():
@@ -1754,48 +2401,83 @@ def test_shopping_list_excludes_planned_after_creation(app, client):
 def test_run_cost_basic_calculation(app):
     """Cost = sum of (actual_qty × lot.cost_per_unit) for all consumed lines."""
     from stoic_eln.extensions import db
-    from stoic_eln.models import (User, Substance, Reaction, ReactionComponent,
-                                   InventoryItem)
+    from stoic_eln.models import User, Substance, Reaction, ReactionComponent, InventoryItem
     from stoic_eln.services import run_setup
     from stoic_eln.services.run_cost import compute_run_cost
 
     with app.app_context():
-        u = User(username="r", full_name="R", operator_code="RR",
-                 role="admin", is_admin=True, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.flush()
+        u = User(
+            username="r",
+            full_name="R",
+            operator_code="RR",
+            role="admin",
+            is_admin=True,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.flush()
         sm = Substance(name="SM", molecular_weight=100.0, state="solid")
         prod = Substance(name="P", molecular_weight=200.0, state="solid")
-        db.session.add_all([sm, prod]); db.session.flush()
+        db.session.add_all([sm, prod])
+        db.session.flush()
         # Lot: 100€ / 10g → 10 €/g
-        lot = InventoryItem(substance_id=sm.id, batch_code="L1",
-                            quantity_g=10.0, initial_quantity_g=10.0,
-                            total_cost_eur=100.0, is_active=True)
-        db.session.add(lot); db.session.flush()
-        rxn = Reaction(code="RX", template_code="T.1", template_code_base="T",
-                       version_number=1, status="published", title="T")
-        db.session.add(rxn); db.session.flush()
-        db.session.add_all([
-            ReactionComponent(reaction_id=rxn.id, substance_id=sm.id,
-                              role="starting_material", position=0,
-                              is_limiting=True, equivalents=1.0),
-            ReactionComponent(reaction_id=rxn.id, substance_id=prod.id,
-                              role="product", position=1),
-        ])
+        lot = InventoryItem(
+            substance_id=sm.id,
+            batch_code="L1",
+            quantity_g=10.0,
+            initial_quantity_g=10.0,
+            total_cost_eur=100.0,
+            is_active=True,
+        )
+        db.session.add(lot)
+        db.session.flush()
+        rxn = Reaction(
+            code="RX",
+            template_code="T.1",
+            template_code_base="T",
+            version_number=1,
+            status="published",
+            title="T",
+        )
+        db.session.add(rxn)
+        db.session.flush()
+        db.session.add_all(
+            [
+                ReactionComponent(
+                    reaction_id=rxn.id,
+                    substance_id=sm.id,
+                    role="starting_material",
+                    position=0,
+                    is_limiting=True,
+                    equivalents=1.0,
+                ),
+                ReactionComponent(
+                    reaction_id=rxn.id, substance_id=prod.id, role="product", position=1
+                ),
+            ]
+        )
         db.session.commit()
 
         run = run_setup.create_draft(rxn, u)
-        run.scale_input_value = 5.0; run.scale_input_unit = "mmol"; run.scale_mmol = 5.0
+        run.scale_input_value = 5.0
+        run.scale_input_unit = "mmol"
+        run.scale_mmol = 5.0
         db.session.commit()
-        run_setup.recompute_targets(run); db.session.commit()
+        run_setup.recompute_targets(run)
+        db.session.commit()
 
         cs = {c.role: c for c in run.components}
         cs["starting_material"].inventory_item_id = lot.id
         cs["starting_material"].actual_mass_g = 0.500  # 500mg consumed
         db.session.commit()
-        run_setup.start_run(run); db.session.commit()
+        run_setup.start_run(run)
+        db.session.commit()
         cs["product"].actual_mass_g = 0.300
         db.session.commit()
-        run_setup.complete_run(run); db.session.commit()
+        run_setup.complete_run(run)
+        db.session.commit()
 
         bd = compute_run_cost(run)
         # 0.500 g × 10 €/g = 5.00 €
@@ -1808,35 +2490,66 @@ def test_run_cost_basic_calculation(app):
 def test_run_cost_excludes_products(app):
     """Products and byproducts must not appear in the cost breakdown."""
     from stoic_eln.extensions import db
-    from stoic_eln.models import (User, Substance, Reaction, ReactionComponent,
-                                   InventoryItem)
+    from stoic_eln.models import User, Substance, Reaction, ReactionComponent, InventoryItem
     from stoic_eln.services import run_setup
     from stoic_eln.services.run_cost import compute_run_cost
 
     with app.app_context():
-        u = User(username="r", full_name="R", operator_code="RR",
-                 role="admin", is_admin=True, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.flush()
+        u = User(
+            username="r",
+            full_name="R",
+            operator_code="RR",
+            role="admin",
+            is_admin=True,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.flush()
         sm = Substance(name="SM", molecular_weight=100.0)
         prod = Substance(name="P", molecular_weight=150.0)
         bp = Substance(name="BP", molecular_weight=80.0)
-        db.session.add_all([sm, prod, bp]); db.session.flush()
-        db.session.add(InventoryItem(substance_id=sm.id, quantity_g=10,
-                                     initial_quantity_g=10, total_cost_eur=100,
-                                     is_active=True))
+        db.session.add_all([sm, prod, bp])
         db.session.flush()
-        rxn = Reaction(code="RX", template_code="T.1", template_code_base="T",
-                       version_number=1, status="published", title="T")
-        db.session.add(rxn); db.session.flush()
-        db.session.add_all([
-            ReactionComponent(reaction_id=rxn.id, substance_id=sm.id,
-                              role="starting_material", position=0,
-                              is_limiting=True, equivalents=1.0),
-            ReactionComponent(reaction_id=rxn.id, substance_id=prod.id,
-                              role="product", position=1),
-            ReactionComponent(reaction_id=rxn.id, substance_id=bp.id,
-                              role="byproduct", position=2),
-        ])
+        db.session.add(
+            InventoryItem(
+                substance_id=sm.id,
+                quantity_g=10,
+                initial_quantity_g=10,
+                total_cost_eur=100,
+                is_active=True,
+            )
+        )
+        db.session.flush()
+        rxn = Reaction(
+            code="RX",
+            template_code="T.1",
+            template_code_base="T",
+            version_number=1,
+            status="published",
+            title="T",
+        )
+        db.session.add(rxn)
+        db.session.flush()
+        db.session.add_all(
+            [
+                ReactionComponent(
+                    reaction_id=rxn.id,
+                    substance_id=sm.id,
+                    role="starting_material",
+                    position=0,
+                    is_limiting=True,
+                    equivalents=1.0,
+                ),
+                ReactionComponent(
+                    reaction_id=rxn.id, substance_id=prod.id, role="product", position=1
+                ),
+                ReactionComponent(
+                    reaction_id=rxn.id, substance_id=bp.id, role="byproduct", position=2
+                ),
+            ]
+        )
         db.session.commit()
         run = run_setup.create_draft(rxn, u)
         db.session.commit()
@@ -1851,52 +2564,103 @@ def test_run_cost_excludes_products(app):
 def test_run_cost_handles_missing_data(app):
     """Lines without lot or without cost data: cost_eur=None, incomplete_count++."""
     from stoic_eln.extensions import db
-    from stoic_eln.models import (User, Substance, Reaction, ReactionComponent,
-                                   InventoryItem)
+    from stoic_eln.models import User, Substance, Reaction, ReactionComponent, InventoryItem
     from stoic_eln.services import run_setup
     from stoic_eln.services.run_cost import compute_run_cost
 
     with app.app_context():
-        u = User(username="r", full_name="R", operator_code="RR",
-                 role="admin", is_admin=True, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.flush()
+        u = User(
+            username="r",
+            full_name="R",
+            operator_code="RR",
+            role="admin",
+            is_admin=True,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.flush()
         sm = Substance(name="SM", molecular_weight=100.0)
         priced = Substance(name="P_priced", molecular_weight=200.0)
         unpriced = Substance(name="P_unpriced", molecular_weight=150.0)
         nolot = Substance(name="P_nolot", molecular_weight=80.0)
         prod = Substance(name="Prod", molecular_weight=300.0)
-        db.session.add_all([sm, priced, unpriced, nolot, prod]); db.session.flush()
+        db.session.add_all([sm, priced, unpriced, nolot, prod])
+        db.session.flush()
         # Lot WITH price
-        lot1 = InventoryItem(substance_id=priced.id, quantity_g=10,
-                             initial_quantity_g=10, total_cost_eur=50,
-                             is_active=True)
+        lot1 = InventoryItem(
+            substance_id=priced.id,
+            quantity_g=10,
+            initial_quantity_g=10,
+            total_cost_eur=50,
+            is_active=True,
+        )
         # Lot WITHOUT price (total_cost_eur=None)
-        lot2 = InventoryItem(substance_id=unpriced.id, quantity_g=10,
-                             initial_quantity_g=10, total_cost_eur=None,
-                             is_active=True)
-        db.session.add_all([lot1, lot2]); db.session.flush()
+        lot2 = InventoryItem(
+            substance_id=unpriced.id,
+            quantity_g=10,
+            initial_quantity_g=10,
+            total_cost_eur=None,
+            is_active=True,
+        )
+        db.session.add_all([lot1, lot2])
+        db.session.flush()
 
-        rxn = Reaction(code="RX", template_code="T.1", template_code_base="T",
-                       version_number=1, status="published", title="T")
-        db.session.add(rxn); db.session.flush()
-        db.session.add_all([
-            ReactionComponent(reaction_id=rxn.id, substance_id=sm.id,
-                              role="starting_material", position=0,
-                              is_limiting=True, equivalents=1.0),
-            ReactionComponent(reaction_id=rxn.id, substance_id=priced.id,
-                              role="reactant", position=1, equivalents=1.0),
-            ReactionComponent(reaction_id=rxn.id, substance_id=unpriced.id,
-                              role="reactant", position=2, equivalents=1.0),
-            ReactionComponent(reaction_id=rxn.id, substance_id=nolot.id,
-                              role="reactant", position=3, equivalents=1.0),
-            ReactionComponent(reaction_id=rxn.id, substance_id=prod.id,
-                              role="product", position=4),
-        ])
+        rxn = Reaction(
+            code="RX",
+            template_code="T.1",
+            template_code_base="T",
+            version_number=1,
+            status="published",
+            title="T",
+        )
+        db.session.add(rxn)
+        db.session.flush()
+        db.session.add_all(
+            [
+                ReactionComponent(
+                    reaction_id=rxn.id,
+                    substance_id=sm.id,
+                    role="starting_material",
+                    position=0,
+                    is_limiting=True,
+                    equivalents=1.0,
+                ),
+                ReactionComponent(
+                    reaction_id=rxn.id,
+                    substance_id=priced.id,
+                    role="reactant",
+                    position=1,
+                    equivalents=1.0,
+                ),
+                ReactionComponent(
+                    reaction_id=rxn.id,
+                    substance_id=unpriced.id,
+                    role="reactant",
+                    position=2,
+                    equivalents=1.0,
+                ),
+                ReactionComponent(
+                    reaction_id=rxn.id,
+                    substance_id=nolot.id,
+                    role="reactant",
+                    position=3,
+                    equivalents=1.0,
+                ),
+                ReactionComponent(
+                    reaction_id=rxn.id, substance_id=prod.id, role="product", position=4
+                ),
+            ]
+        )
         db.session.commit()
         run = run_setup.create_draft(rxn, u)
-        run.scale_input_value = 5.0; run.scale_input_unit = "mmol"; run.scale_mmol = 5.0
+        run.scale_input_value = 5.0
+        run.scale_input_unit = "mmol"
+        run.scale_mmol = 5.0
         db.session.commit()
-        run_setup.recompute_targets(run); db.session.commit()
+        run_setup.recompute_targets(run)
+        db.session.commit()
 
         cs = {(c.substance.name, c.role): c for c in run.components}
         cs[("SM", "starting_material")].actual_mass_g = 0.5
@@ -1932,52 +2696,101 @@ def test_run_cost_handles_missing_data(app):
 def test_run_cost_includes_step_components(app):
     """Workup/extraction components contribute to the run cost."""
     from stoic_eln.extensions import db
-    from stoic_eln.models import (User, Substance, Reaction, ReactionComponent,
-                                   ReactionStep, ReactionStepComponent,
-                                   InventoryItem)
+    from stoic_eln.models import (
+        User,
+        Substance,
+        Reaction,
+        ReactionComponent,
+        ReactionStep,
+        ReactionStepComponent,
+        InventoryItem,
+    )
     from stoic_eln.services import run_setup
     from stoic_eln.services.run_cost import compute_run_cost
 
     with app.app_context():
-        u = User(username="r", full_name="R", operator_code="RR",
-                 role="admin", is_admin=True, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.flush()
+        u = User(
+            username="r",
+            full_name="R",
+            operator_code="RR",
+            role="admin",
+            is_admin=True,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.flush()
         sm = Substance(name="SM", molecular_weight=100.0)
         prod = Substance(name="P", molecular_weight=200.0)
-        nh4cl = Substance(name="NH4Cl", molecular_weight=53.49,
-                          state="liquid", density=1.0)
-        db.session.add_all([sm, prod, nh4cl]); db.session.flush()
+        nh4cl = Substance(name="NH4Cl", molecular_weight=53.49, state="liquid", density=1.0)
+        db.session.add_all([sm, prod, nh4cl])
+        db.session.flush()
         # Lots: SM 10€/g, NH4Cl 0.10€/mL
-        lot_sm = InventoryItem(substance_id=sm.id, quantity_g=10,
-                               initial_quantity_g=10, total_cost_eur=100,
-                               is_active=True)
-        lot_nh = InventoryItem(substance_id=nh4cl.id, quantity_mL=1000,
-                               initial_quantity_mL=1000, total_cost_eur=100,
-                               is_active=True)
-        db.session.add_all([lot_sm, lot_nh]); db.session.flush()
+        lot_sm = InventoryItem(
+            substance_id=sm.id,
+            quantity_g=10,
+            initial_quantity_g=10,
+            total_cost_eur=100,
+            is_active=True,
+        )
+        lot_nh = InventoryItem(
+            substance_id=nh4cl.id,
+            quantity_mL=1000,
+            initial_quantity_mL=1000,
+            total_cost_eur=100,
+            is_active=True,
+        )
+        db.session.add_all([lot_sm, lot_nh])
+        db.session.flush()
 
-        rxn = Reaction(code="RX", template_code="T.1", template_code_base="T",
-                       version_number=1, status="published", title="T")
-        db.session.add(rxn); db.session.flush()
-        db.session.add_all([
-            ReactionComponent(reaction_id=rxn.id, substance_id=sm.id,
-                              role="starting_material", position=0,
-                              is_limiting=True, equivalents=1.0),
-            ReactionComponent(reaction_id=rxn.id, substance_id=prod.id,
-                              role="product", position=1),
-        ])
-        step = ReactionStep(reaction_id=rxn.id, kind="workup",
-                            title="Workup", position=0)
-        db.session.add(step); db.session.flush()
-        db.session.add(ReactionStepComponent(
-            step_id=step.id, substance_id=nh4cl.id, role="solvent",
-            ratio_value=5.0, ratio_kind="mL_per_mmol", position=0))
+        rxn = Reaction(
+            code="RX",
+            template_code="T.1",
+            template_code_base="T",
+            version_number=1,
+            status="published",
+            title="T",
+        )
+        db.session.add(rxn)
+        db.session.flush()
+        db.session.add_all(
+            [
+                ReactionComponent(
+                    reaction_id=rxn.id,
+                    substance_id=sm.id,
+                    role="starting_material",
+                    position=0,
+                    is_limiting=True,
+                    equivalents=1.0,
+                ),
+                ReactionComponent(
+                    reaction_id=rxn.id, substance_id=prod.id, role="product", position=1
+                ),
+            ]
+        )
+        step = ReactionStep(reaction_id=rxn.id, kind="workup", title="Workup", position=0)
+        db.session.add(step)
+        db.session.flush()
+        db.session.add(
+            ReactionStepComponent(
+                step_id=step.id,
+                substance_id=nh4cl.id,
+                role="solvent",
+                ratio_value=5.0,
+                ratio_kind="mL_per_mmol",
+                position=0,
+            )
+        )
         db.session.commit()
 
         run = run_setup.create_draft(rxn, u)
-        run.scale_input_value = 5.0; run.scale_input_unit = "mmol"; run.scale_mmol = 5.0
+        run.scale_input_value = 5.0
+        run.scale_input_unit = "mmol"
+        run.scale_mmol = 5.0
         db.session.commit()
-        run_setup.recompute_targets(run); db.session.commit()
+        run_setup.recompute_targets(run)
+        db.session.commit()
 
         cs = {c.role: c for c in run.components}
         cs["starting_material"].inventory_item_id = lot_sm.id
@@ -1998,45 +2811,79 @@ def test_run_cost_includes_step_components(app):
 def test_run_cost_per_mol_product(app):
     """cost_per_mol_product = total_cost / (yield_g / MW_product)."""
     from stoic_eln.extensions import db
-    from stoic_eln.models import (User, Substance, Reaction, ReactionComponent,
-                                   InventoryItem)
+    from stoic_eln.models import User, Substance, Reaction, ReactionComponent, InventoryItem
     from stoic_eln.services import run_setup
     from stoic_eln.services.run_cost import compute_run_cost, cost_per_mol_product
 
     with app.app_context():
-        u = User(username="r", full_name="R", operator_code="RR",
-                 role="admin", is_admin=True, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.flush()
+        u = User(
+            username="r",
+            full_name="R",
+            operator_code="RR",
+            role="admin",
+            is_admin=True,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.flush()
         sm = Substance(name="SM", molecular_weight=100.0)
         prod = Substance(name="P", molecular_weight=200.0)
-        db.session.add_all([sm, prod]); db.session.flush()
-        lot = InventoryItem(substance_id=sm.id, quantity_g=10,
-                            initial_quantity_g=10, total_cost_eur=100,
-                            is_active=True)
-        db.session.add(lot); db.session.flush()
-        rxn = Reaction(code="RX", template_code="T.1", template_code_base="T",
-                       version_number=1, status="published", title="T")
-        db.session.add(rxn); db.session.flush()
-        db.session.add_all([
-            ReactionComponent(reaction_id=rxn.id, substance_id=sm.id,
-                              role="starting_material", position=0,
-                              is_limiting=True, equivalents=1.0),
-            ReactionComponent(reaction_id=rxn.id, substance_id=prod.id,
-                              role="product", position=1),
-        ])
+        db.session.add_all([sm, prod])
+        db.session.flush()
+        lot = InventoryItem(
+            substance_id=sm.id,
+            quantity_g=10,
+            initial_quantity_g=10,
+            total_cost_eur=100,
+            is_active=True,
+        )
+        db.session.add(lot)
+        db.session.flush()
+        rxn = Reaction(
+            code="RX",
+            template_code="T.1",
+            template_code_base="T",
+            version_number=1,
+            status="published",
+            title="T",
+        )
+        db.session.add(rxn)
+        db.session.flush()
+        db.session.add_all(
+            [
+                ReactionComponent(
+                    reaction_id=rxn.id,
+                    substance_id=sm.id,
+                    role="starting_material",
+                    position=0,
+                    is_limiting=True,
+                    equivalents=1.0,
+                ),
+                ReactionComponent(
+                    reaction_id=rxn.id, substance_id=prod.id, role="product", position=1
+                ),
+            ]
+        )
         db.session.commit()
         run = run_setup.create_draft(rxn, u)
-        run.scale_input_value = 5.0; run.scale_input_unit = "mmol"; run.scale_mmol = 5.0
+        run.scale_input_value = 5.0
+        run.scale_input_unit = "mmol"
+        run.scale_mmol = 5.0
         db.session.commit()
-        run_setup.recompute_targets(run); db.session.commit()
+        run_setup.recompute_targets(run)
+        db.session.commit()
         cs = {c.role: c for c in run.components}
         cs["starting_material"].inventory_item_id = lot.id
         cs["starting_material"].actual_mass_g = 1.0  # 10€
         db.session.commit()
-        run_setup.start_run(run); db.session.commit()
+        run_setup.start_run(run)
+        db.session.commit()
         cs["product"].actual_mass_g = 0.4  # 0.002 mol of MW 200
         db.session.commit()
-        run_setup.complete_run(run); db.session.commit()
+        run_setup.complete_run(run)
+        db.session.commit()
 
         bd = compute_run_cost(run)
         cpm = cost_per_mol_product(run, bd)
@@ -2050,39 +2897,71 @@ def test_run_cost_per_mol_product(app):
 def test_run_cost_direct_vs_cumulative_no_intermediates(app):
     """When no internal lots are consumed, direct == cumulative."""
     from stoic_eln.extensions import db
-    from stoic_eln.models import (User, Substance, Reaction,
-                                   ReactionComponent, InventoryItem)
+    from stoic_eln.models import User, Substance, Reaction, ReactionComponent, InventoryItem
     from stoic_eln.services import run_setup
     from stoic_eln.services.run_cost import compute_run_cost
 
     with app.app_context():
-        u = User(username="r", full_name="R", operator_code="RR",
-                 role="admin", is_admin=True, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.flush()
+        u = User(
+            username="r",
+            full_name="R",
+            operator_code="RR",
+            role="admin",
+            is_admin=True,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.flush()
         sm = Substance(name="SM", molecular_weight=100.0)
         prod = Substance(name="P", molecular_weight=200.0)
-        db.session.add_all([sm, prod]); db.session.flush()
+        db.session.add_all([sm, prod])
+        db.session.flush()
         # Externally-purchased lot (source_run_id=None)
-        lot = InventoryItem(substance_id=sm.id, quantity_g=10,
-                            initial_quantity_g=10, total_cost_eur=100,
-                            is_active=True, source_run_id=None)
-        db.session.add(lot); db.session.flush()
-        rxn = Reaction(code="RX", template_code="T.1", template_code_base="T",
-                       version_number=1, status="published", title="T")
-        db.session.add(rxn); db.session.flush()
-        db.session.add_all([
-            ReactionComponent(reaction_id=rxn.id, substance_id=sm.id,
-                              role="starting_material", position=0,
-                              is_limiting=True, equivalents=1.0),
-            ReactionComponent(reaction_id=rxn.id, substance_id=prod.id,
-                              role="product", position=1),
-        ])
+        lot = InventoryItem(
+            substance_id=sm.id,
+            quantity_g=10,
+            initial_quantity_g=10,
+            total_cost_eur=100,
+            is_active=True,
+            source_run_id=None,
+        )
+        db.session.add(lot)
+        db.session.flush()
+        rxn = Reaction(
+            code="RX",
+            template_code="T.1",
+            template_code_base="T",
+            version_number=1,
+            status="published",
+            title="T",
+        )
+        db.session.add(rxn)
+        db.session.flush()
+        db.session.add_all(
+            [
+                ReactionComponent(
+                    reaction_id=rxn.id,
+                    substance_id=sm.id,
+                    role="starting_material",
+                    position=0,
+                    is_limiting=True,
+                    equivalents=1.0,
+                ),
+                ReactionComponent(
+                    reaction_id=rxn.id, substance_id=prod.id, role="product", position=1
+                ),
+            ]
+        )
         db.session.commit()
         run = run_setup.create_draft(rxn, u)
-        run.scale_input_value = 5.0; run.scale_input_unit = "mmol"
+        run.scale_input_value = 5.0
+        run.scale_input_unit = "mmol"
         run.scale_mmol = 5.0
         db.session.commit()
-        run_setup.recompute_targets(run); db.session.commit()
+        run_setup.recompute_targets(run)
+        db.session.commit()
         cs = {c.role: c for c in run.components}
         cs["starting_material"].inventory_item_id = lot.id
         cs["starting_material"].actual_mass_g = 0.5  # → €5
@@ -2099,49 +2978,81 @@ def test_run_cost_direct_vs_cumulative_no_intermediates(app):
 def test_complete_run_sets_cost_on_product_lot(app):
     """complete_run() must allocate cumulative cost to product lots."""
     from stoic_eln.extensions import db
-    from stoic_eln.models import (User, Substance, Reaction,
-                                   ReactionComponent, InventoryItem)
+    from stoic_eln.models import User, Substance, Reaction, ReactionComponent, InventoryItem
     from stoic_eln.services import run_setup
 
     with app.app_context():
-        u = User(username="r", full_name="R", operator_code="RR",
-                 role="admin", is_admin=True, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.flush()
+        u = User(
+            username="r",
+            full_name="R",
+            operator_code="RR",
+            role="admin",
+            is_admin=True,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.flush()
         sm = Substance(name="SM", molecular_weight=100.0)
         prod = Substance(name="P", molecular_weight=200.0)
-        db.session.add_all([sm, prod]); db.session.flush()
-        lot = InventoryItem(substance_id=sm.id, quantity_g=10,
-                            initial_quantity_g=10, total_cost_eur=100,
-                            is_active=True)
-        db.session.add(lot); db.session.flush()
-        rxn = Reaction(code="RX", template_code="T.1", template_code_base="T",
-                       version_number=1, status="published", title="T")
-        db.session.add(rxn); db.session.flush()
-        db.session.add_all([
-            ReactionComponent(reaction_id=rxn.id, substance_id=sm.id,
-                              role="starting_material", position=0,
-                              is_limiting=True, equivalents=1.0),
-            ReactionComponent(reaction_id=rxn.id, substance_id=prod.id,
-                              role="product", position=1),
-        ])
+        db.session.add_all([sm, prod])
+        db.session.flush()
+        lot = InventoryItem(
+            substance_id=sm.id,
+            quantity_g=10,
+            initial_quantity_g=10,
+            total_cost_eur=100,
+            is_active=True,
+        )
+        db.session.add(lot)
+        db.session.flush()
+        rxn = Reaction(
+            code="RX",
+            template_code="T.1",
+            template_code_base="T",
+            version_number=1,
+            status="published",
+            title="T",
+        )
+        db.session.add(rxn)
+        db.session.flush()
+        db.session.add_all(
+            [
+                ReactionComponent(
+                    reaction_id=rxn.id,
+                    substance_id=sm.id,
+                    role="starting_material",
+                    position=0,
+                    is_limiting=True,
+                    equivalents=1.0,
+                ),
+                ReactionComponent(
+                    reaction_id=rxn.id, substance_id=prod.id, role="product", position=1
+                ),
+            ]
+        )
         db.session.commit()
         run = run_setup.create_draft(rxn, u)
-        run.scale_input_value = 5.0; run.scale_input_unit = "mmol"
+        run.scale_input_value = 5.0
+        run.scale_input_unit = "mmol"
         run.scale_mmol = 5.0
         db.session.commit()
-        run_setup.recompute_targets(run); db.session.commit()
+        run_setup.recompute_targets(run)
+        db.session.commit()
         cs = {c.role: c for c in run.components}
         cs["starting_material"].inventory_item_id = lot.id
         cs["starting_material"].actual_mass_g = 1.0  # → €10 spent
         db.session.commit()
-        run_setup.start_run(run); db.session.commit()
+        run_setup.start_run(run)
+        db.session.commit()
         cs["product"].actual_mass_g = 0.6  # 600mg of product
         db.session.commit()
-        run_setup.complete_run(run); db.session.commit()
+        run_setup.complete_run(run)
+        db.session.commit()
 
         # The product lot must have total_cost_eur = €10 (the run's cost)
-        product_lots = (db.session.query(InventoryItem)
-                        .filter_by(substance_id=prod.id).all())
+        product_lots = db.session.query(InventoryItem).filter_by(substance_id=prod.id).all()
         assert len(product_lots) == 1
         p_lot = product_lots[0]
         assert p_lot.source_run_id == run.id
@@ -2156,104 +3067,165 @@ def test_two_step_synthesis_propagates_cost(app):
     cumulative cost we'd think the second run cost cents.
     """
     from stoic_eln.extensions import db
-    from stoic_eln.models import (User, Substance, Reaction,
-                                   ReactionComponent, InventoryItem)
+    from stoic_eln.models import User, Substance, Reaction, ReactionComponent, InventoryItem
     from stoic_eln.services import run_setup
     from stoic_eln.services.run_cost import compute_run_cost
 
     with app.app_context():
-        u = User(username="r", full_name="R", operator_code="RR",
-                 role="admin", is_admin=True, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.flush()
+        u = User(
+            username="r",
+            full_name="R",
+            operator_code="RR",
+            role="admin",
+            is_admin=True,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.flush()
 
         A = Substance(name="A", molecular_weight=100.0)
         B = Substance(name="B", molecular_weight=100.0)
         I_ = Substance(name="I", molecular_weight=200.0)
         C = Substance(name="C", molecular_weight=80.0)
         P = Substance(name="P", molecular_weight=300.0)
-        db.session.add_all([A, B, I_, C, P]); db.session.flush()
+        db.session.add_all([A, B, I_, C, P])
+        db.session.flush()
         # A and B at 100€/g (expensive); C at 1€/g (cheap)
-        db.session.add_all([
-            InventoryItem(substance_id=A.id, quantity_g=10,
-                          initial_quantity_g=10, total_cost_eur=1000,
-                          is_active=True),
-            InventoryItem(substance_id=B.id, quantity_g=10,
-                          initial_quantity_g=10, total_cost_eur=1000,
-                          is_active=True),
-            InventoryItem(substance_id=C.id, quantity_g=100,
-                          initial_quantity_g=100, total_cost_eur=100,
-                          is_active=True),
-        ])
+        db.session.add_all(
+            [
+                InventoryItem(
+                    substance_id=A.id,
+                    quantity_g=10,
+                    initial_quantity_g=10,
+                    total_cost_eur=1000,
+                    is_active=True,
+                ),
+                InventoryItem(
+                    substance_id=B.id,
+                    quantity_g=10,
+                    initial_quantity_g=10,
+                    total_cost_eur=1000,
+                    is_active=True,
+                ),
+                InventoryItem(
+                    substance_id=C.id,
+                    quantity_g=100,
+                    initial_quantity_g=100,
+                    total_cost_eur=100,
+                    is_active=True,
+                ),
+            ]
+        )
         db.session.flush()
 
         # Two reaction templates
-        rxn1 = Reaction(code="R1", template_code="S1.1",
-                        template_code_base="S1", version_number=1,
-                        status="published", title="A+B→I")
-        rxn2 = Reaction(code="R2", template_code="S2.1",
-                        template_code_base="S2", version_number=1,
-                        status="published", title="I+C→P")
-        db.session.add_all([rxn1, rxn2]); db.session.flush()
-        db.session.add_all([
-            ReactionComponent(reaction_id=rxn1.id, substance_id=A.id,
-                              role="starting_material", position=0,
-                              is_limiting=True, equivalents=1.0),
-            ReactionComponent(reaction_id=rxn1.id, substance_id=B.id,
-                              role="reactant", position=1, equivalents=1.0),
-            ReactionComponent(reaction_id=rxn1.id, substance_id=I_.id,
-                              role="product", position=2),
-            ReactionComponent(reaction_id=rxn2.id, substance_id=I_.id,
-                              role="starting_material", position=0,
-                              is_limiting=True, equivalents=1.0),
-            ReactionComponent(reaction_id=rxn2.id, substance_id=C.id,
-                              role="reactant", position=1, equivalents=1.0),
-            ReactionComponent(reaction_id=rxn2.id, substance_id=P.id,
-                              role="product", position=2),
-        ])
+        rxn1 = Reaction(
+            code="R1",
+            template_code="S1.1",
+            template_code_base="S1",
+            version_number=1,
+            status="published",
+            title="A+B→I",
+        )
+        rxn2 = Reaction(
+            code="R2",
+            template_code="S2.1",
+            template_code_base="S2",
+            version_number=1,
+            status="published",
+            title="I+C→P",
+        )
+        db.session.add_all([rxn1, rxn2])
+        db.session.flush()
+        db.session.add_all(
+            [
+                ReactionComponent(
+                    reaction_id=rxn1.id,
+                    substance_id=A.id,
+                    role="starting_material",
+                    position=0,
+                    is_limiting=True,
+                    equivalents=1.0,
+                ),
+                ReactionComponent(
+                    reaction_id=rxn1.id,
+                    substance_id=B.id,
+                    role="reactant",
+                    position=1,
+                    equivalents=1.0,
+                ),
+                ReactionComponent(
+                    reaction_id=rxn1.id, substance_id=I_.id, role="product", position=2
+                ),
+                ReactionComponent(
+                    reaction_id=rxn2.id,
+                    substance_id=I_.id,
+                    role="starting_material",
+                    position=0,
+                    is_limiting=True,
+                    equivalents=1.0,
+                ),
+                ReactionComponent(
+                    reaction_id=rxn2.id,
+                    substance_id=C.id,
+                    role="reactant",
+                    position=1,
+                    equivalents=1.0,
+                ),
+                ReactionComponent(
+                    reaction_id=rxn2.id, substance_id=P.id, role="product", position=2
+                ),
+            ]
+        )
         db.session.commit()
 
         # === RUN 1 ===
         run1 = run_setup.create_draft(rxn1, u)
-        run1.scale_input_value = 10.0; run1.scale_input_unit = "mmol"
+        run1.scale_input_value = 10.0
+        run1.scale_input_unit = "mmol"
         run1.scale_mmol = 10.0
         db.session.commit()
-        run_setup.recompute_targets(run1); db.session.commit()
-        lot_A = (db.session.query(InventoryItem)
-                 .filter_by(substance_id=A.id).one())
-        lot_B = (db.session.query(InventoryItem)
-                 .filter_by(substance_id=B.id).one())
+        run_setup.recompute_targets(run1)
+        db.session.commit()
+        lot_A = db.session.query(InventoryItem).filter_by(substance_id=A.id).one()
+        lot_B = db.session.query(InventoryItem).filter_by(substance_id=B.id).one()
         cs1 = {c.role: c for c in run1.components}
         cs1["starting_material"].inventory_item_id = lot_A.id
         cs1["starting_material"].actual_mass_g = 1.0
         cs1["reactant"].inventory_item_id = lot_B.id
         cs1["reactant"].actual_mass_g = 1.0
         db.session.commit()
-        run_setup.start_run(run1); db.session.commit()
+        run_setup.start_run(run1)
+        db.session.commit()
         cs1["product"].actual_mass_g = 1.5  # 1.5g of I
         db.session.commit()
-        run_setup.complete_run(run1); db.session.commit()
+        run_setup.complete_run(run1)
+        db.session.commit()
 
         # I lot now has cost €200 (run 1 cost), cost_per_g = €133.33
-        I_lot = (db.session.query(InventoryItem)
-                 .filter_by(substance_id=I_.id).one())
+        I_lot = db.session.query(InventoryItem).filter_by(substance_id=I_.id).one()
         assert abs(I_lot.total_cost_eur - 200.0) < 1e-3
         assert I_lot.source_run_id == run1.id
 
         # === RUN 2 ===
         run2 = run_setup.create_draft(rxn2, u)
-        run2.scale_input_value = 5.0; run2.scale_input_unit = "mmol"
+        run2.scale_input_value = 5.0
+        run2.scale_input_unit = "mmol"
         run2.scale_mmol = 5.0
         db.session.commit()
-        run_setup.recompute_targets(run2); db.session.commit()
-        lot_C = (db.session.query(InventoryItem)
-                 .filter_by(substance_id=C.id).one())
+        run_setup.recompute_targets(run2)
+        db.session.commit()
+        lot_C = db.session.query(InventoryItem).filter_by(substance_id=C.id).one()
         cs2 = {c.role: c for c in run2.components}
         cs2["starting_material"].inventory_item_id = I_lot.id  # internal!
         cs2["starting_material"].actual_mass_g = 1.0
         cs2["reactant"].inventory_item_id = lot_C.id
         cs2["reactant"].actual_mass_g = 0.4
         db.session.commit()
-        run_setup.start_run(run2); db.session.commit()
+        run_setup.start_run(run2)
+        db.session.commit()
 
         bd2 = compute_run_cost(run2)
         # Direct: only C → 0.4g × 1€/g = €0.40
@@ -2273,49 +3245,83 @@ def test_two_step_synthesis_propagates_cost(app):
 def test_run_cost_multi_unit_metrics_solid_product(app):
     """Solid product (no density): €/g and €/mol available, €/mL is None."""
     from stoic_eln.extensions import db
-    from stoic_eln.models import (User, Substance, Reaction,
-                                   ReactionComponent, InventoryItem)
+    from stoic_eln.models import User, Substance, Reaction, ReactionComponent, InventoryItem
     from stoic_eln.services import run_setup
     from stoic_eln.services.run_cost import (
-        compute_run_cost, product_unit_metrics,
+        compute_run_cost,
+        product_unit_metrics,
     )
 
     with app.app_context():
-        u = User(username="r", full_name="R", operator_code="RR",
-                 role="admin", is_admin=True, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.flush()
+        u = User(
+            username="r",
+            full_name="R",
+            operator_code="RR",
+            role="admin",
+            is_admin=True,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.flush()
         sm = Substance(name="SM", molecular_weight=100.0)
         # Product: solid, no density
         prod = Substance(name="P", molecular_weight=200.0)
-        db.session.add_all([sm, prod]); db.session.flush()
-        lot = InventoryItem(substance_id=sm.id, quantity_g=10,
-                            initial_quantity_g=10, total_cost_eur=100,
-                            is_active=True)
-        db.session.add(lot); db.session.flush()
-        rxn = Reaction(code="RX", template_code="T.1", template_code_base="T",
-                       version_number=1, status="published", title="T")
-        db.session.add(rxn); db.session.flush()
-        db.session.add_all([
-            ReactionComponent(reaction_id=rxn.id, substance_id=sm.id,
-                              role="starting_material", position=0,
-                              is_limiting=True, equivalents=1.0),
-            ReactionComponent(reaction_id=rxn.id, substance_id=prod.id,
-                              role="product", position=1),
-        ])
+        db.session.add_all([sm, prod])
+        db.session.flush()
+        lot = InventoryItem(
+            substance_id=sm.id,
+            quantity_g=10,
+            initial_quantity_g=10,
+            total_cost_eur=100,
+            is_active=True,
+        )
+        db.session.add(lot)
+        db.session.flush()
+        rxn = Reaction(
+            code="RX",
+            template_code="T.1",
+            template_code_base="T",
+            version_number=1,
+            status="published",
+            title="T",
+        )
+        db.session.add(rxn)
+        db.session.flush()
+        db.session.add_all(
+            [
+                ReactionComponent(
+                    reaction_id=rxn.id,
+                    substance_id=sm.id,
+                    role="starting_material",
+                    position=0,
+                    is_limiting=True,
+                    equivalents=1.0,
+                ),
+                ReactionComponent(
+                    reaction_id=rxn.id, substance_id=prod.id, role="product", position=1
+                ),
+            ]
+        )
         db.session.commit()
         run = run_setup.create_draft(rxn, u)
-        run.scale_input_value = 5.0; run.scale_input_unit = "mmol"
+        run.scale_input_value = 5.0
+        run.scale_input_unit = "mmol"
         run.scale_mmol = 5.0
         db.session.commit()
-        run_setup.recompute_targets(run); db.session.commit()
+        run_setup.recompute_targets(run)
+        db.session.commit()
         cs = {c.role: c for c in run.components}
         cs["starting_material"].inventory_item_id = lot.id
         cs["starting_material"].actual_mass_g = 1.0  # → €10
         db.session.commit()
-        run_setup.start_run(run); db.session.commit()
+        run_setup.start_run(run)
+        db.session.commit()
         cs["product"].actual_mass_g = 0.4  # 0.002 mol of MW 200
         db.session.commit()
-        run_setup.complete_run(run); db.session.commit()
+        run_setup.complete_run(run)
+        db.session.commit()
 
         bd = compute_run_cost(run)
         m = product_unit_metrics(run, bd.total_eur)
@@ -2330,55 +3336,88 @@ def test_run_cost_multi_unit_metrics_solid_product(app):
 def test_run_cost_multi_unit_metrics_liquid_product(app):
     """Liquid product with density: all three €/g, €/mL, €/mol available."""
     from stoic_eln.extensions import db
-    from stoic_eln.models import (User, Substance, Reaction,
-                                   ReactionComponent, InventoryItem)
+    from stoic_eln.models import User, Substance, Reaction, ReactionComponent, InventoryItem
     from stoic_eln.services import run_setup
     from stoic_eln.services.run_cost import (
-        compute_run_cost, product_unit_metrics,
+        compute_run_cost,
+        product_unit_metrics,
     )
 
     with app.app_context():
-        u = User(username="r", full_name="R", operator_code="RR",
-                 role="admin", is_admin=True, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.flush()
+        u = User(
+            username="r",
+            full_name="R",
+            operator_code="RR",
+            role="admin",
+            is_admin=True,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.flush()
         sm = Substance(name="SM", molecular_weight=100.0)
         # Liquid product: density 0.8 g/mL, MW 120
-        prod = Substance(name="P", molecular_weight=120.0,
-                         density=0.8, state="liquid")
-        db.session.add_all([sm, prod]); db.session.flush()
-        lot = InventoryItem(substance_id=sm.id, quantity_g=10,
-                            initial_quantity_g=10, total_cost_eur=200,
-                            is_active=True)
-        db.session.add(lot); db.session.flush()
-        rxn = Reaction(code="RX", template_code="T.1", template_code_base="T",
-                       version_number=1, status="published", title="T")
-        db.session.add(rxn); db.session.flush()
-        db.session.add_all([
-            ReactionComponent(reaction_id=rxn.id, substance_id=sm.id,
-                              role="starting_material", position=0,
-                              is_limiting=True, equivalents=1.0),
-            ReactionComponent(reaction_id=rxn.id, substance_id=prod.id,
-                              role="product", position=1),
-        ])
+        prod = Substance(name="P", molecular_weight=120.0, density=0.8, state="liquid")
+        db.session.add_all([sm, prod])
+        db.session.flush()
+        lot = InventoryItem(
+            substance_id=sm.id,
+            quantity_g=10,
+            initial_quantity_g=10,
+            total_cost_eur=200,
+            is_active=True,
+        )
+        db.session.add(lot)
+        db.session.flush()
+        rxn = Reaction(
+            code="RX",
+            template_code="T.1",
+            template_code_base="T",
+            version_number=1,
+            status="published",
+            title="T",
+        )
+        db.session.add(rxn)
+        db.session.flush()
+        db.session.add_all(
+            [
+                ReactionComponent(
+                    reaction_id=rxn.id,
+                    substance_id=sm.id,
+                    role="starting_material",
+                    position=0,
+                    is_limiting=True,
+                    equivalents=1.0,
+                ),
+                ReactionComponent(
+                    reaction_id=rxn.id, substance_id=prod.id, role="product", position=1
+                ),
+            ]
+        )
         db.session.commit()
         run = run_setup.create_draft(rxn, u)
-        run.scale_input_value = 5.0; run.scale_input_unit = "mmol"
+        run.scale_input_value = 5.0
+        run.scale_input_unit = "mmol"
         run.scale_mmol = 5.0
         db.session.commit()
-        run_setup.recompute_targets(run); db.session.commit()
+        run_setup.recompute_targets(run)
+        db.session.commit()
         cs = {c.role: c for c in run.components}
         cs["starting_material"].inventory_item_id = lot.id
         cs["starting_material"].actual_mass_g = 0.5  # → €10 (0.5g × 20€/g)
         db.session.commit()
-        run_setup.start_run(run); db.session.commit()
+        run_setup.start_run(run)
+        db.session.commit()
         cs["product"].actual_mass_g = 0.6  # 0.6g of liquid (= 0.75 mL @ 0.8 g/mL)
         db.session.commit()
-        run_setup.complete_run(run); db.session.commit()
+        run_setup.complete_run(run)
+        db.session.commit()
 
         bd = compute_run_cost(run)
         m = product_unit_metrics(run, bd.total_eur)
         # €10 / 0.6 g = €16.67/g
-        assert abs(m.per_g - 10.0/0.6) < 1e-3
+        assert abs(m.per_g - 10.0 / 0.6) < 1e-3
         # 0.6g / 0.8 g/mL = 0.75 mL → €10/0.75 = €13.33/mL
         assert abs(m.per_mL - (10.0 / 0.75)) < 1e-3
         # 0.6g / 120 g/mol = 0.005 mol → €2000/mol
@@ -2391,50 +3430,82 @@ def test_run_cost_multi_unit_metrics_liquid_product(app):
 def test_template_stats_aggregates_across_runs(app):
     """stats_for_template aggregates cost and yield over all runs of a template."""
     from stoic_eln.extensions import db
-    from stoic_eln.models import (User, Substance, Reaction,
-                                   ReactionComponent, InventoryItem)
+    from stoic_eln.models import User, Substance, Reaction, ReactionComponent, InventoryItem
     from stoic_eln.services import run_setup
     from stoic_eln.services.template_stats import stats_for_template
 
     with app.app_context():
-        u = User(username="r", full_name="R", operator_code="RR",
-                 role="admin", is_admin=True, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.flush()
+        u = User(
+            username="r",
+            full_name="R",
+            operator_code="RR",
+            role="admin",
+            is_admin=True,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.flush()
         sm = Substance(name="SM", molecular_weight=100.0)
         prod = Substance(name="P", molecular_weight=200.0)
-        db.session.add_all([sm, prod]); db.session.flush()
-        lot = InventoryItem(substance_id=sm.id, quantity_g=100,
-                            initial_quantity_g=100, total_cost_eur=1000,
-                            is_active=True)
-        db.session.add(lot); db.session.flush()
-        rxn = Reaction(code="RX", template_code="STAT.1",
-                       template_code_base="STAT", version_number=1,
-                       status="published", title="T")
-        db.session.add(rxn); db.session.flush()
-        db.session.add_all([
-            ReactionComponent(reaction_id=rxn.id, substance_id=sm.id,
-                              role="starting_material", position=0,
-                              is_limiting=True, equivalents=1.0),
-            ReactionComponent(reaction_id=rxn.id, substance_id=prod.id,
-                              role="product", position=1),
-        ])
+        db.session.add_all([sm, prod])
+        db.session.flush()
+        lot = InventoryItem(
+            substance_id=sm.id,
+            quantity_g=100,
+            initial_quantity_g=100,
+            total_cost_eur=1000,
+            is_active=True,
+        )
+        db.session.add(lot)
+        db.session.flush()
+        rxn = Reaction(
+            code="RX",
+            template_code="STAT.1",
+            template_code_base="STAT",
+            version_number=1,
+            status="published",
+            title="T",
+        )
+        db.session.add(rxn)
+        db.session.flush()
+        db.session.add_all(
+            [
+                ReactionComponent(
+                    reaction_id=rxn.id,
+                    substance_id=sm.id,
+                    role="starting_material",
+                    position=0,
+                    is_limiting=True,
+                    equivalents=1.0,
+                ),
+                ReactionComponent(
+                    reaction_id=rxn.id, substance_id=prod.id, role="product", position=1
+                ),
+            ]
+        )
         db.session.commit()
 
         # 3 runs producing 0.4, 0.5, 0.6g of product (each consumed 1g SM = €10)
         for prod_g in [0.4, 0.5, 0.6]:
             run = run_setup.create_draft(rxn, u)
-            run.scale_input_value = 5.0; run.scale_input_unit = "mmol"
+            run.scale_input_value = 5.0
+            run.scale_input_unit = "mmol"
             run.scale_mmol = 5.0
             db.session.commit()
-            run_setup.recompute_targets(run); db.session.commit()
+            run_setup.recompute_targets(run)
+            db.session.commit()
             cs = {c.role: c for c in run.components}
             cs["starting_material"].inventory_item_id = lot.id
             cs["starting_material"].actual_mass_g = 1.0
             db.session.commit()
-            run_setup.start_run(run); db.session.commit()
+            run_setup.start_run(run)
+            db.session.commit()
             cs["product"].actual_mass_g = prod_g
             db.session.commit()
-            run_setup.complete_run(run); db.session.commit()
+            run_setup.complete_run(run)
+            db.session.commit()
 
         s = stats_for_template("STAT")
         assert s.has_data is True
@@ -2445,13 +3516,13 @@ def test_template_stats_aggregates_across_runs(app):
         assert s.min_cost_eur == 10.0
         assert s.max_cost_eur == 10.0
         # €/g: 25, 20, 16.67 → avg ~20.56
-        assert abs(s.avg_cost_per_g - (25 + 20 + 10/0.6) / 3) < 0.1
+        assert abs(s.avg_cost_per_g - (25 + 20 + 10 / 0.6) / 3) < 0.1
         # Min/max for €/g
-        assert abs(s.min_cost_per_g - 10/0.6) < 0.01
+        assert abs(s.min_cost_per_g - 10 / 0.6) < 0.01
         assert abs(s.max_cost_per_g - 25.0) < 0.01
         # Last run is the third
         assert s.last_run is not None
-        assert abs(s.last_run.cost_per_g - 10/0.6) < 0.01
+        assert abs(s.last_run.cost_per_g - 10 / 0.6) < 0.01
         # 3 chronological points
         assert len(s.points) == 3
 
@@ -2459,56 +3530,93 @@ def test_template_stats_aggregates_across_runs(app):
 def test_template_stats_groups_versions(app):
     """All versions of a template (X.1, X.2, ...) aggregate together."""
     from stoic_eln.extensions import db
-    from stoic_eln.models import (User, Substance, Reaction,
-                                   ReactionComponent, InventoryItem)
+    from stoic_eln.models import User, Substance, Reaction, ReactionComponent, InventoryItem
     from stoic_eln.services import run_setup
     from stoic_eln.services.template_stats import stats_for_template
 
     with app.app_context():
-        u = User(username="r", full_name="R", operator_code="RR",
-                 role="admin", is_admin=True, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.flush()
+        u = User(
+            username="r",
+            full_name="R",
+            operator_code="RR",
+            role="admin",
+            is_admin=True,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.flush()
         sm = Substance(name="SM", molecular_weight=100.0)
         prod = Substance(name="P", molecular_weight=200.0)
-        db.session.add_all([sm, prod]); db.session.flush()
-        lot = InventoryItem(substance_id=sm.id, quantity_g=100,
-                            initial_quantity_g=100, total_cost_eur=1000,
-                            is_active=True)
-        db.session.add(lot); db.session.flush()
+        db.session.add_all([sm, prod])
+        db.session.flush()
+        lot = InventoryItem(
+            substance_id=sm.id,
+            quantity_g=100,
+            initial_quantity_g=100,
+            total_cost_eur=1000,
+            is_active=True,
+        )
+        db.session.add(lot)
+        db.session.flush()
 
         # Two reactions: same template_code_base, different versions
-        rxn1 = Reaction(code="R1", template_code="VER.1",
-                        template_code_base="VER", version_number=1,
-                        status="published", title="V1")
-        rxn2 = Reaction(code="R2", template_code="VER.2",
-                        template_code_base="VER", version_number=2,
-                        status="published", title="V2")
-        db.session.add_all([rxn1, rxn2]); db.session.flush()
+        rxn1 = Reaction(
+            code="R1",
+            template_code="VER.1",
+            template_code_base="VER",
+            version_number=1,
+            status="published",
+            title="V1",
+        )
+        rxn2 = Reaction(
+            code="R2",
+            template_code="VER.2",
+            template_code_base="VER",
+            version_number=2,
+            status="published",
+            title="V2",
+        )
+        db.session.add_all([rxn1, rxn2])
+        db.session.flush()
         for r in (rxn1, rxn2):
-            db.session.add_all([
-                ReactionComponent(reaction_id=r.id, substance_id=sm.id,
-                                  role="starting_material", position=0,
-                                  is_limiting=True, equivalents=1.0),
-                ReactionComponent(reaction_id=r.id, substance_id=prod.id,
-                                  role="product", position=1),
-            ])
+            db.session.add_all(
+                [
+                    ReactionComponent(
+                        reaction_id=r.id,
+                        substance_id=sm.id,
+                        role="starting_material",
+                        position=0,
+                        is_limiting=True,
+                        equivalents=1.0,
+                    ),
+                    ReactionComponent(
+                        reaction_id=r.id, substance_id=prod.id, role="product", position=1
+                    ),
+                ]
+            )
         db.session.commit()
 
         # 1 run on each
         for rxn, prod_g in [(rxn1, 0.4), (rxn2, 0.6)]:
             run = run_setup.create_draft(rxn, u)
-            run.scale_input_value = 5.0; run.scale_input_unit = "mmol"
+            run.scale_input_value = 5.0
+            run.scale_input_unit = "mmol"
             run.scale_mmol = 5.0
             db.session.commit()
-            run_setup.recompute_targets(run); db.session.commit()
+            run_setup.recompute_targets(run)
+            db.session.commit()
             cs = {c.role: c for c in run.components}
             cs["starting_material"].inventory_item_id = lot.id
             cs["starting_material"].actual_mass_g = 1.0
             db.session.commit()
-            run_setup.start_run(run); db.session.commit()
+            run_setup.start_run(run)
+            db.session.commit()
             cs["product"].actual_mass_g = prod_g
             db.session.commit()
-            run_setup.complete_run(run); db.session.commit()
+            run_setup.complete_run(run)
+            db.session.commit()
 
         s = stats_for_template("VER")
         # Both versions count
@@ -2520,64 +3628,99 @@ def test_template_stats_groups_versions(app):
 def test_template_stats_excludes_drafts(app):
     """Draft runs (not yet completed) don't appear in stats."""
     from stoic_eln.extensions import db
-    from stoic_eln.models import (User, Substance, Reaction,
-                                   ReactionComponent, InventoryItem)
+    from stoic_eln.models import User, Substance, Reaction, ReactionComponent, InventoryItem
     from stoic_eln.services import run_setup
     from stoic_eln.services.template_stats import stats_for_template
 
     with app.app_context():
-        u = User(username="r", full_name="R", operator_code="RR",
-                 role="admin", is_admin=True, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.flush()
+        u = User(
+            username="r",
+            full_name="R",
+            operator_code="RR",
+            role="admin",
+            is_admin=True,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.flush()
         sm = Substance(name="SM", molecular_weight=100.0)
         prod = Substance(name="P", molecular_weight=200.0)
-        db.session.add_all([sm, prod]); db.session.flush()
-        lot = InventoryItem(substance_id=sm.id, quantity_g=100,
-                            initial_quantity_g=100, total_cost_eur=1000,
-                            is_active=True)
-        db.session.add(lot); db.session.flush()
-        rxn = Reaction(code="RX", template_code="DR.1",
-                       template_code_base="DR", version_number=1,
-                       status="published", title="DR")
-        db.session.add(rxn); db.session.flush()
-        db.session.add_all([
-            ReactionComponent(reaction_id=rxn.id, substance_id=sm.id,
-                              role="starting_material", position=0,
-                              is_limiting=True, equivalents=1.0),
-            ReactionComponent(reaction_id=rxn.id, substance_id=prod.id,
-                              role="product", position=1),
-        ])
+        db.session.add_all([sm, prod])
+        db.session.flush()
+        lot = InventoryItem(
+            substance_id=sm.id,
+            quantity_g=100,
+            initial_quantity_g=100,
+            total_cost_eur=1000,
+            is_active=True,
+        )
+        db.session.add(lot)
+        db.session.flush()
+        rxn = Reaction(
+            code="RX",
+            template_code="DR.1",
+            template_code_base="DR",
+            version_number=1,
+            status="published",
+            title="DR",
+        )
+        db.session.add(rxn)
+        db.session.flush()
+        db.session.add_all(
+            [
+                ReactionComponent(
+                    reaction_id=rxn.id,
+                    substance_id=sm.id,
+                    role="starting_material",
+                    position=0,
+                    is_limiting=True,
+                    equivalents=1.0,
+                ),
+                ReactionComponent(
+                    reaction_id=rxn.id, substance_id=prod.id, role="product", position=1
+                ),
+            ]
+        )
         db.session.commit()
 
         # 1 completed, 1 draft, 1 in_progress
         completed = run_setup.create_draft(rxn, u)
-        completed.scale_input_value = 5.0; completed.scale_input_unit = "mmol"
+        completed.scale_input_value = 5.0
+        completed.scale_input_unit = "mmol"
         completed.scale_mmol = 5.0
         db.session.commit()
-        run_setup.recompute_targets(completed); db.session.commit()
+        run_setup.recompute_targets(completed)
+        db.session.commit()
         cs = {c.role: c for c in completed.components}
         cs["starting_material"].inventory_item_id = lot.id
         cs["starting_material"].actual_mass_g = 1.0
         db.session.commit()
-        run_setup.start_run(completed); db.session.commit()
+        run_setup.start_run(completed)
+        db.session.commit()
         cs["product"].actual_mass_g = 0.5
         db.session.commit()
-        run_setup.complete_run(completed); db.session.commit()
+        run_setup.complete_run(completed)
+        db.session.commit()
 
         # Draft (not completed)
         run_setup.create_draft(rxn, u)
         db.session.commit()
         # In progress
         in_prog = run_setup.create_draft(rxn, u)
-        in_prog.scale_input_value = 5.0; in_prog.scale_input_unit = "mmol"
+        in_prog.scale_input_value = 5.0
+        in_prog.scale_input_unit = "mmol"
         in_prog.scale_mmol = 5.0
         db.session.commit()
-        run_setup.recompute_targets(in_prog); db.session.commit()
+        run_setup.recompute_targets(in_prog)
+        db.session.commit()
         cs = {c.role: c for c in in_prog.components}
         cs["starting_material"].inventory_item_id = lot.id
         cs["starting_material"].actual_mass_g = 1.0
         db.session.commit()
-        run_setup.start_run(in_prog); db.session.commit()
+        run_setup.start_run(in_prog)
+        db.session.commit()
         # NOT completed
 
         s = stats_for_template("DR")
@@ -2591,8 +3734,11 @@ def test_template_stats_excludes_drafts(app):
 def test_currency_default_eur(app):
     """Default currency is EUR with euro symbol."""
     from stoic_eln.services.currency import (
-        get_currency_code, format_currency, currency_glyph,
+        get_currency_code,
+        format_currency,
+        currency_glyph,
     )
+
     with app.app_context():
         assert get_currency_code() == "EUR"
         assert currency_glyph() == "€"
@@ -2602,8 +3748,10 @@ def test_currency_default_eur(app):
 def test_currency_set_known_codes(app):
     """Setting USD/JPY/GBP picks up correct glyphs."""
     from stoic_eln.services.currency import (
-        set_currency_code, format_currency,
+        set_currency_code,
+        format_currency,
     )
+
     with app.app_context():
         set_currency_code("USD")
         assert format_currency(50.0) == "$ 50.00"
@@ -2618,8 +3766,10 @@ def test_currency_set_known_codes(app):
 def test_currency_unknown_code_uses_iso(app):
     """For codes without a known glyph, the ISO code is shown."""
     from stoic_eln.services.currency import (
-        set_currency_code, format_currency,
+        set_currency_code,
+        format_currency,
     )
+
     with app.app_context():
         set_currency_code("UZS")  # Uzbek so'm — no widely-used glyph
         assert format_currency(50.0) == "UZS 50.00"
@@ -2630,6 +3780,7 @@ def test_currency_unknown_code_uses_iso(app):
 def test_currency_validation(app):
     """Invalid codes raise ValueError."""
     from stoic_eln.services.currency import set_currency_code
+
     with app.app_context():
         for bad in ["", "X", "AB", "ABCD", "123", "EU1"]:
             try:
@@ -2643,6 +3794,7 @@ def test_currency_validation(app):
 def test_currency_format_none(app):
     """format_currency(None) returns the dash placeholder."""
     from stoic_eln.services.currency import format_currency
+
     with app.app_context():
         assert format_currency(None) == "—"
 
@@ -2654,25 +3806,31 @@ def test_currency_settings_page(app, client):
     from stoic_eln.services.currency import get_currency_code
 
     with app.app_context():
-        u = User(username="r", full_name="R", operator_code="RR",
-                 role="admin", is_admin=True, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.commit()
+        u = User(
+            username="r",
+            full_name="R",
+            operator_code="RR",
+            role="admin",
+            is_admin=True,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.commit()
 
-    client.post("/auth/login",
-                data={"username": "r", "password": "x", "submit": "x"})
+    client.post("/auth/login", data={"username": "r", "password": "x", "submit": "x"})
 
     r = client.get("/settings/currency")
     assert r.status_code == 200
     assert b"EUR" in r.data
 
-    r = client.post("/settings/currency/update",
-                    data={"csrf_token": "", "code": "USD"})
+    r = client.post("/settings/currency/update", data={"csrf_token": "", "code": "USD"})
     assert r.status_code == 302
     with app.app_context():
         assert get_currency_code() == "USD"
 
-    r = client.post("/settings/currency/update",
-                    data={"csrf_token": "", "code": "UZS"})
+    r = client.post("/settings/currency/update", data={"csrf_token": "", "code": "UZS"})
     assert r.status_code == 302
     with app.app_context():
         assert get_currency_code() == "UZS"
@@ -2691,8 +3849,7 @@ def test_substances_sort_case_insensitive(app):
         for n in ["Zucchero", "abaco", "Banana", "caramelle", "Aceto"]:
             db.session.add(Substance(name=n, molecular_weight=100))
         db.session.commit()
-        rows = (db.session.query(Substance)
-                .order_by(func.lower(Substance.name)).all())
+        rows = db.session.query(Substance).order_by(func.lower(Substance.name)).all()
         names = [r.name for r in rows]
         assert names == ["abaco", "Aceto", "Banana", "caramelle", "Zucchero"]
 
@@ -2703,29 +3860,49 @@ def test_template_code_conflict_renders_flash_not_500(app, client):
     from stoic_eln.models import User, Reaction
 
     with app.app_context():
-        u = User(username="r", full_name="R", operator_code="RR",
-                 role="admin", is_admin=True, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.flush()
+        u = User(
+            username="r",
+            full_name="R",
+            operator_code="RR",
+            role="admin",
+            is_admin=True,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.flush()
         # Existing published template
-        existing = Reaction(code="RX-EX", template_code="DUP",
-                            template_code_base="DUP", version_number=1,
-                            status="published", title="Existing",
-                            is_archived=False)
+        existing = Reaction(
+            code="RX-EX",
+            template_code="DUP",
+            template_code_base="DUP",
+            version_number=1,
+            status="published",
+            title="Existing",
+            is_archived=False,
+        )
         # A draft trying to use the same code
-        draft = Reaction(code="RX-DR", template_code="DUP",
-                         template_code_base="DUP", version_number=1,
-                         status="draft", title="My new template",
-                         created_by_id=u.id)
-        db.session.add_all([existing, draft]); db.session.commit()
+        draft = Reaction(
+            code="RX-DR",
+            template_code="DUP",
+            template_code_base="DUP",
+            version_number=1,
+            status="draft",
+            title="My new template",
+            created_by_id=u.id,
+        )
+        db.session.add_all([existing, draft])
+        db.session.commit()
         draft_id = draft.id
 
-    client.post("/auth/login",
-                data={"username": "r", "password": "x", "submit": "x"})
+    client.post("/auth/login", data={"username": "r", "password": "x", "submit": "x"})
 
-    r = client.post(f"/reactions/{draft_id}/save",
-                    data={"csrf_token": "", "code": "DUP",
-                          "title": "My new template"},
-                    follow_redirects=False)
+    r = client.post(
+        f"/reactions/{draft_id}/save",
+        data={"csrf_token": "", "code": "DUP", "title": "My new template"},
+        follow_redirects=False,
+    )
     # Should redirect to detail with flash, NOT 500
     assert r.status_code == 302, f"Expected redirect, got {r.status_code}"
 
@@ -2740,73 +3917,122 @@ def test_template_code_conflict_renders_flash_not_500(app, client):
 def test_step_component_set_lot_and_actual(app, client):
     """Step component can have a lot assigned and actual quantity set."""
     from stoic_eln.extensions import db
-    from stoic_eln.models import (User, Substance, Reaction,
-                                   ReactionComponent, ReactionStep,
-                                   ReactionStepComponent, InventoryItem)
+    from stoic_eln.models import (
+        User,
+        Substance,
+        Reaction,
+        ReactionComponent,
+        ReactionStep,
+        ReactionStepComponent,
+        InventoryItem,
+    )
     from stoic_eln.models.run_step import RunStepComponent
     from stoic_eln.services import run_setup
 
     with app.app_context():
-        u = User(username="r", full_name="R", operator_code="RR",
-                 role="admin", is_admin=True, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.flush()
+        u = User(
+            username="r",
+            full_name="R",
+            operator_code="RR",
+            role="admin",
+            is_admin=True,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.flush()
         sm = Substance(name="SM", molecular_weight=100.0)
         prod = Substance(name="P", molecular_weight=200.0)
-        dcm = Substance(name="DCM", molecular_weight=85,
-                        density=1.33, state="liquid")
-        db.session.add_all([sm, prod, dcm]); db.session.flush()
-        lot_sm = InventoryItem(substance_id=sm.id, quantity_g=10,
-                               initial_quantity_g=10, total_cost_eur=100,
-                               is_active=True)
-        lot_dcm = InventoryItem(substance_id=dcm.id, quantity_mL=1000,
-                                initial_quantity_mL=1000, total_cost_eur=50,
-                                is_active=True)
-        db.session.add_all([lot_sm, lot_dcm]); db.session.flush()
+        dcm = Substance(name="DCM", molecular_weight=85, density=1.33, state="liquid")
+        db.session.add_all([sm, prod, dcm])
+        db.session.flush()
+        lot_sm = InventoryItem(
+            substance_id=sm.id,
+            quantity_g=10,
+            initial_quantity_g=10,
+            total_cost_eur=100,
+            is_active=True,
+        )
+        lot_dcm = InventoryItem(
+            substance_id=dcm.id,
+            quantity_mL=1000,
+            initial_quantity_mL=1000,
+            total_cost_eur=50,
+            is_active=True,
+        )
+        db.session.add_all([lot_sm, lot_dcm])
+        db.session.flush()
 
-        rxn = Reaction(code="RX", template_code="WK.1",
-                       template_code_base="WK", version_number=1,
-                       status="published", title="WK")
-        db.session.add(rxn); db.session.flush()
-        db.session.add_all([
-            ReactionComponent(reaction_id=rxn.id, substance_id=sm.id,
-                              role="starting_material", position=0,
-                              is_limiting=True, equivalents=1.0),
-            ReactionComponent(reaction_id=rxn.id, substance_id=prod.id,
-                              role="product", position=1),
-        ])
-        step = ReactionStep(reaction_id=rxn.id, kind="workup",
-                            title="Column", position=0)
-        db.session.add(step); db.session.flush()
+        rxn = Reaction(
+            code="RX",
+            template_code="WK.1",
+            template_code_base="WK",
+            version_number=1,
+            status="published",
+            title="WK",
+        )
+        db.session.add(rxn)
+        db.session.flush()
+        db.session.add_all(
+            [
+                ReactionComponent(
+                    reaction_id=rxn.id,
+                    substance_id=sm.id,
+                    role="starting_material",
+                    position=0,
+                    is_limiting=True,
+                    equivalents=1.0,
+                ),
+                ReactionComponent(
+                    reaction_id=rxn.id, substance_id=prod.id, role="product", position=1
+                ),
+            ]
+        )
+        step = ReactionStep(reaction_id=rxn.id, kind="workup", title="Column", position=0)
+        db.session.add(step)
+        db.session.flush()
         # Free quantity — no ratio
-        db.session.add(ReactionStepComponent(
-            step_id=step.id, substance_id=dcm.id, role="solvent",
-            ratio_value=None, ratio_kind=None, position=0))
+        db.session.add(
+            ReactionStepComponent(
+                step_id=step.id,
+                substance_id=dcm.id,
+                role="solvent",
+                ratio_value=None,
+                ratio_kind=None,
+                position=0,
+            )
+        )
         db.session.commit()
 
         run = run_setup.create_draft(rxn, u)
-        run.scale_input_value = 5.0; run.scale_input_unit = "mmol"
+        run.scale_input_value = 5.0
+        run.scale_input_unit = "mmol"
         run.scale_mmol = 5.0
         db.session.commit()
-        run_setup.recompute_targets(run); db.session.commit()
+        run_setup.recompute_targets(run)
+        db.session.commit()
         run_id = run.id
-        sc_id = (db.session.query(RunStepComponent)
-                 .filter_by(substance_id=dcm.id).one().id)
+        sc_id = db.session.query(RunStepComponent).filter_by(substance_id=dcm.id).one().id
         lot_dcm_id = lot_dcm.id
 
-    client.post("/auth/login",
-                data={"username": "r", "password": "x", "submit": "x"})
+    client.post("/auth/login", data={"username": "r", "password": "x", "submit": "x"})
 
     # Set lot
-    r = client.post(f"/runs/{run_id}/step_component/{sc_id}/lot",
-                    data={"csrf_token": "", "lot_id": str(lot_dcm_id)})
+    r = client.post(
+        f"/runs/{run_id}/step_component/{sc_id}/lot",
+        data={"csrf_token": "", "lot_id": str(lot_dcm_id)},
+    )
     assert r.status_code == 302
     with app.app_context():
         sc = db.session.get(RunStepComponent, sc_id)
         assert sc.inventory_item_id == lot_dcm_id
 
     # Set actual quantity 300 mL
-    r = client.post(f"/runs/{run_id}/step_component/{sc_id}/actual",
-                    data={"csrf_token": "", "actual": "300", "unit": "mL"})
+    r = client.post(
+        f"/runs/{run_id}/step_component/{sc_id}/actual",
+        data={"csrf_token": "", "actual": "300", "unit": "mL"},
+    )
     assert r.status_code == 302
     with app.app_context():
         sc = db.session.get(RunStepComponent, sc_id)
@@ -2814,8 +4040,10 @@ def test_step_component_set_lot_and_actual(app, client):
         assert sc.actual_mass_g is None
 
     # Clear actual
-    r = client.post(f"/runs/{run_id}/step_component/{sc_id}/actual",
-                    data={"csrf_token": "", "actual": "", "unit": "mL"})
+    r = client.post(
+        f"/runs/{run_id}/step_component/{sc_id}/actual",
+        data={"csrf_token": "", "actual": "", "unit": "mL"},
+    )
     assert r.status_code == 302
     with app.app_context():
         sc = db.session.get(RunStepComponent, sc_id)
@@ -2830,19 +4058,33 @@ def test_audit_log_query_basic(app):
     from stoic_eln.extensions import db
     from stoic_eln.models import AuditLog, User
     from stoic_eln.services.audit_query import (
-        AuditFilters, query_events,
+        AuditFilters,
+        query_events,
     )
 
     with app.app_context():
-        u = User(username="r", full_name="R", operator_code="RR",
-                 role="admin", is_admin=True, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.flush()
+        u = User(
+            username="r",
+            full_name="R",
+            operator_code="RR",
+            role="admin",
+            is_admin=True,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.flush()
         for i in range(7):
-            db.session.add(AuditLog(
-                user_id=u.id, action="create",
-                entity_type="substance", entity_id=i,
-                details={"i": i},
-            ))
+            db.session.add(
+                AuditLog(
+                    user_id=u.id,
+                    action="create",
+                    entity_type="substance",
+                    entity_id=i,
+                    details={"i": i},
+                )
+            )
         db.session.commit()
 
         page = query_events(AuditFilters(), page=1, page_size=3)
@@ -2858,24 +4100,46 @@ def test_audit_log_filters(app):
     from stoic_eln.extensions import db
     from stoic_eln.models import AuditLog, User
     from stoic_eln.services.audit_query import (
-        AuditFilters, query_events,
+        AuditFilters,
+        query_events,
     )
 
     with app.app_context():
-        u1 = User(username="r", full_name="R", operator_code="RR",
-                  role="admin", is_admin=True, is_active=True, locale="it")
-        u2 = User(username="op", full_name="Op", operator_code="OP",
-                  role="operator", is_admin=False, is_active=True, locale="it")
-        u1.set_password("x"); u2.set_password("x")
-        db.session.add_all([u1, u2]); db.session.flush()
-        db.session.add_all([
-            AuditLog(user_id=u1.id, action="login"),
-            AuditLog(user_id=u1.id, action="create",
-                     entity_type="substance", entity_id=1,
-                     details={"name": "Pd(OAc)2"}),
-            AuditLog(user_id=u2.id, action="run_complete",
-                     entity_type="run", entity_id=5),
-        ])
+        u1 = User(
+            username="r",
+            full_name="R",
+            operator_code="RR",
+            role="admin",
+            is_admin=True,
+            is_active=True,
+            locale="it",
+        )
+        u2 = User(
+            username="op",
+            full_name="Op",
+            operator_code="OP",
+            role="operator",
+            is_admin=False,
+            is_active=True,
+            locale="it",
+        )
+        u1.set_password("x")
+        u2.set_password("x")
+        db.session.add_all([u1, u2])
+        db.session.flush()
+        db.session.add_all(
+            [
+                AuditLog(user_id=u1.id, action="login"),
+                AuditLog(
+                    user_id=u1.id,
+                    action="create",
+                    entity_type="substance",
+                    entity_id=1,
+                    details={"name": "Pd(OAc)2"},
+                ),
+                AuditLog(user_id=u2.id, action="run_complete", entity_type="run", entity_id=5),
+            ]
+        )
         db.session.commit()
 
         # By user
@@ -2897,17 +4161,32 @@ def test_audit_log_csv_export(app):
     from stoic_eln.extensions import db
     from stoic_eln.models import AuditLog, User
     from stoic_eln.services.audit_query import (
-        AuditFilters, export_csv,
+        AuditFilters,
+        export_csv,
     )
 
     with app.app_context():
-        u = User(username="r", full_name="R", operator_code="RR",
-                 role="admin", is_admin=True, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.flush()
-        db.session.add(AuditLog(
-            user_id=u.id, action="create", entity_type="substance",
-            entity_id=1, details={"name": "Pd(OAc)2"},
-        ))
+        u = User(
+            username="r",
+            full_name="R",
+            operator_code="RR",
+            role="admin",
+            is_admin=True,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.flush()
+        db.session.add(
+            AuditLog(
+                user_id=u.id,
+                action="create",
+                entity_type="substance",
+                entity_id=1,
+                details={"name": "Pd(OAc)2"},
+            )
+        )
         db.session.commit()
 
         csv_text = export_csv(AuditFilters())
@@ -2923,12 +4202,20 @@ def test_audit_log_admin_only(app, client):
     from stoic_eln.models import User
 
     with app.app_context():
-        op = User(username="op", full_name="Op", operator_code="OP",
-                  role="operator", is_admin=False, is_active=True, locale="it")
-        op.set_password("x"); db.session.add(op); db.session.commit()
+        op = User(
+            username="op",
+            full_name="Op",
+            operator_code="OP",
+            role="operator",
+            is_admin=False,
+            is_active=True,
+            locale="it",
+        )
+        op.set_password("x")
+        db.session.add(op)
+        db.session.commit()
 
-    client.post("/auth/login", data={"username": "op", "password": "x",
-                                       "submit": "x"})
+    client.post("/auth/login", data={"username": "op", "password": "x", "submit": "x"})
     r = client.get("/settings/audit-log", follow_redirects=False)
     # Either 403 forbidden or redirect to login — anything but 200
     assert r.status_code in (302, 403)
@@ -2940,17 +4227,30 @@ def test_audit_log_admin_can_access(app, client):
     from stoic_eln.models import User, AuditLog
 
     with app.app_context():
-        u = User(username="admin", full_name="Admin", operator_code="AD",
-                 role="admin", is_admin=True, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.flush()
-        db.session.add(AuditLog(
-            user_id=u.id, action="create", entity_type="substance",
-            entity_id=1, details={"name": "X"},
-        ))
+        u = User(
+            username="admin",
+            full_name="Admin",
+            operator_code="AD",
+            role="admin",
+            is_admin=True,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.flush()
+        db.session.add(
+            AuditLog(
+                user_id=u.id,
+                action="create",
+                entity_type="substance",
+                entity_id=1,
+                details={"name": "X"},
+            )
+        )
         db.session.commit()
 
-    client.post("/auth/login", data={"username": "admin", "password": "x",
-                                      "submit": "x"})
+    client.post("/auth/login", data={"username": "admin", "password": "x", "submit": "x"})
     r = client.get("/settings/audit-log")
     assert r.status_code == 200
     # Page contains the action and entity reference
@@ -2965,14 +4265,22 @@ def test_audit_log_pdf_export(app, client):
     from stoic_eln.models import User, AuditLog
 
     with app.app_context():
-        u = User(username="admin", full_name="Admin", operator_code="AD",
-                 role="admin", is_admin=True, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.flush()
+        u = User(
+            username="admin",
+            full_name="Admin",
+            operator_code="AD",
+            role="admin",
+            is_admin=True,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.flush()
         db.session.add(AuditLog(user_id=u.id, action="login"))
         db.session.commit()
 
-    client.post("/auth/login", data={"username": "admin", "password": "x",
-                                      "submit": "x"})
+    client.post("/auth/login", data={"username": "admin", "password": "x", "submit": "x"})
     r = client.get("/settings/audit-log/export.pdf")
     assert r.status_code == 200
     assert r.data[:5] == b"%PDF-"
@@ -2985,6 +4293,7 @@ def test_audit_log_pdf_export(app, client):
 def test_markdown_renders_basic(app):
     """Lightweight markdown renders bold/italic/code/links/lists."""
     from stoic_eln.services.markdown import render_markdown
+
     with app.app_context():
         assert "<strong>x</strong>" in render_markdown("**x**")
         assert "<em>x</em>" in render_markdown("*x*")
@@ -2997,6 +4306,7 @@ def test_markdown_renders_basic(app):
 def test_markdown_escapes_html(app):
     """Raw HTML in input is always escaped."""
     from stoic_eln.services.markdown import render_markdown
+
     with app.app_context():
         out = render_markdown("<script>alert(1)</script>")
         assert "<script>" not in out
@@ -3006,6 +4316,7 @@ def test_markdown_escapes_html(app):
 def test_markdown_rejects_javascript_urls(app):
     """javascript: and data: URLs are rendered as plain text."""
     from stoic_eln.services.markdown import render_markdown
+
     with app.app_context():
         out = render_markdown("[click](javascript:alert(1))")
         assert "javascript:" not in out or "<a" not in out
@@ -3019,19 +4330,33 @@ def test_note_create_anyone_authenticated(app, client):
     from stoic_eln.models import User, Reaction, Note
 
     with app.app_context():
-        u = User(username="u", full_name="U", operator_code="UU",
-                 role="user", is_admin=False, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.flush()
-        rxn = Reaction(code="R", template_code="X.1",
-                       template_code_base="X", version_number=1,
-                       status="draft", title="T", created_by_id=u.id)
-        db.session.add(rxn); db.session.commit()
+        u = User(
+            username="u",
+            full_name="U",
+            operator_code="UU",
+            role="user",
+            is_admin=False,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.flush()
+        rxn = Reaction(
+            code="R",
+            template_code="X.1",
+            template_code_base="X",
+            version_number=1,
+            status="draft",
+            title="T",
+            created_by_id=u.id,
+        )
+        db.session.add(rxn)
+        db.session.commit()
         rxn_id = rxn.id
 
-    client.post("/auth/login",
-                data={"username": "u", "password": "x", "submit": "x"})
-    r = client.post(f"/notes/reaction/{rxn_id}/new",
-                    data={"csrf_token": "", "body": "test note"})
+    client.post("/auth/login", data={"username": "u", "password": "x", "submit": "x"})
+    r = client.post(f"/notes/reaction/{rxn_id}/new", data={"csrf_token": "", "body": "test note"})
     assert r.status_code == 302
     with app.app_context():
         notes = db.session.query(Note).all()
@@ -3047,26 +4372,47 @@ def test_note_only_author_can_edit(app, client):
     from stoic_eln.models import User, Reaction, Note
 
     with app.app_context():
-        u1 = User(username="u1", full_name="U1", operator_code="U1",
-                  role="user", is_admin=False, is_active=True, locale="it")
-        u2 = User(username="u2", full_name="U2", operator_code="U2",
-                  role="user", is_admin=False, is_active=True, locale="it")
-        u1.set_password("x"); u2.set_password("x")
-        db.session.add_all([u1, u2]); db.session.flush()
-        rxn = Reaction(code="R", template_code="X.1",
-                       template_code_base="X", version_number=1,
-                       status="draft", title="T", created_by_id=u1.id)
-        db.session.add(rxn); db.session.flush()
-        note = Note(entity_type="reaction", entity_id=rxn.id,
-                    body="original", author_id=u1.id)
-        db.session.add(note); db.session.commit()
+        u1 = User(
+            username="u1",
+            full_name="U1",
+            operator_code="U1",
+            role="user",
+            is_admin=False,
+            is_active=True,
+            locale="it",
+        )
+        u2 = User(
+            username="u2",
+            full_name="U2",
+            operator_code="U2",
+            role="user",
+            is_admin=False,
+            is_active=True,
+            locale="it",
+        )
+        u1.set_password("x")
+        u2.set_password("x")
+        db.session.add_all([u1, u2])
+        db.session.flush()
+        rxn = Reaction(
+            code="R",
+            template_code="X.1",
+            template_code_base="X",
+            version_number=1,
+            status="draft",
+            title="T",
+            created_by_id=u1.id,
+        )
+        db.session.add(rxn)
+        db.session.flush()
+        note = Note(entity_type="reaction", entity_id=rxn.id, body="original", author_id=u1.id)
+        db.session.add(note)
+        db.session.commit()
         note_id = note.id
 
     # Login as u2 (not author)
-    client.post("/auth/login",
-                data={"username": "u2", "password": "x", "submit": "x"})
-    r = client.post(f"/notes/{note_id}/edit",
-                    data={"csrf_token": "", "body": "hacked"})
+    client.post("/auth/login", data={"username": "u2", "password": "x", "submit": "x"})
+    r = client.post(f"/notes/{note_id}/edit", data={"csrf_token": "", "body": "hacked"})
     assert r.status_code == 403
     with app.app_context():
         n = db.session.get(Note, note_id)
@@ -3079,20 +4425,35 @@ def test_note_only_admin_can_delete(app, client):
     from stoic_eln.models import User, Reaction, Note
 
     with app.app_context():
-        u = User(username="u", full_name="U", operator_code="UU",
-                 role="user", is_admin=False, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.flush()
-        rxn = Reaction(code="R", template_code="X.1",
-                       template_code_base="X", version_number=1,
-                       status="draft", title="T", created_by_id=u.id)
-        db.session.add(rxn); db.session.flush()
-        note = Note(entity_type="reaction", entity_id=rxn.id,
-                    body="mine", author_id=u.id)
-        db.session.add(note); db.session.commit()
+        u = User(
+            username="u",
+            full_name="U",
+            operator_code="UU",
+            role="user",
+            is_admin=False,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.flush()
+        rxn = Reaction(
+            code="R",
+            template_code="X.1",
+            template_code_base="X",
+            version_number=1,
+            status="draft",
+            title="T",
+            created_by_id=u.id,
+        )
+        db.session.add(rxn)
+        db.session.flush()
+        note = Note(entity_type="reaction", entity_id=rxn.id, body="mine", author_id=u.id)
+        db.session.add(note)
+        db.session.commit()
         note_id = note.id
 
-    client.post("/auth/login",
-                data={"username": "u", "password": "x", "submit": "x"})
+    client.post("/auth/login", data={"username": "u", "password": "x", "submit": "x"})
     r = client.post(f"/notes/{note_id}/delete", data={"csrf_token": ""})
     assert r.status_code == 403  # even own note can't be deleted
     with app.app_context():
@@ -3105,23 +4466,45 @@ def test_note_admin_can_delete_anyone(app, client):
     from stoic_eln.models import User, Reaction, Note
 
     with app.app_context():
-        admin = User(username="admin", full_name="A", operator_code="AA",
-                     role="admin", is_admin=True, is_active=True, locale="it")
-        u = User(username="u", full_name="U", operator_code="UU",
-                 role="user", is_admin=False, is_active=True, locale="it")
-        admin.set_password("x"); u.set_password("x")
-        db.session.add_all([admin, u]); db.session.flush()
-        rxn = Reaction(code="R", template_code="X.1",
-                       template_code_base="X", version_number=1,
-                       status="draft", title="T", created_by_id=u.id)
-        db.session.add(rxn); db.session.flush()
-        note = Note(entity_type="reaction", entity_id=rxn.id,
-                    body="someone else's", author_id=u.id)
-        db.session.add(note); db.session.commit()
+        admin = User(
+            username="admin",
+            full_name="A",
+            operator_code="AA",
+            role="admin",
+            is_admin=True,
+            is_active=True,
+            locale="it",
+        )
+        u = User(
+            username="u",
+            full_name="U",
+            operator_code="UU",
+            role="user",
+            is_admin=False,
+            is_active=True,
+            locale="it",
+        )
+        admin.set_password("x")
+        u.set_password("x")
+        db.session.add_all([admin, u])
+        db.session.flush()
+        rxn = Reaction(
+            code="R",
+            template_code="X.1",
+            template_code_base="X",
+            version_number=1,
+            status="draft",
+            title="T",
+            created_by_id=u.id,
+        )
+        db.session.add(rxn)
+        db.session.flush()
+        note = Note(entity_type="reaction", entity_id=rxn.id, body="someone else's", author_id=u.id)
+        db.session.add(note)
+        db.session.commit()
         note_id = note.id
 
-    client.post("/auth/login",
-                data={"username": "admin", "password": "x", "submit": "x"})
+    client.post("/auth/login", data={"username": "admin", "password": "x", "submit": "x"})
     r = client.post(f"/notes/{note_id}/delete", data={"csrf_token": ""})
     assert r.status_code == 302
     with app.app_context():
@@ -3134,25 +4517,39 @@ def test_note_edit_sets_updated_at(app, client):
     from stoic_eln.models import User, Reaction, Note
 
     with app.app_context():
-        u = User(username="u", full_name="U", operator_code="UU",
-                 role="user", is_admin=False, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.flush()
-        rxn = Reaction(code="R", template_code="X.1",
-                       template_code_base="X", version_number=1,
-                       status="draft", title="T", created_by_id=u.id)
-        db.session.add(rxn); db.session.flush()
-        note = Note(entity_type="reaction", entity_id=rxn.id,
-                    body="v1", author_id=u.id)
-        db.session.add(note); db.session.commit()
+        u = User(
+            username="u",
+            full_name="U",
+            operator_code="UU",
+            role="user",
+            is_admin=False,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.flush()
+        rxn = Reaction(
+            code="R",
+            template_code="X.1",
+            template_code_base="X",
+            version_number=1,
+            status="draft",
+            title="T",
+            created_by_id=u.id,
+        )
+        db.session.add(rxn)
+        db.session.flush()
+        note = Note(entity_type="reaction", entity_id=rxn.id, body="v1", author_id=u.id)
+        db.session.add(note)
+        db.session.commit()
         note_id = note.id
         assert note.updated_at is None
 
-    client.post("/auth/login",
-                data={"username": "u", "password": "x", "submit": "x"})
+    client.post("/auth/login", data={"username": "u", "password": "x", "submit": "x"})
 
     # Edit with new content
-    r = client.post(f"/notes/{note_id}/edit",
-                    data={"csrf_token": "", "body": "v2"})
+    r = client.post(f"/notes/{note_id}/edit", data={"csrf_token": "", "body": "v2"})
     assert r.status_code == 302
     with app.app_context():
         n = db.session.get(Note, note_id)
@@ -3161,8 +4558,7 @@ def test_note_edit_sets_updated_at(app, client):
         first_updated = n.updated_at
 
     # Edit again with same content — should be no-op (no updated_at change)
-    r = client.post(f"/notes/{note_id}/edit",
-                    data={"csrf_token": "", "body": "v2"})
+    r = client.post(f"/notes/{note_id}/edit", data={"csrf_token": "", "body": "v2"})
     assert r.status_code == 302
     with app.app_context():
         n = db.session.get(Note, note_id)
@@ -3175,14 +4571,21 @@ def test_note_validates_entity_type(app, client):
     from stoic_eln.models import User
 
     with app.app_context():
-        u = User(username="u", full_name="U", operator_code="UU",
-                 role="user", is_admin=False, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.commit()
+        u = User(
+            username="u",
+            full_name="U",
+            operator_code="UU",
+            role="user",
+            is_admin=False,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.commit()
 
-    client.post("/auth/login",
-                data={"username": "u", "password": "x", "submit": "x"})
-    r = client.post("/notes/order/1/new",
-                    data={"csrf_token": "", "body": "x"})
+    client.post("/auth/login", data={"username": "u", "password": "x", "submit": "x"})
+    r = client.post("/notes/order/1/new", data={"csrf_token": "", "body": "x"})
     assert r.status_code == 404
 
 
@@ -3192,19 +4595,33 @@ def test_note_rejects_empty_body(app, client):
     from stoic_eln.models import User, Reaction, Note
 
     with app.app_context():
-        u = User(username="u", full_name="U", operator_code="UU",
-                 role="user", is_admin=False, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.flush()
-        rxn = Reaction(code="R", template_code="X.1",
-                       template_code_base="X", version_number=1,
-                       status="draft", title="T", created_by_id=u.id)
-        db.session.add(rxn); db.session.commit()
+        u = User(
+            username="u",
+            full_name="U",
+            operator_code="UU",
+            role="user",
+            is_admin=False,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.flush()
+        rxn = Reaction(
+            code="R",
+            template_code="X.1",
+            template_code_base="X",
+            version_number=1,
+            status="draft",
+            title="T",
+            created_by_id=u.id,
+        )
+        db.session.add(rxn)
+        db.session.commit()
         rxn_id = rxn.id
 
-    client.post("/auth/login",
-                data={"username": "u", "password": "x", "submit": "x"})
-    r = client.post(f"/notes/reaction/{rxn_id}/new",
-                    data={"csrf_token": "", "body": "   "})
+    client.post("/auth/login", data={"username": "u", "password": "x", "submit": "x"})
+    r = client.post(f"/notes/reaction/{rxn_id}/new", data={"csrf_token": "", "body": "   "})
     assert r.status_code == 302
     with app.app_context():
         assert db.session.query(Note).count() == 0
@@ -3218,9 +4635,14 @@ def test_attachment_size_human(app):
     from stoic_eln.models import Attachment
 
     with app.app_context():
-        a = Attachment(entity_type="run", entity_id=1, filename="x.pdf",
-                       storage_filename="aa_x.pdf", size_bytes=512,
-                       sha256="a" * 64)
+        a = Attachment(
+            entity_type="run",
+            entity_id=1,
+            filename="x.pdf",
+            storage_filename="aa_x.pdf",
+            size_bytes=512,
+            sha256="a" * 64,
+        )
         assert a.size_human == "512 B"
         a.size_bytes = 4096
         assert "kB" in a.size_human
@@ -3237,22 +4659,36 @@ def test_attachment_upload_pdf(app, client, tmp_path):
     app.config["ATTACHMENTS_DIR"] = str(tmp_path)
 
     with app.app_context():
-        u = User(username="u", full_name="U", operator_code="UU",
-                 role="user", is_admin=False, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.flush()
-        rxn = Reaction(code="R", template_code="X.1",
-                       template_code_base="X", version_number=1,
-                       status="draft", title="T", created_by_id=u.id)
-        db.session.add(rxn); db.session.commit()
+        u = User(
+            username="u",
+            full_name="U",
+            operator_code="UU",
+            role="user",
+            is_admin=False,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.flush()
+        rxn = Reaction(
+            code="R",
+            template_code="X.1",
+            template_code_base="X",
+            version_number=1,
+            status="draft",
+            title="T",
+            created_by_id=u.id,
+        )
+        db.session.add(rxn)
+        db.session.commit()
         rxn_id = rxn.id
 
-    client.post("/auth/login",
-                data={"username": "u", "password": "x", "submit": "x"})
+    client.post("/auth/login", data={"username": "u", "password": "x", "submit": "x"})
     payload = b"%PDF-1.4 fake content for testing"
     r = client.post(
         f"/attachments/reaction/{rxn_id}/new",
-        data={"file": (io.BytesIO(payload), "spectrum.pdf"),
-              "caption": "NMR purificato"},
+        data={"file": (io.BytesIO(payload), "spectrum.pdf"), "caption": "NMR purificato"},
         content_type="multipart/form-data",
     )
     assert r.status_code == 302
@@ -3278,17 +4714,32 @@ def test_attachment_rejects_disallowed_extension(app, client, tmp_path):
     app.config["ATTACHMENTS_DIR"] = str(tmp_path)
 
     with app.app_context():
-        u = User(username="u", full_name="U", operator_code="UU",
-                 role="user", is_admin=False, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.flush()
-        rxn = Reaction(code="R", template_code="X.1",
-                       template_code_base="X", version_number=1,
-                       status="draft", title="T", created_by_id=u.id)
-        db.session.add(rxn); db.session.commit()
+        u = User(
+            username="u",
+            full_name="U",
+            operator_code="UU",
+            role="user",
+            is_admin=False,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.flush()
+        rxn = Reaction(
+            code="R",
+            template_code="X.1",
+            template_code_base="X",
+            version_number=1,
+            status="draft",
+            title="T",
+            created_by_id=u.id,
+        )
+        db.session.add(rxn)
+        db.session.commit()
         rxn_id = rxn.id
 
-    client.post("/auth/login",
-                data={"username": "u", "password": "x", "submit": "x"})
+    client.post("/auth/login", data={"username": "u", "password": "x", "submit": "x"})
     r = client.post(
         f"/attachments/reaction/{rxn_id}/new",
         data={"file": (io.BytesIO(b"MZ..."), "evil.exe")},
@@ -3308,17 +4759,32 @@ def test_attachment_rejects_empty_file(app, client, tmp_path):
     app.config["ATTACHMENTS_DIR"] = str(tmp_path)
 
     with app.app_context():
-        u = User(username="u", full_name="U", operator_code="UU",
-                 role="user", is_admin=False, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.flush()
-        rxn = Reaction(code="R", template_code="X.1",
-                       template_code_base="X", version_number=1,
-                       status="draft", title="T", created_by_id=u.id)
-        db.session.add(rxn); db.session.commit()
+        u = User(
+            username="u",
+            full_name="U",
+            operator_code="UU",
+            role="user",
+            is_admin=False,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.flush()
+        rxn = Reaction(
+            code="R",
+            template_code="X.1",
+            template_code_base="X",
+            version_number=1,
+            status="draft",
+            title="T",
+            created_by_id=u.id,
+        )
+        db.session.add(rxn)
+        db.session.commit()
         rxn_id = rxn.id
 
-    client.post("/auth/login",
-                data={"username": "u", "password": "x", "submit": "x"})
+    client.post("/auth/login", data={"username": "u", "password": "x", "submit": "x"})
     r = client.post(
         f"/attachments/reaction/{rxn_id}/new",
         data={"file": (io.BytesIO(b""), "empty.pdf")},
@@ -3338,17 +4804,32 @@ def test_attachment_download(app, client, tmp_path):
     app.config["ATTACHMENTS_DIR"] = str(tmp_path)
 
     with app.app_context():
-        u = User(username="u", full_name="U", operator_code="UU",
-                 role="user", is_admin=False, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.flush()
-        rxn = Reaction(code="R", template_code="X.1",
-                       template_code_base="X", version_number=1,
-                       status="draft", title="T", created_by_id=u.id)
-        db.session.add(rxn); db.session.commit()
+        u = User(
+            username="u",
+            full_name="U",
+            operator_code="UU",
+            role="user",
+            is_admin=False,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.flush()
+        rxn = Reaction(
+            code="R",
+            template_code="X.1",
+            template_code_base="X",
+            version_number=1,
+            status="draft",
+            title="T",
+            created_by_id=u.id,
+        )
+        db.session.add(rxn)
+        db.session.commit()
         rxn_id = rxn.id
 
-    client.post("/auth/login",
-                data={"username": "u", "password": "x", "submit": "x"})
+    client.post("/auth/login", data={"username": "u", "password": "x", "submit": "x"})
     payload = b"%PDF-1.4 download me"
     client.post(
         f"/attachments/reaction/{rxn_id}/new",
@@ -3376,17 +4857,32 @@ def test_attachment_uploader_can_delete(app, client, tmp_path):
     app.config["ATTACHMENTS_DIR"] = str(tmp_path)
 
     with app.app_context():
-        u = User(username="u", full_name="U", operator_code="UU",
-                 role="user", is_admin=False, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.flush()
-        rxn = Reaction(code="R", template_code="X.1",
-                       template_code_base="X", version_number=1,
-                       status="draft", title="T", created_by_id=u.id)
-        db.session.add(rxn); db.session.commit()
+        u = User(
+            username="u",
+            full_name="U",
+            operator_code="UU",
+            role="user",
+            is_admin=False,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.flush()
+        rxn = Reaction(
+            code="R",
+            template_code="X.1",
+            template_code_base="X",
+            version_number=1,
+            status="draft",
+            title="T",
+            created_by_id=u.id,
+        )
+        db.session.add(rxn)
+        db.session.commit()
         rxn_id = rxn.id
 
-    client.post("/auth/login",
-                data={"username": "u", "password": "x", "submit": "x"})
+    client.post("/auth/login", data={"username": "u", "password": "x", "submit": "x"})
     client.post(
         f"/attachments/reaction/{rxn_id}/new",
         data={"file": (io.BytesIO(b"xxxxx"), "doc.pdf")},
@@ -3415,21 +4911,43 @@ def test_attachment_non_uploader_non_admin_cannot_delete(app, client, tmp_path):
     app.config["ATTACHMENTS_DIR"] = str(tmp_path)
 
     with app.app_context():
-        u1 = User(username="u1", full_name="U1", operator_code="U1",
-                  role="user", is_admin=False, is_active=True, locale="it")
-        u2 = User(username="u2", full_name="U2", operator_code="U2",
-                  role="user", is_admin=False, is_active=True, locale="it")
-        u1.set_password("x"); u2.set_password("x")
-        db.session.add_all([u1, u2]); db.session.flush()
-        rxn = Reaction(code="R", template_code="X.1",
-                       template_code_base="X", version_number=1,
-                       status="draft", title="T", created_by_id=u1.id)
-        db.session.add(rxn); db.session.commit()
+        u1 = User(
+            username="u1",
+            full_name="U1",
+            operator_code="U1",
+            role="user",
+            is_admin=False,
+            is_active=True,
+            locale="it",
+        )
+        u2 = User(
+            username="u2",
+            full_name="U2",
+            operator_code="U2",
+            role="user",
+            is_admin=False,
+            is_active=True,
+            locale="it",
+        )
+        u1.set_password("x")
+        u2.set_password("x")
+        db.session.add_all([u1, u2])
+        db.session.flush()
+        rxn = Reaction(
+            code="R",
+            template_code="X.1",
+            template_code_base="X",
+            version_number=1,
+            status="draft",
+            title="T",
+            created_by_id=u1.id,
+        )
+        db.session.add(rxn)
+        db.session.commit()
         rxn_id = rxn.id
 
     # u1 uploads
-    client.post("/auth/login",
-                data={"username": "u1", "password": "x", "submit": "x"})
+    client.post("/auth/login", data={"username": "u1", "password": "x", "submit": "x"})
     client.post(
         f"/attachments/reaction/{rxn_id}/new",
         data={"file": (io.BytesIO(b"xxxxx"), "doc.pdf")},
@@ -3440,8 +4958,7 @@ def test_attachment_non_uploader_non_admin_cannot_delete(app, client, tmp_path):
 
     # u2 logs in and tries to delete
     client.get("/auth/logout")
-    client.post("/auth/login",
-                data={"username": "u2", "password": "x", "submit": "x"})
+    client.post("/auth/login", data={"username": "u2", "password": "x", "submit": "x"})
     r = client.post(f"/attachments/{att_id}/delete")
     assert r.status_code == 403
     with app.app_context():
@@ -3457,21 +4974,43 @@ def test_attachment_admin_can_delete_anyone(app, client, tmp_path):
     app.config["ATTACHMENTS_DIR"] = str(tmp_path)
 
     with app.app_context():
-        u = User(username="u", full_name="U", operator_code="UU",
-                 role="user", is_admin=False, is_active=True, locale="it")
-        adm = User(username="adm", full_name="Admin", operator_code="AD",
-                   role="admin", is_admin=True, is_active=True, locale="it")
-        u.set_password("x"); adm.set_password("x")
-        db.session.add_all([u, adm]); db.session.flush()
-        rxn = Reaction(code="R", template_code="X.1",
-                       template_code_base="X", version_number=1,
-                       status="draft", title="T", created_by_id=u.id)
-        db.session.add(rxn); db.session.commit()
+        u = User(
+            username="u",
+            full_name="U",
+            operator_code="UU",
+            role="user",
+            is_admin=False,
+            is_active=True,
+            locale="it",
+        )
+        adm = User(
+            username="adm",
+            full_name="Admin",
+            operator_code="AD",
+            role="admin",
+            is_admin=True,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        adm.set_password("x")
+        db.session.add_all([u, adm])
+        db.session.flush()
+        rxn = Reaction(
+            code="R",
+            template_code="X.1",
+            template_code_base="X",
+            version_number=1,
+            status="draft",
+            title="T",
+            created_by_id=u.id,
+        )
+        db.session.add(rxn)
+        db.session.commit()
         rxn_id = rxn.id
 
     # u uploads
-    client.post("/auth/login",
-                data={"username": "u", "password": "x", "submit": "x"})
+    client.post("/auth/login", data={"username": "u", "password": "x", "submit": "x"})
     client.post(
         f"/attachments/reaction/{rxn_id}/new",
         data={"file": (io.BytesIO(b"xxxxx"), "doc.pdf")},
@@ -3482,8 +5021,7 @@ def test_attachment_admin_can_delete_anyone(app, client, tmp_path):
 
     # admin deletes
     client.get("/auth/logout")
-    client.post("/auth/login",
-                data={"username": "adm", "password": "x", "submit": "x"})
+    client.post("/auth/login", data={"username": "adm", "password": "x", "submit": "x"})
     r = client.post(f"/attachments/{att_id}/delete")
     assert r.status_code == 302
     with app.app_context():
@@ -3499,12 +5037,20 @@ def test_attachment_validates_entity_type(app, client, tmp_path):
     app.config["ATTACHMENTS_DIR"] = str(tmp_path)
 
     with app.app_context():
-        u = User(username="u", full_name="U", operator_code="UU",
-                 role="user", is_admin=False, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.commit()
+        u = User(
+            username="u",
+            full_name="U",
+            operator_code="UU",
+            role="user",
+            is_admin=False,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.commit()
 
-    client.post("/auth/login",
-                data={"username": "u", "password": "x", "submit": "x"})
+    client.post("/auth/login", data={"username": "u", "password": "x", "submit": "x"})
     r = client.post(
         "/attachments/order/1/new",
         data={"file": (io.BytesIO(b"x"), "x.pdf")},
@@ -3528,8 +5074,15 @@ def test_attachment_upload_to_mixture(app, client, tmp_path):
     app.config["ATTACHMENTS_DIR"] = str(tmp_path)
 
     with app.app_context():
-        u = User(username="u", full_name="U", operator_code="UU",
-                 role="user", is_admin=False, is_active=True, locale="it")
+        u = User(
+            username="u",
+            full_name="U",
+            operator_code="UU",
+            role="user",
+            is_admin=False,
+            is_active=True,
+            locale="it",
+        )
         u.set_password("x")
         db.session.add(u)
         m = Mixture(name="Test buffer 50mM", kind="solution")
@@ -3537,12 +5090,10 @@ def test_attachment_upload_to_mixture(app, client, tmp_path):
         db.session.commit()
         mixture_id = m.id
 
-    client.post("/auth/login",
-                data={"username": "u", "password": "x", "submit": "x"})
+    client.post("/auth/login", data={"username": "u", "password": "x", "submit": "x"})
     r = client.post(
         f"/attachments/mixture/{mixture_id}/new",
-        data={"file": (io.BytesIO(b"fake-pdf-bytes"), "sop.pdf"),
-              "caption": "SOP annotata a mano"},
+        data={"file": (io.BytesIO(b"fake-pdf-bytes"), "sop.pdf"), "caption": "SOP annotata a mano"},
         content_type="multipart/form-data",
     )
     # Non-HTMX upload: server redirects to entity detail (302).
@@ -3551,8 +5102,10 @@ def test_attachment_upload_to_mixture(app, client, tmp_path):
 
     with app.app_context():
         from stoic_eln.models.attachment import Attachment
+
         rows = Attachment.query.filter_by(
-            entity_type="mixture", entity_id=mixture_id,
+            entity_type="mixture",
+            entity_id=mixture_id,
         ).all()
         assert len(rows) == 1
         assert rows[0].filename == "sop.pdf"
@@ -3572,8 +5125,15 @@ def test_attachment_upload_to_mixture_prep(app, client, tmp_path):
     app.config["ATTACHMENTS_DIR"] = str(tmp_path)
 
     with app.app_context():
-        u = User(username="u", full_name="U", operator_code="UU",
-                 role="user", is_admin=False, is_active=True, locale="it")
+        u = User(
+            username="u",
+            full_name="U",
+            operator_code="UU",
+            role="user",
+            is_admin=False,
+            is_active=True,
+            locale="it",
+        )
         u.set_password("x")
         db.session.add(u)
         m = Mixture(name="HCl 1N", kind="solution")
@@ -3593,8 +5153,7 @@ def test_attachment_upload_to_mixture_prep(app, client, tmp_path):
         db.session.commit()
         prep_id = prep.id
 
-    client.post("/auth/login",
-                data={"username": "u", "password": "x", "submit": "x"})
+    client.post("/auth/login", data={"username": "u", "password": "x", "submit": "x"})
     r = client.post(
         f"/attachments/mixture_prep/{prep_id}/new",
         data={"file": (io.BytesIO(b"fake-coa-bytes"), "coa.pdf")},
@@ -3604,8 +5163,10 @@ def test_attachment_upload_to_mixture_prep(app, client, tmp_path):
 
     with app.app_context():
         from stoic_eln.models.attachment import Attachment
+
         rows = Attachment.query.filter_by(
-            entity_type="mixture_prep", entity_id=prep_id,
+            entity_type="mixture_prep",
+            entity_id=prep_id,
         ).all()
         assert len(rows) == 1
         assert rows[0].filename == "coa.pdf"
@@ -3620,20 +5181,41 @@ def test_attachment_dedup_via_sha256_filename(app, client, tmp_path):
     app.config["ATTACHMENTS_DIR"] = str(tmp_path)
 
     with app.app_context():
-        u = User(username="u", full_name="U", operator_code="UU",
-                 role="user", is_admin=False, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.flush()
-        r1 = Reaction(code="R1", template_code="X.1",
-                      template_code_base="X", version_number=1,
-                      status="draft", title="T1", created_by_id=u.id)
-        r2 = Reaction(code="R2", template_code="Y.1",
-                      template_code_base="Y", version_number=1,
-                      status="draft", title="T2", created_by_id=u.id)
-        db.session.add_all([r1, r2]); db.session.commit()
+        u = User(
+            username="u",
+            full_name="U",
+            operator_code="UU",
+            role="user",
+            is_admin=False,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.flush()
+        r1 = Reaction(
+            code="R1",
+            template_code="X.1",
+            template_code_base="X",
+            version_number=1,
+            status="draft",
+            title="T1",
+            created_by_id=u.id,
+        )
+        r2 = Reaction(
+            code="R2",
+            template_code="Y.1",
+            template_code_base="Y",
+            version_number=1,
+            status="draft",
+            title="T2",
+            created_by_id=u.id,
+        )
+        db.session.add_all([r1, r2])
+        db.session.commit()
         r1_id, r2_id = r1.id, r2.id
 
-    client.post("/auth/login",
-                data={"username": "u", "password": "x", "submit": "x"})
+    client.post("/auth/login", data={"username": "u", "password": "x", "submit": "x"})
     payload = b"identical content"
     client.post(
         f"/attachments/reaction/{r1_id}/new",
@@ -3668,9 +5250,16 @@ def test_attachment_dedup_via_sha256_filename(app, client, tmp_path):
 # ── Labels (Settimana 6 patch 12) ──────────────────────────────────
 
 
-def _make_lot(app, *, batch="LBL-001", expiry=None,
-              ghs=None, h_codes=None, p_codes=None,
-              substance_name="Aspirin"):
+def _make_lot(
+    app,
+    *,
+    batch="LBL-001",
+    expiry=None,
+    ghs=None,
+    h_codes=None,
+    p_codes=None,
+    substance_name="Aspirin",
+):
     """Create a Group + Substance + InventoryItem for label tests."""
     from datetime import date
     from stoic_eln.extensions import db
@@ -3678,7 +5267,8 @@ def _make_lot(app, *, batch="LBL-001", expiry=None,
 
     with app.app_context():
         g = Group(name="Lab", slug="lab")
-        db.session.add(g); db.session.flush()
+        db.session.add(g)
+        db.session.flush()
         s = Substance(
             name=substance_name,
             cas_number="50-78-2",
@@ -3689,15 +5279,19 @@ def _make_lot(app, *, batch="LBL-001", expiry=None,
             h_phrases=h_codes or ["H315", "H319", "H335"],
             p_phrases=p_codes or ["P261"],
         )
-        db.session.add(s); db.session.flush()
+        db.session.add(s)
+        db.session.flush()
         it = InventoryItem(
-            substance_id=s.id, group_id=g.id,
+            substance_id=s.id,
+            group_id=g.id,
             batch_code=batch,
-            quantity_g=50.0, initial_quantity_g=50.0,
+            quantity_g=50.0,
+            initial_quantity_g=50.0,
             expiry_date=expiry or date(2027, 6, 30),
             is_active=True,
         )
-        db.session.add(it); db.session.commit()
+        db.session.add(it)
+        db.session.commit()
         return it.id
 
 
@@ -3718,6 +5312,7 @@ def test_label_qr_payload_is_stable_json(app):
     assert "sostanza" in payload
     # Round-trips as valid JSON.
     import json
+
     parsed = json.loads(payload)
     assert parsed["batch"] == "JSON-1"
     assert parsed["lotto_id"] == item_id
@@ -3795,17 +5390,23 @@ def test_label_handles_substance_without_optional_fields(app):
 
     with app.app_context():
         g = Group(name="Lab", slug="lab")
-        db.session.add(g); db.session.flush()
+        db.session.add(g)
+        db.session.flush()
         # Bare-bones substance: just a name.
         s = Substance(name="Mystery powder")
-        db.session.add(s); db.session.flush()
+        db.session.add(s)
+        db.session.flush()
         it = InventoryItem(
-            substance_id=s.id, group_id=g.id,
-            batch_code=None, expiry_date=None,
-            quantity_g=10.0, initial_quantity_g=10.0,
+            substance_id=s.id,
+            group_id=g.id,
+            batch_code=None,
+            expiry_date=None,
+            quantity_g=10.0,
+            initial_quantity_g=10.0,
             is_active=True,
         )
-        db.session.add(it); db.session.commit()
+        db.session.add(it)
+        db.session.commit()
         pdf = render_labels_pdf([it], "avery_l7160")
     assert pdf.startswith(b"%PDF-")
 
@@ -3816,13 +5417,21 @@ def test_label_form_route_renders(app, client):
     from stoic_eln.models import User
 
     with app.app_context():
-        u = User(username="u", full_name="U", operator_code="UU",
-                 role="user", is_admin=False, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.commit()
+        u = User(
+            username="u",
+            full_name="U",
+            operator_code="UU",
+            role="user",
+            is_admin=False,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.commit()
     item_id = _make_lot(app, batch="ROUTE-1")
 
-    client.post("/auth/login",
-                data={"username": "u", "password": "x", "submit": "x"})
+    client.post("/auth/login", data={"username": "u", "password": "x", "submit": "x"})
     r = client.get(f"/inventory/{item_id}/label")
     assert r.status_code == 200
     assert b"avery_l7160" in r.data
@@ -3835,17 +5444,24 @@ def test_label_pdf_route_returns_pdf(app, client):
     from stoic_eln.models import User
 
     with app.app_context():
-        u = User(username="u", full_name="U", operator_code="UU",
-                 role="user", is_admin=False, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.commit()
+        u = User(
+            username="u",
+            full_name="U",
+            operator_code="UU",
+            role="user",
+            is_admin=False,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.commit()
     item_id = _make_lot(app, batch="PDF-1")
 
-    client.post("/auth/login",
-                data={"username": "u", "password": "x", "submit": "x"})
+    client.post("/auth/login", data={"username": "u", "password": "x", "submit": "x"})
     r = client.post(
         f"/inventory/{item_id}/label.pdf",
-        data={"csrf_token": "", "format": "avery_l7160",
-              "copies": "2", "start_position": "5"},
+        data={"csrf_token": "", "format": "avery_l7160", "copies": "2", "start_position": "5"},
     )
     assert r.status_code == 200
     assert r.mimetype == "application/pdf"
@@ -3859,13 +5475,21 @@ def test_label_pdf_route_rejects_invalid_format(app, client):
     from stoic_eln.models import User
 
     with app.app_context():
-        u = User(username="u", full_name="U", operator_code="UU",
-                 role="user", is_admin=False, is_active=True, locale="it")
-        u.set_password("x"); db.session.add(u); db.session.commit()
+        u = User(
+            username="u",
+            full_name="U",
+            operator_code="UU",
+            role="user",
+            is_admin=False,
+            is_active=True,
+            locale="it",
+        )
+        u.set_password("x")
+        db.session.add(u)
+        db.session.commit()
     item_id = _make_lot(app)
 
-    client.post("/auth/login",
-                data={"username": "u", "password": "x", "submit": "x"})
+    client.post("/auth/login", data={"username": "u", "password": "x", "submit": "x"})
     r = client.post(
         f"/inventory/{item_id}/label.pdf",
         data={"csrf_token": "", "format": "bogus", "copies": "1"},
@@ -3890,16 +5514,25 @@ def test_label_ghs_pictograms_actually_embedded(app):
     from stoic_eln.services.labels import render_labels_pdf
 
     with app.app_context():
-        g = Group(name="L", slug="l"); db.session.add(g); db.session.flush()
+        g = Group(name="L", slug="l")
+        db.session.add(g)
+        db.session.flush()
         plain = Substance(name="Plain")
-        with_ghs = Substance(name="Hazardous",
-                             ghs_pictograms=["GHS05", "GHS07", "GHS08"])
-        db.session.add_all([plain, with_ghs]); db.session.flush()
-        i_plain = InventoryItem(substance_id=plain.id, group_id=g.id,
-                                quantity_g=1, initial_quantity_g=1, is_active=True)
-        i_ghs = InventoryItem(substance_id=with_ghs.id, group_id=g.id,
-                              quantity_g=1, initial_quantity_g=1, is_active=True)
-        db.session.add_all([i_plain, i_ghs]); db.session.commit()
+        with_ghs = Substance(name="Hazardous", ghs_pictograms=["GHS05", "GHS07", "GHS08"])
+        db.session.add_all([plain, with_ghs])
+        db.session.flush()
+        i_plain = InventoryItem(
+            substance_id=plain.id, group_id=g.id, quantity_g=1, initial_quantity_g=1, is_active=True
+        )
+        i_ghs = InventoryItem(
+            substance_id=with_ghs.id,
+            group_id=g.id,
+            quantity_g=1,
+            initial_quantity_g=1,
+            is_active=True,
+        )
+        db.session.add_all([i_plain, i_ghs])
+        db.session.commit()
 
         pdf_plain = render_labels_pdf([i_plain], "avery_l7164")
         pdf_with_ghs = render_labels_pdf([i_ghs], "avery_l7164")
@@ -3948,18 +5581,31 @@ def test_label_pdf_l7164_embeds_2d_structure(app):
     from stoic_eln.services.labels import render_labels_pdf
 
     with app.app_context():
-        g = Group(name="L", slug="l"); db.session.add(g); db.session.flush()
-        no_smiles = Substance(name="No SMILES",
-                              ghs_pictograms=["GHS07"])
-        with_smiles = Substance(name="Aspirin",
-                                smiles="CC(=O)Oc1ccccc1C(=O)O",
-                                ghs_pictograms=["GHS07"])
-        db.session.add_all([no_smiles, with_smiles]); db.session.flush()
-        i_a = InventoryItem(substance_id=no_smiles.id, group_id=g.id,
-                            quantity_g=1, initial_quantity_g=1, is_active=True)
-        i_b = InventoryItem(substance_id=with_smiles.id, group_id=g.id,
-                            quantity_g=1, initial_quantity_g=1, is_active=True)
-        db.session.add_all([i_a, i_b]); db.session.commit()
+        g = Group(name="L", slug="l")
+        db.session.add(g)
+        db.session.flush()
+        no_smiles = Substance(name="No SMILES", ghs_pictograms=["GHS07"])
+        with_smiles = Substance(
+            name="Aspirin", smiles="CC(=O)Oc1ccccc1C(=O)O", ghs_pictograms=["GHS07"]
+        )
+        db.session.add_all([no_smiles, with_smiles])
+        db.session.flush()
+        i_a = InventoryItem(
+            substance_id=no_smiles.id,
+            group_id=g.id,
+            quantity_g=1,
+            initial_quantity_g=1,
+            is_active=True,
+        )
+        i_b = InventoryItem(
+            substance_id=with_smiles.id,
+            group_id=g.id,
+            quantity_g=1,
+            initial_quantity_g=1,
+            is_active=True,
+        )
+        db.session.add_all([i_a, i_b])
+        db.session.commit()
 
         pdf_no = render_labels_pdf([i_a], "avery_l7164")
         pdf_with = render_labels_pdf([i_b], "avery_l7164")
@@ -3967,8 +5613,7 @@ def test_label_pdf_l7164_embeds_2d_structure(app):
     # The molecule PNG is ~30 KB on its own; even with PDF compression
     # variance, the difference is well > 3 KB.
     assert len(pdf_with) > len(pdf_no) + 3_000, (
-        f"structure not embedded: no_smiles={len(pdf_no)}, "
-        f"with_smiles={len(pdf_with)}"
+        f"structure not embedded: no_smiles={len(pdf_no)}, with_smiles={len(pdf_with)}"
     )
 
 
@@ -3983,18 +5628,31 @@ def test_label_pdf_l7160_skips_2d_structure(app):
     from stoic_eln.services.labels import render_labels_pdf
 
     with app.app_context():
-        g = Group(name="L", slug="l"); db.session.add(g); db.session.flush()
-        no_smiles = Substance(name="No SMILES",
-                              ghs_pictograms=["GHS07"])
-        with_smiles = Substance(name="Aspirin",
-                                smiles="CC(=O)Oc1ccccc1C(=O)O",
-                                ghs_pictograms=["GHS07"])
-        db.session.add_all([no_smiles, with_smiles]); db.session.flush()
-        i_a = InventoryItem(substance_id=no_smiles.id, group_id=g.id,
-                            quantity_g=1, initial_quantity_g=1, is_active=True)
-        i_b = InventoryItem(substance_id=with_smiles.id, group_id=g.id,
-                            quantity_g=1, initial_quantity_g=1, is_active=True)
-        db.session.add_all([i_a, i_b]); db.session.commit()
+        g = Group(name="L", slug="l")
+        db.session.add(g)
+        db.session.flush()
+        no_smiles = Substance(name="No SMILES", ghs_pictograms=["GHS07"])
+        with_smiles = Substance(
+            name="Aspirin", smiles="CC(=O)Oc1ccccc1C(=O)O", ghs_pictograms=["GHS07"]
+        )
+        db.session.add_all([no_smiles, with_smiles])
+        db.session.flush()
+        i_a = InventoryItem(
+            substance_id=no_smiles.id,
+            group_id=g.id,
+            quantity_g=1,
+            initial_quantity_g=1,
+            is_active=True,
+        )
+        i_b = InventoryItem(
+            substance_id=with_smiles.id,
+            group_id=g.id,
+            quantity_g=1,
+            initial_quantity_g=1,
+            is_active=True,
+        )
+        db.session.add_all([i_a, i_b])
+        db.session.commit()
 
         pdf_no = render_labels_pdf([i_a], "avery_l7160")
         pdf_with = render_labels_pdf([i_b], "avery_l7160")
@@ -4078,6 +5736,7 @@ def _ascii85_strip_and_decode(data: bytes) -> bytes:
     prefix and a ``~>`` suffix.
     """
     import base64
+
     cleaned = data.strip()
     # ReportLab omits the leading <~ but always emits the trailing ~>
     if not cleaned.startswith(b"<~"):
@@ -4093,22 +5752,29 @@ def test_label_pdf_includes_exp_date_at_bottom(app):
     from stoic_eln.services.labels import render_labels_pdf
 
     with app.app_context():
-        g = Group(name="L", slug="l"); db.session.add(g); db.session.flush()
-        s = Substance(name="Test compound",
-                      molecular_formula="X", cas_number="0-0-0",
-                      molecular_weight=100.0)
-        db.session.add(s); db.session.flush()
-        it = InventoryItem(substance_id=s.id, group_id=g.id,
-                           batch_code="EXP-TEST",
-                           quantity_g=1, initial_quantity_g=1,
-                           expiry_date=date(2027, 6, 30), is_active=True)
-        db.session.add(it); db.session.commit()
+        g = Group(name="L", slug="l")
+        db.session.add(g)
+        db.session.flush()
+        s = Substance(
+            name="Test compound", molecular_formula="X", cas_number="0-0-0", molecular_weight=100.0
+        )
+        db.session.add(s)
+        db.session.flush()
+        it = InventoryItem(
+            substance_id=s.id,
+            group_id=g.id,
+            batch_code="EXP-TEST",
+            quantity_g=1,
+            initial_quantity_g=1,
+            expiry_date=date(2027, 6, 30),
+            is_active=True,
+        )
+        db.session.add(it)
+        db.session.commit()
         pdf = render_labels_pdf([it], "thermal_62")
 
     text = _extract_pdf_text(pdf)
-    assert "EXP:" in text or "EXP" in text, (
-        "EXP marker missing from label PDF"
-    )
+    assert "EXP:" in text or "EXP" in text, "EXP marker missing from label PDF"
     assert "2027-06-30" in text, "expiry date not rendered"
 
 
@@ -4120,14 +5786,23 @@ def test_label_pdf_lot_appears_above_name(app):
     from stoic_eln.services.labels import render_labels_pdf
 
     with app.app_context():
-        g = Group(name="L", slug="l"); db.session.add(g); db.session.flush()
+        g = Group(name="L", slug="l")
+        db.session.add(g)
+        db.session.flush()
         s = Substance(name="Zeroinine")
-        db.session.add(s); db.session.flush()
-        it = InventoryItem(substance_id=s.id, group_id=g.id,
-                           batch_code="FIRST-001",
-                           quantity_g=1, initial_quantity_g=1,
-                           expiry_date=date(2027, 1, 1), is_active=True)
-        db.session.add(it); db.session.commit()
+        db.session.add(s)
+        db.session.flush()
+        it = InventoryItem(
+            substance_id=s.id,
+            group_id=g.id,
+            batch_code="FIRST-001",
+            quantity_g=1,
+            initial_quantity_g=1,
+            expiry_date=date(2027, 1, 1),
+            is_active=True,
+        )
+        db.session.add(it)
+        db.session.commit()
         pdf = render_labels_pdf([it], "thermal_62")
 
     text = _extract_pdf_text(pdf)
@@ -4157,14 +5832,10 @@ def test_ghs_png_renders_for_all_pictograms(app):
             for theme in ("light", "dark"):
                 png = _ghs_png(code, theme=theme)
                 assert png is not None, f"{code} ({theme}) failed to render"
-                assert png.startswith(b"\x89PNG"), (
-                    f"{code} ({theme}) is not a PNG"
-                )
+                assert png.startswith(b"\x89PNG"), f"{code} ({theme}) is not a PNG"
                 # 800×800 PNG with a moderately complex symbol should
                 # comfortably exceed 1 KB.
-                assert len(png) > 1_000, (
-                    f"{code} ({theme}) suspiciously small: {len(png)} bytes"
-                )
+                assert len(png) > 1_000, f"{code} ({theme}) suspiciously small: {len(png)} bytes"
 
 
 def test_ghs_dark_theme_inverts_white_to_dark_bg(app):
@@ -4215,7 +5886,9 @@ def test_ghs_pdf_uses_color_keying_to_avoid_white_halo(app):
     from stoic_eln.extensions import db
     from stoic_eln.models import Group, InventoryItem, Substance
     from stoic_eln.services.labels import (
-        _ghs_png, _ghs_cache, render_labels_pdf,
+        _ghs_png,
+        _ghs_cache,
+        render_labels_pdf,
     )
     from PIL import Image
     import io
@@ -4226,33 +5899,34 @@ def test_ghs_pdf_uses_color_keying_to_avoid_white_halo(app):
         assert png is not None
 
         img = Image.open(io.BytesIO(png))
-        assert img.mode == "RGBA", (
-            f"PNG must be RGBA for transparent corners, got {img.mode}"
-        )
+        assert img.mode == "RGBA", f"PNG must be RGBA for transparent corners, got {img.mode}"
         # The (0,0) corner is well outside the rotated diamond; its
         # alpha must be 0 so the PDF/HTML page colour shows through.
         corner = img.getpixel((0, 0))
-        assert corner[3] == 0, (
-            f"top-left corner alpha must be 0 (transparent), "
-            f"got pixel {corner}"
-        )
+        assert corner[3] == 0, f"top-left corner alpha must be 0 (transparent), got pixel {corner}"
 
         # Centre pixel is inside the diamond and must be opaque.
         cx, cy = img.width // 2, img.height // 2
         centre = img.getpixel((cx, cy))
-        assert centre[3] == 255, (
-            f"centre alpha must be 255 (opaque), got pixel {centre}"
-        )
+        assert centre[3] == 255, f"centre alpha must be 255 (opaque), got pixel {centre}"
 
-        g = Group(name="L", slug="l"); db.session.add(g); db.session.flush()
+        g = Group(name="L", slug="l")
+        db.session.add(g)
+        db.session.flush()
         s = Substance(name="Hazmat", ghs_pictograms=["GHS05", "GHS06"])
-        db.session.add(s); db.session.flush()
+        db.session.add(s)
+        db.session.flush()
         it = InventoryItem(
-            substance_id=s.id, group_id=g.id, batch_code="HZM-1",
-            quantity_g=1, initial_quantity_g=1,
-            expiry_date=date(2027, 1, 1), is_active=True,
+            substance_id=s.id,
+            group_id=g.id,
+            batch_code="HZM-1",
+            quantity_g=1,
+            initial_quantity_g=1,
+            expiry_date=date(2027, 1, 1),
+            is_active=True,
         )
-        db.session.add(it); db.session.commit()
+        db.session.add(it)
+        db.session.commit()
         pdf = render_labels_pdf([it], "avery_l7160")
     assert pdf.startswith(b"%PDF-")
 
@@ -4274,15 +5948,23 @@ def test_long_lot_code_is_never_truncated_on_label(app):
     LONG = "SIGMA-ALDRICH-2024-LOT-A88472913X"
 
     with app.app_context():
-        g = Group(name="Long", slug="long"); db.session.add(g); db.session.flush()
+        g = Group(name="Long", slug="long")
+        db.session.add(g)
+        db.session.flush()
         s = Substance(name="X", molecular_formula="X")
-        db.session.add(s); db.session.flush()
+        db.session.add(s)
+        db.session.flush()
         it = InventoryItem(
-            substance_id=s.id, group_id=g.id, batch_code=LONG,
-            quantity_g=1, initial_quantity_g=1,
-            expiry_date=date(2027, 1, 1), is_active=True,
+            substance_id=s.id,
+            group_id=g.id,
+            batch_code=LONG,
+            quantity_g=1,
+            initial_quantity_g=1,
+            expiry_date=date(2027, 1, 1),
+            is_active=True,
         )
-        db.session.add(it); db.session.commit()
+        db.session.add(it)
+        db.session.commit()
         pdf = render_labels_pdf([it], "avery_l7164")
 
     # If pdftotext is available, extract text and verify the full lot
@@ -4290,7 +5972,10 @@ def test_long_lot_code_is_never_truncated_on_label(app):
     try:
         proc = subprocess.run(
             ["pdftotext", "-layout", "-", "-"],
-            input=pdf, capture_output=True, timeout=10, check=True,
+            input=pdf,
+            capture_output=True,
+            timeout=10,
+            check=True,
         )
     except (FileNotFoundError, subprocess.CalledProcessError):
         # No pdftotext — at minimum the PDF must render without crashing.
@@ -4307,9 +5992,7 @@ def test_long_lot_code_is_never_truncated_on_label(app):
     # Wrapped case: concatenate non-empty stripped lines and look for
     # the full code in the joined string.
     joined = "".join(ln.strip() for ln in text.splitlines() if ln.strip())
-    assert LONG in joined, (
-        f"Lot code {LONG!r} not in label (saw: {text[:200]!r})"
-    )
+    assert LONG in joined, f"Lot code {LONG!r} not in label (saw: {text[:200]!r})"
     assert "…" not in text, "Ellipsis present in label output"
 
 
@@ -4325,28 +6008,38 @@ def test_synthesised_lot_shows_synthesis_date_not_expiry(app):
     from stoic_eln.services.labels import _pick_lot_date_label
 
     with app.app_context():
-        g = Group(name="S", slug="s"); db.session.add(g); db.session.flush()
+        g = Group(name="S", slug="s")
+        db.session.add(g)
+        db.session.flush()
         s = Substance(name="In-house", molecular_formula="X")
-        db.session.add(s); db.session.flush()
+        db.session.add(s)
+        db.session.flush()
         run = Run(
-            code="RUN-2026-100", sequence=100, year=2026,
-            reaction_id=0, status="completed",
+            code="RUN-2026-100",
+            sequence=100,
+            year=2026,
+            reaction_id=0,
+            status="completed",
             completed_at=datetime(2026, 4, 15, 14, 30),
             started_at=datetime(2026, 4, 15, 9, 0),
         )
-        db.session.add(run); db.session.flush()
+        db.session.add(run)
+        db.session.flush()
         it = InventoryItem(
-            substance_id=s.id, group_id=g.id, batch_code="LOT-A",
-            quantity_g=1, initial_quantity_g=1,
-            source_run_id=run.id, is_active=True,
+            substance_id=s.id,
+            group_id=g.id,
+            batch_code="LOT-A",
+            quantity_g=1,
+            initial_quantity_g=1,
+            source_run_id=run.id,
+            is_active=True,
         )
-        db.session.add(it); db.session.commit()
+        db.session.add(it)
+        db.session.commit()
 
         label = _pick_lot_date_label(it)
 
-    assert label == "Sint: 2026-04-15", (
-        f"Expected 'Sint: 2026-04-15', got {label!r}"
-    )
+    assert label == "Sint: 2026-04-15", f"Expected 'Sint: 2026-04-15', got {label!r}"
 
 
 def test_purchased_lot_with_expiry_shows_exp(app):
@@ -4357,15 +6050,23 @@ def test_purchased_lot_with_expiry_shows_exp(app):
     from stoic_eln.services.labels import _pick_lot_date_label
 
     with app.app_context():
-        g = Group(name="P", slug="p"); db.session.add(g); db.session.flush()
+        g = Group(name="P", slug="p")
+        db.session.add(g)
+        db.session.flush()
         s = Substance(name="Bought", molecular_formula="X")
-        db.session.add(s); db.session.flush()
+        db.session.add(s)
+        db.session.flush()
         it = InventoryItem(
-            substance_id=s.id, group_id=g.id, batch_code="P-1",
-            quantity_g=1, initial_quantity_g=1,
-            expiry_date=date(2027, 6, 30), is_active=True,
+            substance_id=s.id,
+            group_id=g.id,
+            batch_code="P-1",
+            quantity_g=1,
+            initial_quantity_g=1,
+            expiry_date=date(2027, 6, 30),
+            is_active=True,
         )
-        db.session.add(it); db.session.commit()
+        db.session.add(it)
+        db.session.commit()
         label = _pick_lot_date_label(it)
     assert label == "EXP: 2027-06-30", label
 
@@ -4380,15 +6081,23 @@ def test_purchased_lot_without_expiry_shows_purchase_date(app):
     from stoic_eln.services.labels import _pick_lot_date_label
 
     with app.app_context():
-        g = Group(name="P", slug="p2"); db.session.add(g); db.session.flush()
+        g = Group(name="P", slug="p2")
+        db.session.add(g)
+        db.session.flush()
         s = Substance(name="Bought2", molecular_formula="X")
-        db.session.add(s); db.session.flush()
+        db.session.add(s)
+        db.session.flush()
         it = InventoryItem(
-            substance_id=s.id, group_id=g.id, batch_code="P-2",
-            quantity_g=1, initial_quantity_g=1,
-            purchased_at=date(2025, 11, 14), is_active=True,
+            substance_id=s.id,
+            group_id=g.id,
+            batch_code="P-2",
+            quantity_g=1,
+            initial_quantity_g=1,
+            purchased_at=date(2025, 11, 14),
+            is_active=True,
         )
-        db.session.add(it); db.session.commit()
+        db.session.add(it)
+        db.session.commit()
         label = _pick_lot_date_label(it)
     assert label == "Acq: 2025-11-14", label
 
@@ -4408,13 +6117,15 @@ def test_lot_code_helper_shrinks_then_wraps(app):
 
     # Long but with hyphen separators: shrinks then fits.
     lines, size = _fit_lot_code_lines(
-        c, "SIGMA-AL-2024-LOT-A88472913X", 60, "Helvetica", 8,
+        c,
+        "SIGMA-AL-2024-LOT-A88472913X",
+        60,
+        "Helvetica",
+        8,
         min_size=5.0,
     )
     full = "".join(lines)
-    assert full == "SIGMA-AL-2024-LOT-A88472913X", (
-        f"lot code lost characters: {full!r}"
-    )
+    assert full == "SIGMA-AL-2024-LOT-A88472913X", f"lot code lost characters: {full!r}"
     assert len(lines) <= 2
 
     # Long no-separator code in a moderately narrow column → two lines.
@@ -4426,7 +6137,11 @@ def test_lot_code_helper_shrinks_then_wraps(app):
     half_w_5pt = c.stringWidth(long_code[:13], "Helvetica", 5.0)
     target_w = (full_w_5pt + half_w_5pt) / 2  # between half and full
     lines, size = _fit_lot_code_lines(
-        c, long_code, target_w, "Helvetica", 8,
+        c,
+        long_code,
+        target_w,
+        "Helvetica",
+        8,
         min_size=5.0,
     )
     full = "".join(lines)
@@ -4470,7 +6185,7 @@ def test_compute_proportional_shrink_picks_worst_row(app):
     max_w = actual_w * 0.7  # the row needs ratio 0.7 to fit
     rows = [
         ("Aluminum", "Helvetica-Bold", 11.5, 1000),  # fits trivially
-        (long_lot, "Helvetica", 7.5, max_w),         # the bottleneck
+        (long_lot, "Helvetica", 7.5, max_w),  # the bottleneck
     ]
     ratio = _compute_proportional_shrink(c, rows, min_ratio=0.55)
     assert 0.69 < ratio < 0.71, f"expected ~0.70, got {ratio}"
@@ -4489,26 +6204,37 @@ def test_long_iupac_triggers_global_rescale_no_truncation(app):
     LONG_IUPAC = "(2R,3S)-2-bromo-3-hydroxy-N-methylpentanamide"
 
     with app.app_context():
-        g = Group(name="R", slug="r"); db.session.add(g); db.session.flush()
+        g = Group(name="R", slug="r")
+        db.session.add(g)
+        db.session.flush()
         s = Substance(
             name="Test compound",
             iupac_name=LONG_IUPAC,
             molecular_formula="C6H12BrNO2",
             molecular_weight=210.07,
         )
-        db.session.add(s); db.session.flush()
+        db.session.add(s)
+        db.session.flush()
         it = InventoryItem(
-            substance_id=s.id, group_id=g.id, batch_code="LOT-1",
-            quantity_g=1, initial_quantity_g=1,
-            expiry_date=date(2027, 1, 1), is_active=True,
+            substance_id=s.id,
+            group_id=g.id,
+            batch_code="LOT-1",
+            quantity_g=1,
+            initial_quantity_g=1,
+            expiry_date=date(2027, 1, 1),
+            is_active=True,
         )
-        db.session.add(it); db.session.commit()
+        db.session.add(it)
+        db.session.commit()
         pdf = render_labels_pdf([it], "avery_l7164")
 
     try:
         proc = subprocess.run(
             ["pdftotext", "-layout", "-", "-"],
-            input=pdf, capture_output=True, timeout=10, check=True,
+            input=pdf,
+            capture_output=True,
+            timeout=10,
+            check=True,
         )
     except (FileNotFoundError, subprocess.CalledProcessError):
         # pdftotext absent — at least the PDF rendered.
@@ -4532,19 +6258,27 @@ def test_short_label_does_not_get_rescaled(app):
     from stoic_eln.services.labels import render_labels_pdf
 
     with app.app_context():
-        g = Group(name="S", slug="s2"); db.session.add(g); db.session.flush()
+        g = Group(name="S", slug="s2")
+        db.session.add(g)
+        db.session.flush()
         s = Substance(
             name="Water",
             molecular_formula="H2O",
             molecular_weight=18.02,
         )
-        db.session.add(s); db.session.flush()
+        db.session.add(s)
+        db.session.flush()
         it = InventoryItem(
-            substance_id=s.id, group_id=g.id, batch_code="W",
-            quantity_g=1, initial_quantity_g=1,
-            expiry_date=date(2027, 1, 1), is_active=True,
+            substance_id=s.id,
+            group_id=g.id,
+            batch_code="W",
+            quantity_g=1,
+            initial_quantity_g=1,
+            expiry_date=date(2027, 1, 1),
+            is_active=True,
         )
-        db.session.add(it); db.session.commit()
+        db.session.add(it)
+        db.session.commit()
         pdf = render_labels_pdf([it], "avery_l7164")
     # Just verify it rendered. The key behaviour (no rescale needed)
     # is implicit in the helper's return value; we tested that

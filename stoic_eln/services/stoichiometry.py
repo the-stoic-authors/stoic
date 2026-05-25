@@ -104,9 +104,7 @@ def derive(
         and limiting_mmol > 0
     ):
         return from_equivalents(equivalents, limiting_mmol, mw, density)
-    return Quantity(
-        equivalents=equivalents, mmol=mmol, g=g, mL=mL
-    )
+    return Quantity(equivalents=equivalents, mmol=mmol, g=g, mL=mL)
 
 
 def equivalents_from_mmol(component_mmol: float, limiting_mmol: float) -> float | None:

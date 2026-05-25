@@ -57,11 +57,11 @@ from stoic_eln.models.mixture_prep import (
 class SuggestedConsumption:
     """One row in the auto-suggest output: which lot, how much."""
 
-    component_id: int                 # MixtureComponent.id from the recipe
-    substance_id: int                 # for display
+    component_id: int  # MixtureComponent.id from the recipe
+    substance_id: int  # for display
     substance_name: str
     role: str
-    suggested_lot_id: int | None   # InventoryItem.id, or None if no lot
+    suggested_lot_id: int | None  # InventoryItem.id, or None if no lot
     suggested_quantity: float | None
     suggested_unit: str | None
     available_lots: list[LotSummary]  # all candidate lots, for the dropdown
@@ -80,8 +80,8 @@ class LotSummary:
     id: int
     batch_code: str
     quantity_remaining: float
-    quantity_unit: str        # "g" or "mL"
-    expiry_date: str | None   # ISO format, "" if none
+    quantity_unit: str  # "g" or "mL"
+    expiry_date: str | None  # ISO format, "" if none
     location: str | None
 
 
@@ -138,12 +138,9 @@ def _candidate_lots(substance_id: int, want_unit: str) -> list[InventoryItem]:
     )
 
     # 1. Pure substance lots
-    direct = (
-        db.session.query(InventoryItem)
-        .filter(
-            InventoryItem.substance_id == substance_id,
-            InventoryItem.is_active.is_(True),
-        )
+    direct = db.session.query(InventoryItem).filter(
+        InventoryItem.substance_id == substance_id,
+        InventoryItem.is_active.is_(True),
     )
 
     # 2. Mixture lots where the substance appears as a solute
@@ -213,16 +210,16 @@ def _lot_summary(lot: InventoryItem, want_unit: str) -> LotSummary:
 # canonical unit before applying C₁V₁ = C₂V₂.
 
 UNIT_GROUPS: dict[str, str] = {
-    "N":      "normality",
-    "M":      "molarity",
-    "mM":     "molarity",
-    "%v/v":   "vol_pct",
-    "%w/w":   "mass_pct",
-    "%w/v":   "mass_vol_pct",
-    "mg/mL":  "mass_per_vol",
-    "g/L":    "mass_per_vol",
-    "ppm":    "ppm",
-    "ratio":  "ratio",
+    "N": "normality",
+    "M": "molarity",
+    "mM": "molarity",
+    "%v/v": "vol_pct",
+    "%w/w": "mass_pct",
+    "%w/v": "mass_vol_pct",
+    "mg/mL": "mass_per_vol",
+    "g/L": "mass_per_vol",
+    "ppm": "ppm",
+    "ratio": "ratio",
 }
 
 # Scale to a canonical reference within each group, so the dilution
@@ -232,16 +229,16 @@ UNIT_GROUPS: dict[str, str] = {
 #                    (because 1 mg/mL = 1 g/L by mass density).
 #   Other groups have a single canonical unit each.
 _UNIT_TO_CANONICAL: dict[str, float] = {
-    "N":      1.0,
-    "M":      1.0,
-    "mM":     0.001,
-    "%v/v":   1.0,
-    "%w/w":   1.0,
-    "%w/v":   1.0,
-    "mg/mL":  1.0,
-    "g/L":    1.0,
-    "ppm":    1.0,
-    "ratio":  1.0,
+    "N": 1.0,
+    "M": 1.0,
+    "mM": 0.001,
+    "%v/v": 1.0,
+    "%w/w": 1.0,
+    "%w/v": 1.0,
+    "mg/mL": 1.0,
+    "g/L": 1.0,
+    "ppm": 1.0,
+    "ratio": 1.0,
 }
 
 
@@ -285,14 +282,16 @@ class StockInfo:
     "pure_substance" (a substance lot, assumed 100% for % units),
     "missing".
     """
+
     concentration: float | None
     unit: str | None
     source: str
-    display_text: str    # something to surface in the UI, e.g. "12 N (HCl 12N)"
+    display_text: str  # something to surface in the UI, e.g. "12 N (HCl 12N)"
 
 
 def read_stock_for_solute(
-    lot: InventoryItem, solute_substance_id: int,
+    lot: InventoryItem,
+    solute_substance_id: int,
 ) -> StockInfo:
     """Read the precursor lot's stock concentration for a given solute.
 
@@ -328,8 +327,7 @@ def read_stock_for_solute(
                     unit=comp.concentration_unit,
                     source="lot_component",
                     display_text=(
-                        f"{comp.concentration:g} {comp.concentration_unit} "
-                        f"({mixture.name})"
+                        f"{comp.concentration:g} {comp.concentration_unit} ({mixture.name})"
                     ),
                 )
         # Mixture's primary concentration (only if the solute matches
@@ -337,9 +335,9 @@ def read_stock_for_solute(
         # check, otherwise an HCl 12N lot wouldn't be reported as
         # "12 N" when asked about an unrelated solute).
         solute_components = [
-            c for c in mixture.components
-            if c.role == COMPONENT_ROLE_SOLUTE
-            and c.substance_id == solute_substance_id
+            c
+            for c in mixture.components
+            if c.role == COMPONENT_ROLE_SOLUTE and c.substance_id == solute_substance_id
         ]
         if (
             solute_components
@@ -361,7 +359,8 @@ def read_stock_for_solute(
         # (e.g. an old "quick-label" mixture with no structured
         # components).
         return StockInfo(
-            concentration=None, unit=None,
+            concentration=None,
+            unit=None,
             source="missing",
             display_text=f"concentrazione sconosciuta ({mixture.name})",
         )
@@ -369,14 +368,16 @@ def read_stock_for_solute(
     # Pure substance lot
     if lot.substance is not None:
         return StockInfo(
-            concentration=None,   # caller treats as "use as-is" / 100%
+            concentration=None,  # caller treats as "use as-is" / 100%
             unit=None,
             source="pure_substance",
             display_text=f"sostanza pura ({lot.substance.name})",
         )
 
     return StockInfo(
-        concentration=None, unit=None, source="missing",
+        concentration=None,
+        unit=None,
+        source="missing",
         display_text="—",
     )
 
@@ -385,7 +386,10 @@ def read_stock_for_solute(
 
 
 def suggest_consumptions(
-    *, mixture: Mixture, target_quantity: float, target_unit: str,
+    *,
+    mixture: Mixture,
+    target_quantity: float,
+    target_unit: str,
 ) -> SuggestionResult:
     """Propose how to prepare ``target_quantity`` of ``mixture``.
 
@@ -417,14 +421,16 @@ def suggest_consumptions(
         return SuggestionResult(
             target_quantity=target_quantity,
             target_quantity_unit=target_unit,
-            rows=[], warnings=warnings,
+            rows=[],
+            warnings=warnings,
         )
 
     # Pre-compute candidates per component so we don't re-query.
     candidates_per_comp: dict[int, list[InventoryItem]] = {}
     for comp in mixture.components:
         candidates_per_comp[comp.id] = _candidate_lots(
-            comp.substance_id, target_unit,
+            comp.substance_id,
+            target_unit,
         )
 
     # Strategy detection.
@@ -457,13 +463,14 @@ def suggest_consumptions(
 
     solutes = [c for c in mixture.components if c.role == COMPONENT_ROLE_SOLUTE]
     ratio_components = [
-        c for c in mixture.components
+        c
+        for c in mixture.components
         if c.concentration_unit == "ratio" and c.concentration is not None
     ]
     pct_components = [
-        c for c in mixture.components
-        if c.concentration_unit in ("%v/v", "%w/w", "%w/v")
-        and c.concentration is not None
+        c
+        for c in mixture.components
+        if c.concentration_unit in ("%v/v", "%w/w", "%w/v") and c.concentration is not None
     ]
     pct_total = sum(c.concentration for c in pct_components)
 
@@ -502,7 +509,8 @@ def suggest_consumptions(
         solute_lots = candidates_per_comp.get(solute_comp.id, [])
         if solute_lots:
             stock_info = read_stock_for_solute(
-                solute_lots[0], solute_comp.substance_id,
+                solute_lots[0],
+                solute_comp.substance_id,
             )
             dilution_stock_info = stock_info
             # Three sub-cases for the stock value:
@@ -531,9 +539,11 @@ def suggest_consumptions(
                 stock_unit = solute_comp.concentration_unit
 
             if (
-                stock_value is not None and stock_unit
+                stock_value is not None
+                and stock_unit
                 and _are_dilution_compatible(
-                    stock_unit, mixture.primary_concentration_unit,
+                    stock_unit,
+                    mixture.primary_concentration_unit,
                 )
             ):
                 c_target = _normalize_concentration(
@@ -569,9 +579,7 @@ def suggest_consumptions(
         suggested_lot = cands[0] if cands else None
 
         suggested_qty: float | None = None
-        suggested_unit_out: str | None = (
-            target_unit if _is_volumetric_unit(target_unit) else "g"
-        )
+        suggested_unit_out: str | None = target_unit if _is_volumetric_unit(target_unit) else "g"
         row_stock_info: StockInfo | None = None
 
         if strategy == "single_solute_dilution":
@@ -604,10 +612,7 @@ def suggest_consumptions(
                     suggested_unit_out = "mL"
 
         elif strategy == "cosolvent_pct":
-            if (
-                comp.concentration_unit in ("%v/v", "%w/w", "%w/v")
-                and comp.concentration
-            ):
+            if comp.concentration_unit in ("%v/v", "%w/w", "%w/v") and comp.concentration:
                 v_target = _normalize_to_mL(target_quantity, target_unit)
                 qty_mL = v_target * (comp.concentration / 100.0)
                 if target_unit == "L":
@@ -623,12 +628,14 @@ def suggest_consumptions(
             if _is_volumetric_unit(suggested_unit_out or ""):
                 have_in_native = suggested_lot.quantity_mL or 0.0
                 need_in_native = _normalize_to_mL(
-                    suggested_qty, suggested_unit_out or "mL",
+                    suggested_qty,
+                    suggested_unit_out or "mL",
                 )
             else:
                 have_in_native = suggested_lot.quantity_g or 0.0
                 need_in_native = _normalize_to_g(
-                    suggested_qty, suggested_unit_out or "g",
+                    suggested_qty,
+                    suggested_unit_out or "g",
                 )
             if need_in_native > have_in_native:
                 warnings.append(
@@ -639,21 +646,21 @@ def suggest_consumptions(
                 )
 
         if suggested_lot is None:
-            warnings.append(
-                f"Nessun lotto attivo trovato per {comp.substance.name}."
-            )
+            warnings.append(f"Nessun lotto attivo trovato per {comp.substance.name}.")
 
-        rows.append(SuggestedConsumption(
-            component_id=comp.id,
-            substance_id=comp.substance_id,
-            substance_name=comp.substance.name,
-            role=comp.role,
-            suggested_lot_id=suggested_lot.id if suggested_lot else None,
-            suggested_quantity=suggested_qty,
-            suggested_unit=suggested_unit_out,
-            available_lots=[_lot_summary(l, target_unit) for l in cands],
-            stock_info=row_stock_info,
-        ))
+        rows.append(
+            SuggestedConsumption(
+                component_id=comp.id,
+                substance_id=comp.substance_id,
+                substance_name=comp.substance.name,
+                role=comp.role,
+                suggested_lot_id=suggested_lot.id if suggested_lot else None,
+                suggested_quantity=suggested_qty,
+                suggested_unit=suggested_unit_out,
+                available_lots=[_lot_summary(l, target_unit) for l in cands],
+                stock_info=row_stock_info,
+            )
+        )
 
     if strategy == "fallback":
         warnings.append(
@@ -664,7 +671,8 @@ def suggest_consumptions(
     return SuggestionResult(
         target_quantity=target_quantity,
         target_quantity_unit=target_unit,
-        rows=rows, warnings=warnings,
+        rows=rows,
+        warnings=warnings,
     )
 
 
@@ -674,22 +682,24 @@ def suggest_consumptions(
 @dataclass
 class ConsumptionInput:
     """One operator-confirmed consumption line submitted from the form."""
+
     inventory_item_id: int
     quantity_consumed: float
-    quantity_unit: str   # mL/L/g/kg
+    quantity_unit: str  # mL/L/g/kg
     notes: str | None = None
 
 
 @dataclass
 class PrepInput:
     """Full operator-confirmed input to ``execute_preparation``."""
+
     mixture_id: int
     target_quantity: float
     target_quantity_unit: str
     consumptions: list[ConsumptionInput]
-    output_batch_code: str | None    # if None, will be auto-generated
+    output_batch_code: str | None  # if None, will be auto-generated
     output_location: str | None
-    output_expiry_date: str | None   # ISO date string
+    output_expiry_date: str | None  # ISO date string
     output_notes: str | None
     prepared_by_id: int | None
 
@@ -722,9 +732,7 @@ def execute_preparation(
         raise ValueError("Miscela disattivata: non è preparabile.")
 
     if inp.target_quantity_unit not in ("mL", "L", "g", "kg"):
-        raise ValueError(
-            f"Unità target non supportata: {inp.target_quantity_unit!r}"
-        )
+        raise ValueError(f"Unità target non supportata: {inp.target_quantity_unit!r}")
     if inp.target_quantity <= 0:
         raise ValueError("La quantità target deve essere positiva.")
 
@@ -735,20 +743,14 @@ def execute_preparation(
         if lot is None:
             raise ValueError(f"Lotto #{c.inventory_item_id} non trovato.")
         if not lot.is_active:
-            raise ValueError(
-                f"Lotto {lot.batch_code or lot.id} disattivato; "
-                "non utilizzabile."
-            )
+            raise ValueError(f"Lotto {lot.batch_code or lot.id} disattivato; non utilizzabile.")
         if c.quantity_unit not in ("mL", "L", "g", "kg"):
-            raise ValueError(
-                f"Unità di consumo non supportata: {c.quantity_unit!r}"
-            )
+            raise ValueError(f"Unità di consumo non supportata: {c.quantity_unit!r}")
         if c.quantity_consumed <= 0:
             # zero is a sign of "skip this row"; let the caller filter
             # those out before calling. We treat negative as a hard error.
             raise ValueError(
-                f"Quantità consumata non positiva per "
-                f"lotto {lot.batch_code or lot.id}."
+                f"Quantità consumata non positiva per lotto {lot.batch_code or lot.id}."
             )
         resolved.append((lot, c.quantity_consumed, c.quantity_unit, c.notes))
 
@@ -768,8 +770,7 @@ def execute_preparation(
             have = lot.quantity_g or 0.0
             if need > have:
                 raise ValueError(
-                    f"Lotto {lot.batch_code or lot.id}: "
-                    f"servono {need:g} g, disponibili {have:g} g."
+                    f"Lotto {lot.batch_code or lot.id}: servono {need:g} g, disponibili {have:g} g."
                 )
             lot.quantity_g = have - need
 
@@ -780,8 +781,10 @@ def execute_preparation(
         # even when the user gave a custom code — keep it consistent
         # with auto-generated runs.
         from stoic_eln.services.prep_code import (
-            get_scope, next_sequence_number,
+            get_scope,
+            next_sequence_number,
         )
+
         seq = next_sequence_number(
             scope=get_scope(),
             mixture_id=mixture.id,
@@ -789,8 +792,10 @@ def execute_preparation(
         )
     else:
         from stoic_eln.services.prep_code import generate_prep_code
+
         output_code, seq = generate_prep_code(
-            mixture_name=mixture.name, mixture_id=mixture.id,
+            mixture_name=mixture.name,
+            mixture_id=mixture.id,
         )
 
     # Create the output lot. Quantity stored in the unit category
@@ -827,6 +832,7 @@ def execute_preparation(
     # than guessing — the operator can fill it in later.
     if inp.output_expiry_date:
         from datetime import date as _date
+
         try:
             output_lot.expiry_date = _date.fromisoformat(inp.output_expiry_date)
         except ValueError:
@@ -835,9 +841,7 @@ def execute_preparation(
             pass
     else:
         precursor_expiries = [
-            lot.expiry_date
-            for lot, _q, _u, _n in resolved
-            if lot.expiry_date is not None
+            lot.expiry_date for lot, _q, _u, _n in resolved if lot.expiry_date is not None
         ]
         if precursor_expiries:
             output_lot.expiry_date = min(precursor_expiries)
@@ -868,14 +872,16 @@ def execute_preparation(
 
     # Create consumption rows.
     for i, (lot, qty, unit, notes) in enumerate(resolved):
-        db.session.add(MixturePrepConsumption(
-            prep_id=prep.id,
-            inventory_item_id=lot.id,
-            quantity_consumed=qty,
-            quantity_unit=unit,
-            position=i,
-            notes=notes,
-        ))
+        db.session.add(
+            MixturePrepConsumption(
+                prep_id=prep.id,
+                inventory_item_id=lot.id,
+                quantity_consumed=qty,
+                quantity_unit=unit,
+                position=i,
+                notes=notes,
+            )
+        )
 
     db.session.commit()
     return prep

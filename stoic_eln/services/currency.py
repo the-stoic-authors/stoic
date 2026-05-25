@@ -32,10 +32,10 @@ _SYMBOLS: dict[str, str] = {
     "USD": "$",
     "GBP": "£",
     "JPY": "¥",
-    "CNY": "¥",         # Renminbi/Yuan
+    "CNY": "¥",  # Renminbi/Yuan
     "INR": "₹",
     "KRW": "₩",
-    "CHF": "CHF",       # No symbol commonly used; show code
+    "CHF": "CHF",  # No symbol commonly used; show code
     "RUB": "₽",
     "TRY": "₺",
     "NGN": "₦",
@@ -63,9 +63,31 @@ _SYMBOLS: dict[str, str] = {
 # Common ISO codes shown in the dropdown UI. The user can also type
 # any 3-letter code in the free-text field.
 COMMON_CODES = [
-    "EUR", "USD", "GBP", "CHF", "JPY", "CNY", "INR", "BRL",
-    "CAD", "AUD", "NZD", "MXN", "SGD", "HKD", "KRW", "RUB", "TRY",
-    "PLN", "CZK", "SEK", "NOK", "DKK", "HUF", "ILS", "ZAR",
+    "EUR",
+    "USD",
+    "GBP",
+    "CHF",
+    "JPY",
+    "CNY",
+    "INR",
+    "BRL",
+    "CAD",
+    "AUD",
+    "NZD",
+    "MXN",
+    "SGD",
+    "HKD",
+    "KRW",
+    "RUB",
+    "TRY",
+    "PLN",
+    "CZK",
+    "SEK",
+    "NOK",
+    "DKK",
+    "HUF",
+    "ILS",
+    "ZAR",
 ]
 
 
@@ -93,10 +115,7 @@ def currency_glyph(code: str | None = None) -> str:
     return _SYMBOLS.get(c, c)
 
 
-def format_currency(amount: float | None,
-                    code: str | None = None,
-                    *,
-                    decimals: int = 2) -> str:
+def format_currency(amount: float | None, code: str | None = None, *, decimals: int = 2) -> str:
     """Format ``amount`` with the currency glyph (or code).
 
     Returns "—" for None. Uses standard decimal point with the

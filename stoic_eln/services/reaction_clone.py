@@ -34,9 +34,7 @@ if TYPE_CHECKING:
     pass
 
 
-def clone_for_editing(
-    source: Reaction, *, created_by_id: int | None = None
-) -> Reaction:
+def clone_for_editing(source: Reaction, *, created_by_id: int | None = None) -> Reaction:
     """Create a draft copy of a published reaction.
 
     The draft is fully independent — modifications to it don't affect the
@@ -99,12 +97,14 @@ def clone_for_editing(
 
     # 3. Clone reaction-level checklist
     for item in source.checklist_items:
-        db.session.add(ChecklistItem(
-            reaction_id=draft.id,
-            position=item.position,
-            text=item.text,
-            is_default_done=item.is_default_done,
-        ))
+        db.session.add(
+            ChecklistItem(
+                reaction_id=draft.id,
+                position=item.position,
+                text=item.text,
+                is_default_done=item.is_default_done,
+            )
+        )
 
     # 4. Clone steps + their components + their checklists
     for step in source.steps:
@@ -133,25 +133,29 @@ def clone_for_editing(
             # before 14.6.2: this loop only carried substance_id over,
             # leaving mixture_id=None, which broke the clone for any
             # step containing a mixture-based solvent.
-            db.session.add(ReactionStepComponent(
-                step_id=new_step.id,
-                substance_id=sc.substance_id,
-                mixture_id=sc.mixture_id,
-                position=sc.position,
-                role=sc.role,
-                ratio_kind=sc.ratio_kind,
-                ratio_value=sc.ratio_value,
-                concentration_M=sc.concentration_M,
-                notes=sc.notes,
-            ))
+            db.session.add(
+                ReactionStepComponent(
+                    step_id=new_step.id,
+                    substance_id=sc.substance_id,
+                    mixture_id=sc.mixture_id,
+                    position=sc.position,
+                    role=sc.role,
+                    ratio_kind=sc.ratio_kind,
+                    ratio_value=sc.ratio_value,
+                    concentration_M=sc.concentration_M,
+                    notes=sc.notes,
+                )
+            )
 
         for item in step.checklist_items:
-            db.session.add(ChecklistItem(
-                step_id=new_step.id,
-                position=item.position,
-                text=item.text,
-                is_default_done=item.is_default_done,
-            ))
+            db.session.add(
+                ChecklistItem(
+                    step_id=new_step.id,
+                    position=item.position,
+                    text=item.text,
+                    is_default_done=item.is_default_done,
+                )
+            )
 
     db.session.commit()
     return draft
@@ -192,9 +196,7 @@ def promote_draft(draft: Reaction) -> Reaction:
     # The user must have typed a base code by now.
     base = tc_svc.normalize(draft.template_code_base or draft.template_code)
     if not base:
-        raise ValueError(
-            "Il template deve avere un codice prima di essere salvato."
-        )
+        raise ValueError("Il template deve avere un codice prima di essere salvato.")
 
     # If template_code is set as a fully-versioned form (legacy path),
     # extract the base.
@@ -222,8 +224,8 @@ def promote_draft(draft: Reaction) -> Reaction:
     if parent and parent.template_code_base == base:
         # Allowed: we're versioning the same family
         same_family_ids = [
-            r.id for r in db.session.query(Reaction)
-                              .filter(Reaction.template_code_base == base).all()
+            r.id
+            for r in db.session.query(Reaction).filter(Reaction.template_code_base == base).all()
         ]
 
     # Manual conflict check (validate_base would raise; we want a clearer flow)
@@ -234,15 +236,15 @@ def promote_draft(draft: Reaction) -> Reaction:
     for rid in same_family_ids:
         if rid != draft.id:
             q = q.filter(Reaction.id != rid)
-    conflict = q.filter(Reaction.status == "published",
-                         Reaction.is_archived.is_(False)).first()
+    conflict = q.filter(Reaction.status == "published", Reaction.is_archived.is_(False)).first()
     if conflict and (parent is None or conflict.id != parent.id):
         from stoic_eln.services.template_code import TemplateCodeError
+
         raise TemplateCodeError(
             f"Il codice '{base}' è già usato da un altro template "
             f"({conflict.template_code} — {conflict.title or '?'}). "
             f"Per pubblicare una nuova versione, usa il bottone "
-            f"\"Modifica\" sul template esistente; per crearne uno "
+            f'"Modifica" sul template esistente; per crearne uno '
             f"distinto, scegli un codice diverso."
         )
 
@@ -254,11 +256,16 @@ def promote_draft(draft: Reaction) -> Reaction:
         new_version = (parent.version_number or 1) + 1
         # Archive the parent (and any other non-archived versions of this family,
         # for safety against weird states)
-        for old in (db.session.query(Reaction)
-                      .filter(Reaction.template_code_base == base,
-                              Reaction.id != draft.id,
-                              Reaction.status == "published",
-                              Reaction.is_archived.is_(False)).all()):
+        for old in (
+            db.session.query(Reaction)
+            .filter(
+                Reaction.template_code_base == base,
+                Reaction.id != draft.id,
+                Reaction.status == "published",
+                Reaction.is_archived.is_(False),
+            )
+            .all()
+        ):
             old.is_archived = True
 
     # Apply versioning to the draft
@@ -283,9 +290,7 @@ def discard_draft(draft: Reaction) -> None:
     db.session.commit()
 
 
-def duplicate_for_new(
-    source: Reaction, *, created_by_id: int | None = None
-) -> Reaction:
+def duplicate_for_new(source: Reaction, *, created_by_id: int | None = None) -> Reaction:
     """Duplicate a reaction as a fresh, independent draft.
 
     Different from ``clone_for_editing``: this creates a draft that is
@@ -308,7 +313,7 @@ def duplicate_for_new(
         template_code_base=None,
         version_number=1,
         status="draft",
-        parent_published_id=None,    # not a clone
+        parent_published_id=None,  # not a clone
         parent_version_id=None,
         is_archived=False,
         title=source.title + " (copia)",
@@ -347,11 +352,13 @@ def duplicate_for_new(
 
     # Reaction-level checklist
     for it in source.checklist_items:
-        db.session.add(ChecklistItem(
-            reaction_id=draft.id,
-            text=it.text,
-            position=it.position,
-        ))
+        db.session.add(
+            ChecklistItem(
+                reaction_id=draft.id,
+                text=it.text,
+                position=it.position,
+            )
+        )
 
     # Steps + their nested children
     for s in source.steps:
@@ -365,20 +372,24 @@ def duplicate_for_new(
         db.session.add(new_s)
         db.session.flush()
         for sc in s.components:
-            db.session.add(ReactionStepComponent(
-                step_id=new_s.id,
-                substance_id=sc.substance_id,
-                role=sc.role,
-                ratio_value=sc.ratio_value,
-                ratio_kind=sc.ratio_kind,
-                position=sc.position,
-            ))
+            db.session.add(
+                ReactionStepComponent(
+                    step_id=new_s.id,
+                    substance_id=sc.substance_id,
+                    role=sc.role,
+                    ratio_value=sc.ratio_value,
+                    ratio_kind=sc.ratio_kind,
+                    position=sc.position,
+                )
+            )
         for it in s.checklist_items:
-            db.session.add(ChecklistItem(
-                step_id=new_s.id,
-                text=it.text,
-                position=it.position,
-            ))
+            db.session.add(
+                ChecklistItem(
+                    step_id=new_s.id,
+                    text=it.text,
+                    position=it.position,
+                )
+            )
 
     db.session.commit()
     return draft

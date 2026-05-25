@@ -53,44 +53,98 @@ from stoic_eln.models.attachment import ATTACHMENT_ENTITY_TYPES, Attachment
 # Allowed extensions (lowercase, no leading dot). Conservative whitelist
 # tilted toward chemistry-lab data: documents, images, instrument output,
 # light archive formats. Adding entries here is a one-line edit.
-ALLOWED_EXTENSIONS: frozenset[str] = frozenset({
-    # Documents
-    "pdf", "txt", "md", "rtf",
-    "doc", "docx", "odt",
-    # Spreadsheets / tabular
-    "csv", "tsv", "xls", "xlsx", "ods",
-    # Images
-    "png", "jpg", "jpeg", "gif", "webp", "tif", "tiff", "bmp", "heic",
-    # Lab / instrument data
-    "jdx", "dx",            # JCAMP-DX (NMR/IR)
-    "mol", "sdf", "mol2",   # Molecule files
-    "cdx", "cdxml",         # ChemDraw
-    "raw", "mzml", "mzxml", # Mass spec
-    "fid",                  # NMR raw
-    "cif",                  # Crystallography
-    # Archives (so users can group e.g. an NMR fid directory)
-    "zip", "tar", "gz", "tgz", "7z",
-})
+ALLOWED_EXTENSIONS: frozenset[str] = frozenset(
+    {
+        # Documents
+        "pdf",
+        "txt",
+        "md",
+        "rtf",
+        "doc",
+        "docx",
+        "odt",
+        # Spreadsheets / tabular
+        "csv",
+        "tsv",
+        "xls",
+        "xlsx",
+        "ods",
+        # Images
+        "png",
+        "jpg",
+        "jpeg",
+        "gif",
+        "webp",
+        "tif",
+        "tiff",
+        "bmp",
+        "heic",
+        # Lab / instrument data
+        "jdx",
+        "dx",  # JCAMP-DX (NMR/IR)
+        "mol",
+        "sdf",
+        "mol2",  # Molecule files
+        "cdx",
+        "cdxml",  # ChemDraw
+        "raw",
+        "mzml",
+        "mzxml",  # Mass spec
+        "fid",  # NMR raw
+        "cif",  # Crystallography
+        # Archives (so users can group e.g. an NMR fid directory)
+        "zip",
+        "tar",
+        "gz",
+        "tgz",
+        "7z",
+    }
+)
 
 
 # Denied extensions: explicitly executable / scriptable / risky.
 # Even if a user renamed an .exe to something allowed, the extension
 # check on the typed filename would still pass — we accept that
 # trade-off; we're a single-tenant lab tool, not a public file host.
-DENIED_EXTENSIONS: frozenset[str] = frozenset({
-    "exe", "com", "bat", "cmd", "msi", "scr", "ps1",
-    "sh", "bash", "zsh", "fish",
-    "py", "pyc", "pyo", "pyd",
-    "js", "mjs", "cjs",
-    "html", "htm", "xhtml",
-    "svg",  # XSS via embedded scripts
-    "php", "phtml",
-    "jar", "war", "class",
-    "vbs", "wsf", "hta",
-    "dll", "so", "dylib",
-    "lnk",
-    "app",
-})
+DENIED_EXTENSIONS: frozenset[str] = frozenset(
+    {
+        "exe",
+        "com",
+        "bat",
+        "cmd",
+        "msi",
+        "scr",
+        "ps1",
+        "sh",
+        "bash",
+        "zsh",
+        "fish",
+        "py",
+        "pyc",
+        "pyo",
+        "pyd",
+        "js",
+        "mjs",
+        "cjs",
+        "html",
+        "htm",
+        "xhtml",
+        "svg",  # XSS via embedded scripts
+        "php",
+        "phtml",
+        "jar",
+        "war",
+        "class",
+        "vbs",
+        "wsf",
+        "hta",
+        "dll",
+        "so",
+        "dylib",
+        "lnk",
+        "app",
+    }
+)
 
 
 # ── Errors ────────────────────────────────────────────────────────────
@@ -115,6 +169,7 @@ def storage_dir() -> Path:
     if not p.is_absolute():
         # PROJECT_ROOT == parent of the stoic_eln package
         from stoic_eln.config import PROJECT_ROOT
+
         p = PROJECT_ROOT / p
     p.mkdir(parents=True, exist_ok=True)
     return p
@@ -177,14 +232,16 @@ def _validate_extension(filename: str) -> None:
     ext = _extension_of(filename)
     if ext in DENIED_EXTENSIONS:
         raise AttachmentError(
-            _("Tipo di file '.%(ext)s' non permesso (potenzialmente eseguibile).",
-              ext=ext)
+            _("Tipo di file '.%(ext)s' non permesso (potenzialmente eseguibile).", ext=ext)
         )
     if ext not in ALLOWED_EXTENSIONS:
         types = ", ".join(sorted(ALLOWED_EXTENSIONS))
         raise AttachmentError(
-            _("Tipo di file '.%(ext)s' non supportato. Tipi permessi: %(types)s.",
-              ext=ext, types=types)
+            _(
+                "Tipo di file '.%(ext)s' non supportato. Tipi permessi: %(types)s.",
+                ext=ext,
+                types=types,
+            )
         )
 
 
@@ -192,9 +249,7 @@ def _validate_entity_type(entity_type: str) -> None:
     from flask_babel import gettext as _
 
     if entity_type not in ATTACHMENT_ENTITY_TYPES:
-        raise AttachmentError(
-            _("entity_type non valido: %(t)s", t=entity_type)
-        )
+        raise AttachmentError(_("entity_type non valido: %(t)s", t=entity_type))
 
 
 # ── Save / list / delete ──────────────────────────────────────────────
@@ -245,14 +300,14 @@ def save_upload(
     if size <= 0:
         raise AttachmentError(_("File vuoto."))
 
-    max_bytes = current_app.config.get(
-        "MAX_CONTENT_LENGTH", 100 * 1024 * 1024
-    )
+    max_bytes = current_app.config.get("MAX_CONTENT_LENGTH", 100 * 1024 * 1024)
     if size > max_bytes:
         raise AttachmentError(
-            _("File troppo grande (%(size).1f MB). Massimo: %(max).0f MB.",
-              size=size / (1024 * 1024),
-              max=max_bytes / (1024 * 1024))
+            _(
+                "File troppo grande (%(size).1f MB). Massimo: %(max).0f MB.",
+                size=size / (1024 * 1024),
+                max=max_bytes / (1024 * 1024),
+            )
         )
 
     storage_filename = f"{sha[:16]}_{safe}"
@@ -322,9 +377,7 @@ def delete_attachment(att: Attachment) -> None:
     db.session.flush()  # apply delete before counting refs
 
     others = (
-        db.session.query(Attachment)
-        .filter(Attachment.storage_filename == storage_filename)
-        .count()
+        db.session.query(Attachment).filter(Attachment.storage_filename == storage_filename).count()
     )
     if others == 0:
         target = storage_dir() / storage_filename
@@ -335,7 +388,9 @@ def delete_attachment(att: Attachment) -> None:
             # Don't roll back the DB delete just because the file is
             # already gone or unwritable — log and move on.
             current_app.logger.warning(
-                "Could not remove attachment file %s: %s", target, exc,
+                "Could not remove attachment file %s: %s",
+                target,
+                exc,
             )
 
     db.session.commit()

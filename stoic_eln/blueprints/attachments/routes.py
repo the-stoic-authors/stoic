@@ -16,7 +16,13 @@ Authorisation:
 from __future__ import annotations
 
 from flask import (
-    abort, flash, redirect, render_template, request, send_file, url_for,
+    abort,
+    flash,
+    redirect,
+    render_template,
+    request,
+    send_file,
+    url_for,
 )
 from flask_babel import gettext as _
 from flask_login import current_user, login_required
@@ -25,7 +31,8 @@ from stoic_eln.blueprints.attachments import bp
 from stoic_eln.extensions import db
 from stoic_eln.models import InventoryItem, Reaction, Run, Substance
 from stoic_eln.models.attachment import (
-    ATTACHMENT_ENTITY_TYPES, Attachment,
+    ATTACHMENT_ENTITY_TYPES,
+    Attachment,
 )
 from stoic_eln.models.mixture import Mixture
 from stoic_eln.models.mixture_prep import MixturePrep
@@ -122,10 +129,14 @@ def upload(entity_type: str, entity_id: int):
         return _redirect_to_entity(entity_type, entity_id)
 
     log_event(
-        action="create", entity_type="attachment", entity_id=att.id,
+        action="create",
+        entity_type="attachment",
+        entity_id=att.id,
         details={
-            "target_type": entity_type, "target_id": entity_id,
-            "filename": att.filename, "size_bytes": att.size_bytes,
+            "target_type": entity_type,
+            "target_id": entity_id,
+            "filename": att.filename,
+            "size_bytes": att.size_bytes,
         },
     )
     flash(_("Allegato caricato."), "success")
@@ -184,16 +195,20 @@ def delete(attachment_id: int):
         abort(404)
 
     is_admin = bool(getattr(current_user, "is_admin", False))
-    is_uploader = (att.uploaded_by_id == current_user.id)
+    is_uploader = att.uploaded_by_id == current_user.id
     if not (is_admin or is_uploader):
         abort(403)
 
     entity_type, entity_id = att.entity_type, att.entity_id
     log_event(
-        action="delete", entity_type="attachment", entity_id=att.id,
+        action="delete",
+        entity_type="attachment",
+        entity_id=att.id,
         details={
-            "target_type": entity_type, "target_id": entity_id,
-            "filename": att.filename, "uploaded_by_id": att.uploaded_by_id,
+            "target_type": entity_type,
+            "target_id": entity_id,
+            "filename": att.filename,
+            "uploaded_by_id": att.uploaded_by_id,
         },
     )
     att_service.delete_attachment(att)

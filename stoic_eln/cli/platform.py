@@ -118,6 +118,7 @@ class Platform(ABC):
         """
         # Default: no-op for fallback. Subclasses override.
         from stoic_eln.cli.output import warn
+
         warn(
             f"Daemon installation not supported on {self.name}. "
             f"Use 'stoic start' manually after boot, or set up "
@@ -168,10 +169,7 @@ class GenericPlatform(Platform):
 
         venv_python = REPO_ROOT / ".venv" / "bin" / "python"
         if not venv_python.exists():
-            die(
-                f"Virtual environment not found at {venv_python}. "
-                f"Run 'stoic install' first."
-            )
+            die(f"Virtual environment not found at {venv_python}. Run 'stoic install' first.")
 
         env = os.environ.copy()
         env["FLASK_APP"] = "stoic_eln"
@@ -181,9 +179,16 @@ class GenericPlatform(Platform):
             os.execve(
                 str(venv_python),
                 [
-                    str(venv_python), "-m", "flask",
-                    "--app", "stoic_eln", "run",
-                    "--host", "127.0.0.1", "--port", str(port),
+                    str(venv_python),
+                    "-m",
+                    "flask",
+                    "--app",
+                    "stoic_eln",
+                    "run",
+                    "--host",
+                    "127.0.0.1",
+                    "--port",
+                    str(port),
                 ],
                 env,
             )
@@ -194,9 +199,16 @@ class GenericPlatform(Platform):
         with open(LOG_FILE, "ab") as log_fh:
             proc = subprocess.Popen(
                 [
-                    str(venv_python), "-m", "flask",
-                    "--app", "stoic_eln", "run",
-                    "--host", "127.0.0.1", "--port", str(port),
+                    str(venv_python),
+                    "-m",
+                    "flask",
+                    "--app",
+                    "stoic_eln",
+                    "run",
+                    "--host",
+                    "127.0.0.1",
+                    "--port",
+                    str(port),
                 ],
                 stdout=log_fh,
                 stderr=log_fh,
@@ -212,8 +224,7 @@ class GenericPlatform(Platform):
         if not self._pid_alive(proc.pid):
             die(
                 f"Stoic failed to start. See {LOG_FILE} for the error. "
-                f"Last 5 lines:\n" +
-                _tail(LOG_FILE, 5),
+                f"Last 5 lines:\n" + _tail(LOG_FILE, 5),
             )
         ok(f"Stoic started (pid {proc.pid}) on http://127.0.0.1:{port}")
 
@@ -253,7 +264,8 @@ class GenericPlatform(Platform):
         try:
             out = subprocess.check_output(
                 ["ps", "-o", "etimes=", "-p", str(pid)],
-                text=True, stderr=subprocess.DEVNULL,
+                text=True,
+                stderr=subprocess.DEVNULL,
             )
             uptime = int(out.strip())
         except (subprocess.CalledProcessError, ValueError):
@@ -283,10 +295,7 @@ class MacOSPlatform(GenericPlatform):
 
         venv_python = REPO_ROOT / ".venv" / "bin" / "python"
         if not venv_python.exists():
-            die(
-                f"Virtual environment not found at {venv_python}. "
-                f"Run 'stoic install' first."
-            )
+            die(f"Virtual environment not found at {venv_python}. Run 'stoic install' first.")
 
         PLIST_PATH.parent.mkdir(parents=True, exist_ok=True)
 
@@ -336,10 +345,10 @@ class MacOSPlatform(GenericPlatform):
         info(f"Wrote LaunchAgent plist to {PLIST_PATH}")
 
         # Load it
-        subprocess.run(["launchctl", "unload", str(PLIST_PATH)],
-                       check=False, capture_output=True)
-        result = subprocess.run(["launchctl", "load", str(PLIST_PATH)],
-                                check=False, capture_output=True, text=True)
+        subprocess.run(["launchctl", "unload", str(PLIST_PATH)], check=False, capture_output=True)
+        result = subprocess.run(
+            ["launchctl", "load", str(PLIST_PATH)], check=False, capture_output=True, text=True
+        )
         if result.returncode != 0:
             die(f"launchctl load failed: {result.stderr.strip()}")
 
@@ -356,8 +365,7 @@ class MacOSPlatform(GenericPlatform):
             info("No launchd registration found, nothing to remove.")
             return
 
-        subprocess.run(["launchctl", "unload", str(PLIST_PATH)],
-                       check=False, capture_output=True)
+        subprocess.run(["launchctl", "unload", str(PLIST_PATH)], check=False, capture_output=True)
         PLIST_PATH.unlink()
         ok("Removed launchd registration.")
 
@@ -366,9 +374,12 @@ class MacOSPlatform(GenericPlatform):
         generic nohup-style start."""
         if PLIST_PATH.exists() and not foreground:
             from stoic_eln.cli.output import info, ok
+
             result = subprocess.run(
                 ["launchctl", "start", PLIST_LABEL],
-                check=False, capture_output=True, text=True,
+                check=False,
+                capture_output=True,
+                text=True,
             )
             if result.returncode == 0:
                 time.sleep(1.0)
@@ -382,8 +393,8 @@ class MacOSPlatform(GenericPlatform):
     def stop(self) -> None:
         if PLIST_PATH.exists():
             from stoic_eln.cli.output import ok
-            subprocess.run(["launchctl", "stop", PLIST_LABEL],
-                           check=False, capture_output=True)
+
+            subprocess.run(["launchctl", "stop", PLIST_LABEL], check=False, capture_output=True)
             time.sleep(0.5)
             PID_FILE.unlink(missing_ok=True)
             ok("Stoic stopped via launchd.")
@@ -395,7 +406,9 @@ class MacOSPlatform(GenericPlatform):
             # Query launchctl for the service state
             result = subprocess.run(
                 ["launchctl", "list", PLIST_LABEL],
-                check=False, capture_output=True, text=True,
+                check=False,
+                capture_output=True,
+                text=True,
             )
             if result.returncode == 0:
                 # Parse "PID" from output like:
@@ -441,10 +454,7 @@ class LinuxSystemdPlatform(GenericPlatform):
 
         venv_python = REPO_ROOT / ".venv" / "bin" / "python"
         if not venv_python.exists():
-            die(
-                f"Virtual environment not found at {venv_python}. "
-                f"Run 'stoic install' first."
-            )
+            die(f"Virtual environment not found at {venv_python}. Run 'stoic install' first.")
 
         SYSTEMD_UNIT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -469,12 +479,9 @@ WantedBy=default.target
         SYSTEMD_UNIT_PATH.write_text(unit)
         info(f"Wrote systemd unit to {SYSTEMD_UNIT_PATH}")
 
-        subprocess.run(["systemctl", "--user", "daemon-reload"],
-                       check=True)
-        subprocess.run(["systemctl", "--user", "enable", SYSTEMD_UNIT_NAME],
-                       check=True)
-        subprocess.run(["systemctl", "--user", "start", SYSTEMD_UNIT_NAME],
-                       check=True)
+        subprocess.run(["systemctl", "--user", "daemon-reload"], check=True)
+        subprocess.run(["systemctl", "--user", "enable", SYSTEMD_UNIT_NAME], check=True)
+        subprocess.run(["systemctl", "--user", "start", SYSTEMD_UNIT_NAME], check=True)
 
         ok(
             "Stoic registered as systemd user service. To make it "
@@ -489,10 +496,12 @@ WantedBy=default.target
             info("No systemd unit found, nothing to remove.")
             return
 
-        subprocess.run(["systemctl", "--user", "stop", SYSTEMD_UNIT_NAME],
-                       check=False, capture_output=True)
-        subprocess.run(["systemctl", "--user", "disable", SYSTEMD_UNIT_NAME],
-                       check=False, capture_output=True)
+        subprocess.run(
+            ["systemctl", "--user", "stop", SYSTEMD_UNIT_NAME], check=False, capture_output=True
+        )
+        subprocess.run(
+            ["systemctl", "--user", "disable", SYSTEMD_UNIT_NAME], check=False, capture_output=True
+        )
         SYSTEMD_UNIT_PATH.unlink()
         subprocess.run(["systemctl", "--user", "daemon-reload"], check=False)
         ok("Removed systemd registration.")
@@ -500,6 +509,7 @@ WantedBy=default.target
     def start(self, port: int = 5001, foreground: bool = False) -> None:
         if SYSTEMD_UNIT_PATH.exists() and not foreground:
             from stoic_eln.cli.output import ok
+
             subprocess.run(
                 ["systemctl", "--user", "start", SYSTEMD_UNIT_NAME],
                 check=True,
@@ -512,6 +522,7 @@ WantedBy=default.target
     def stop(self) -> None:
         if SYSTEMD_UNIT_PATH.exists():
             from stoic_eln.cli.output import ok
+
             subprocess.run(
                 ["systemctl", "--user", "stop", SYSTEMD_UNIT_NAME],
                 check=False,
@@ -523,9 +534,16 @@ WantedBy=default.target
     def status(self) -> Status:
         if SYSTEMD_UNIT_PATH.exists():
             result = subprocess.run(
-                ["systemctl", "--user", "show", SYSTEMD_UNIT_NAME,
-                 "--property=ActiveState,MainPID"],
-                check=False, capture_output=True, text=True,
+                [
+                    "systemctl",
+                    "--user",
+                    "show",
+                    SYSTEMD_UNIT_NAME,
+                    "--property=ActiveState,MainPID",
+                ],
+                check=False,
+                capture_output=True,
+                text=True,
             )
             active = False
             pid = None

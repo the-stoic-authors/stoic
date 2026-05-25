@@ -62,9 +62,9 @@ def _now_utc() -> datetime:
 # defaults to %v/v on its components, etc — all UI-side, the model
 # itself just stores the string).
 
-MIXTURE_KIND_SOLUTION = "solution"      # HCl 1N, NaOH 0.5 M, brine
-MIXTURE_KIND_ELUENT = "eluent"          # 95:5 hexane:EtOAc
-MIXTURE_KIND_BUFFER = "buffer"          # phosphate buffer pH 7.4
+MIXTURE_KIND_SOLUTION = "solution"  # HCl 1N, NaOH 0.5 M, brine
+MIXTURE_KIND_ELUENT = "eluent"  # 95:5 hexane:EtOAc
+MIXTURE_KIND_BUFFER = "buffer"  # phosphate buffer pH 7.4
 MIXTURE_KIND_REAGENT_MIX = "reagent_mix"  # any other prepared reagent
 MIXTURE_KIND_OTHER = "other"
 
@@ -108,16 +108,16 @@ COMPONENT_ROLES = (
 # elsewhere; here we just preserve what the user wrote).
 
 CONCENTRATION_UNITS = (
-    "M",         # molarity, mol/L
-    "N",         # normality (HCl 1N, H2SO4 0.5N, …)
-    "mM",        # millimolarity
-    "%v/v",      # volume fraction
-    "%w/w",      # mass fraction
-    "%w/v",      # mass-volume fraction
+    "M",  # molarity, mol/L
+    "N",  # normality (HCl 1N, H2SO4 0.5N, …)
+    "mM",  # millimolarity
+    "%v/v",  # volume fraction
+    "%w/w",  # mass fraction
+    "%w/v",  # mass-volume fraction
     "mg/mL",
     "g/L",
     "ppm",
-    "ratio",     # for free ratios like 95:5 — stored as the numerator
+    "ratio",  # for free ratios like 95:5 — stored as the numerator
 )
 
 
@@ -151,7 +151,9 @@ class Mixture(db.Model):
     # Identification
     name: Mapped[str] = mapped_column(String(200), nullable=False, index=True)
     kind: Mapped[str] = mapped_column(
-        String(24), nullable=False, default=MIXTURE_KIND_SOLUTION,
+        String(24),
+        nullable=False,
+        default=MIXTURE_KIND_SOLUTION,
         index=True,
     )
 
@@ -169,14 +171,17 @@ class Mixture(db.Model):
     # the per-component concentrations instead.
     primary_concentration: Mapped[float | None] = mapped_column(Float, nullable=True)
     primary_concentration_unit: Mapped[str | None] = mapped_column(
-        String(16), nullable=True,
+        String(16),
+        nullable=True,
     )
 
     # Optional FK to the principal solvent (water for aqueous
     # solutions, the major solvent for non-aqueous mixtures). Used by
     # the label renderer to show "HCl 1N (aq)" or similar.
     primary_solvent_id: Mapped[int | None] = mapped_column(
-        Integer, ForeignKey("substance.id"), nullable=True,
+        Integer,
+        ForeignKey("substance.id"),
+        nullable=True,
     )
 
     # GHS overrides — JSON list of pictogram codes / phrase codes.
@@ -185,23 +190,32 @@ class Mixture(db.Model):
     # explicitly clears the inherited hazards (e.g. "this dilute
     # solution carries no GHS hazard").
     ghs_pictograms_override: Mapped[list[str] | None] = mapped_column(
-        JSON, nullable=True,
+        JSON,
+        nullable=True,
     )
     h_phrases_override: Mapped[list[str] | None] = mapped_column(
-        JSON, nullable=True,
+        JSON,
+        nullable=True,
     )
     p_phrases_override: Mapped[list[str] | None] = mapped_column(
-        JSON, nullable=True,
+        JSON,
+        nullable=True,
     )
 
     # Owner group — same model as Substance/InventoryItem.
     group_id: Mapped[int | None] = mapped_column(
-        Integer, ForeignKey("group.id"), nullable=True, index=True,
+        Integer,
+        ForeignKey("group.id"),
+        nullable=True,
+        index=True,
     )
 
     # Status / lifecycle
     is_active: Mapped[bool] = mapped_column(
-        Boolean, default=True, nullable=False, index=True,
+        Boolean,
+        default=True,
+        nullable=False,
+        index=True,
     )
 
     # Free-text notes (post-creation commentary)
@@ -209,13 +223,20 @@ class Mixture(db.Model):
 
     # Audit
     created_by_id: Mapped[int | None] = mapped_column(
-        Integer, ForeignKey("user.id"), nullable=True,
+        Integer,
+        ForeignKey("user.id"),
+        nullable=True,
     )
     created_at: Mapped[datetime] = mapped_column(
-        DateTime, default=_now_utc, nullable=False,
+        DateTime,
+        default=_now_utc,
+        nullable=False,
     )
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime, default=_now_utc, onupdate=_now_utc, nullable=False,
+        DateTime,
+        default=_now_utc,
+        onupdate=_now_utc,
+        nullable=False,
     )
 
     # Relationships
@@ -232,7 +253,8 @@ class Mixture(db.Model):
         order_by="MixtureComponent.position",
     )
     primary_solvent: Mapped[Substance | None] = relationship(
-        Substance, foreign_keys=[primary_solvent_id],
+        Substance,
+        foreign_keys=[primary_solvent_id],
     )
     inventory_items: Mapped[list[InventoryItem]] = relationship(
         "InventoryItem",
@@ -263,9 +285,7 @@ class Mixture(db.Model):
         """
         if self.id is not None and self.id in visited:
             return []
-        next_visited = (
-            visited | {self.id} if self.id is not None else visited
-        )
+        next_visited = visited | {self.id} if self.id is not None else visited
 
         seen: set[str] = set()
         out: list[str] = []
@@ -323,7 +343,10 @@ class Mixture(db.Model):
         return self.derived_p_phrases
 
     def _derived_phrases_recursive(
-        self, visited: set[int], *, kind: str,
+        self,
+        visited: set[int],
+        *,
+        kind: str,
     ) -> list[str]:
         """Internal: shared body for H/P phrase derivation.
 
@@ -333,14 +356,10 @@ class Mixture(db.Model):
         """
         if self.id is not None and self.id in visited:
             return []
-        next_visited = (
-            visited | {self.id} if self.id is not None else visited
-        )
+        next_visited = visited | {self.id} if self.id is not None else visited
 
         sub_attr = "h_phrases" if kind == "h" else "p_phrases"
-        override_attr = (
-            "h_phrases_override" if kind == "h" else "p_phrases_override"
-        )
+        override_attr = "h_phrases_override" if kind == "h" else "p_phrases_override"
 
         seen: set[str] = set()
         out: list[str] = []
@@ -353,7 +372,8 @@ class Mixture(db.Model):
                     phrases = list(child_override)
                 else:
                     phrases = child._derived_phrases_recursive(
-                        next_visited, kind=kind,
+                        next_visited,
+                        kind=kind,
                     )
             elif comp.substance is not None:
                 sub_phrases = getattr(comp.substance, sub_attr)
@@ -373,13 +393,8 @@ class Mixture(db.Model):
         is set, falling back to just the name. Doesn't try to
         reproduce the component list — that lives in dedicated views.
         """
-        if (self.primary_concentration is not None
-                and self.primary_concentration_unit):
-            return (
-                f"{self.name} "
-                f"({self.primary_concentration:g} "
-                f"{self.primary_concentration_unit})"
-            )
+        if self.primary_concentration is not None and self.primary_concentration_unit:
+            return f"{self.name} ({self.primary_concentration:g} {self.primary_concentration_unit})"
         return self.name
 
     def __repr__(self) -> str:  # pragma: no cover — debugging only
@@ -408,9 +423,7 @@ class Mixture(db.Model):
             _visited = set()
         if self.id is not None and self.id in _visited:
             return None
-        next_visited = (
-            _visited | {self.id} if self.id is not None else _visited
-        )
+        next_visited = _visited | {self.id} if self.id is not None else _visited
 
         candidates: list[_date] = []
         for comp in self.components:
@@ -468,14 +481,20 @@ class MixtureComponent(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
 
     mixture_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("mixture.id"), nullable=False, index=True,
+        Integer,
+        ForeignKey("mixture.id"),
+        nullable=False,
+        index=True,
     )
     # XOR with child_mixture_id: exactly one is set. CHECK
     # constraint is in the Alembic migration since SQLAlchemy
     # CheckConstraint on Mapped columns is awkward to express
     # cleanly without dropping into __table_args__.
     substance_id: Mapped[int | None] = mapped_column(
-        Integer, ForeignKey("substance.id"), nullable=True, index=True,
+        Integer,
+        ForeignKey("substance.id"),
+        nullable=True,
+        index=True,
     )
     # The "child mixture" — set when this component is itself a
     # mixture (e.g. HCl 12N used as a stock when preparing HCl 6N).
@@ -484,35 +503,47 @@ class MixtureComponent(db.Model):
     # hierarchy the owning mixture is the parent and this is one
     # of its inputs.
     child_mixture_id: Mapped[int | None] = mapped_column(
-        Integer, ForeignKey("mixture.id"), nullable=True, index=True,
+        Integer,
+        ForeignKey("mixture.id"),
+        nullable=True,
+        index=True,
     )
 
     role: Mapped[str] = mapped_column(
-        String(24), nullable=False, default=COMPONENT_ROLE_SOLUTE,
+        String(24),
+        nullable=False,
+        default=COMPONENT_ROLE_SOLUTE,
     )
 
     concentration: Mapped[float | None] = mapped_column(Float, nullable=True)
     concentration_unit: Mapped[str | None] = mapped_column(
-        String(16), nullable=True,
+        String(16),
+        nullable=True,
     )
 
     # Display order within the mixture's component list. Defaults to
     # 0; the form/UI assigns sequential positions when adding rows.
     position: Mapped[int] = mapped_column(
-        Integer, nullable=False, default=0,
+        Integer,
+        nullable=False,
+        default=0,
     )
 
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     # Relationships
     mixture: Mapped[Mixture] = relationship(
-        Mixture, foreign_keys=[mixture_id], back_populates="components",
+        Mixture,
+        foreign_keys=[mixture_id],
+        back_populates="components",
     )
     substance: Mapped[Substance | None] = relationship(
-        Substance, foreign_keys=[substance_id],
+        Substance,
+        foreign_keys=[substance_id],
     )
     child_mixture: Mapped[Mixture | None] = relationship(
-        "Mixture", foreign_keys=[child_mixture_id],
+        "Mixture",
+        foreign_keys=[child_mixture_id],
     )
 
     @property
@@ -539,7 +570,4 @@ class MixtureComponent(db.Model):
             if self.child_mixture_id is not None
             else f"sub={self.substance_id}"
         )
-        return (
-            f"<MixtureComponent id={self.id} "
-            f"{ref} role={self.role}>"
-        )
+        return f"<MixtureComponent id={self.id} {ref} role={self.role}>"

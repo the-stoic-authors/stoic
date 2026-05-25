@@ -20,6 +20,7 @@ def admin_required(view):
         if not current_user.is_authenticated or not current_user.is_admin:
             abort(403)
         return view(*args, **kwargs)
+
     return wrapper
 
 
@@ -30,6 +31,7 @@ def index():
     """Landing page — shows the available settings groups."""
     from stoic_eln.services import prep_code as prep_code_service
     from stoic_eln.services.currency import get_currency_code
+
     return render_template(
         "settings/index.html",
         run_code_format=run_code_service.get_format(),
@@ -124,9 +126,9 @@ def prep_code():
             return redirect(url_for("settings.prep_code"))
 
         log_event(
-            action="update", entity_type="settings",
-            details={"setting": "prep_code",
-                     "format": new_format, "scope": new_scope},
+            action="update",
+            entity_type="settings",
+            details={"setting": "prep_code", "format": new_format, "scope": new_scope},
         )
         flash(_("Impostazioni codice preparazione aggiornate."), "success")
         return redirect(url_for("settings.prep_code"))
@@ -149,6 +151,7 @@ def prep_code():
 def prep_code_preview():
     """HTMX endpoint: re-render the preview when the user types a new format."""
     from stoic_eln.services import prep_code as prep_code_service
+
     fmt = (request.form.get("format") or "").strip()
     try:
         prep_code_service.validate_format(fmt)
@@ -168,6 +171,7 @@ def users():
     """List all users with their role and active status."""
     from stoic_eln.extensions import db
     from stoic_eln.models.user import User
+
     users_list = db.session.query(User).order_by(User.username).all()
     return render_template("settings/users.html", users=users_list)
 
@@ -179,6 +183,7 @@ def update_user_role(user_id: int):
     """Change a user's role between user / supervisor / admin."""
     from stoic_eln.extensions import db
     from stoic_eln.models.user import User
+
     user = db.session.get(User, user_id)
     if user is None:
         abort(404)
@@ -207,8 +212,11 @@ def update_user_role(user_id: int):
 @admin_required
 def currency():
     from stoic_eln.services.currency import (
-        COMMON_CODES, get_currency_code, _SYMBOLS,
+        COMMON_CODES,
+        get_currency_code,
+        _SYMBOLS,
     )
+
     return render_template(
         "settings/currency.html",
         current_code=get_currency_code(),
@@ -222,6 +230,7 @@ def currency():
 @admin_required
 def update_currency():
     from stoic_eln.services.currency import set_currency_code
+
     # Free-text field wins over the dropdown if both are set
     code = (request.form.get("code") or "").strip()
     if not code:
@@ -281,9 +290,13 @@ def _parse_audit_filters():
 def audit_log():
     """Paginated, filtered audit log for admins."""
     from stoic_eln.services.audit_query import (
-        query_events, distinct_actions, distinct_entity_types,
-        distinct_users, label_for_action,
+        query_events,
+        distinct_actions,
+        distinct_entity_types,
+        distinct_users,
+        label_for_action,
     )
+
     filters = _parse_audit_filters()
     page = request.args.get("page", default=1, type=int) or 1
     page_size = min(max(request.args.get("page_size", default=50, type=int) or 50, 10), 500)
@@ -307,10 +320,12 @@ def audit_log():
 def audit_log_export_csv():
     """Download all matching events as CSV."""
     from stoic_eln.services.audit_query import export_csv
+
     filters = _parse_audit_filters()
     csv_text = export_csv(filters)
     from flask import Response
     from datetime import datetime as _dt
+
     fname = f"audit_log_{_dt.now().strftime('%Y%m%d_%H%M%S')}.csv"
     return Response(
         csv_text,
@@ -325,20 +340,24 @@ def audit_log_export_csv():
 def audit_log_export_pdf():
     """Download all matching events as a PDF report."""
     from stoic_eln.services.audit_query import (
-        query_events, label_for_action,
+        query_events,
+        label_for_action,
     )
     from stoic_eln.services.pdf_audit import render_audit_log_pdf
+
     filters = _parse_audit_filters()
     # All events (no paging) but capped to avoid runaway PDFs
     page = query_events(filters, page=1, page_size=5000)
     pdf_bytes = render_audit_log_pdf(
-        events=page.events, filters=filters,
+        events=page.events,
+        filters=filters,
         label_for_action=label_for_action,
         truncated=(page.total > len(page.events)),
         total_count=page.total,
     )
     from flask import Response
     from datetime import datetime as _dt
+
     fname = f"audit_log_{_dt.now().strftime('%Y%m%d_%H%M%S')}.pdf"
     return Response(
         pdf_bytes,
@@ -363,9 +382,9 @@ def new_user():
     from stoic_eln.models import Group
     from stoic_eln.models.user import User
 
-    groups = (db.session.query(Group)
-              .filter(Group.is_active.is_(True))
-              .order_by(Group.name.asc()).all())
+    groups = (
+        db.session.query(Group).filter(Group.is_active.is_(True)).order_by(Group.name.asc()).all()
+    )
 
     if request.method == "POST":
         username = (request.form.get("username") or "").strip()
@@ -393,15 +412,12 @@ def new_user():
         if role not in ("user", "supervisor", "admin"):
             errors.append(_("Ruolo non valido."))
         if operator_code and (
-            db.session.query(User)
-            .filter_by(operator_code=operator_code).first()
+            db.session.query(User).filter_by(operator_code=operator_code).first()
         ):
             errors.append(_("Codice operatore già in uso."))
 
         try:
-            default_group_id = (
-                int(default_group_id_raw) if default_group_id_raw else None
-            )
+            default_group_id = int(default_group_id_raw) if default_group_id_raw else None
         except ValueError:
             default_group_id = None
 
@@ -411,9 +427,11 @@ def new_user():
             return render_template(
                 "settings/new_user.html",
                 form_data={
-                    "username": username, "full_name": full_name,
+                    "username": username,
+                    "full_name": full_name,
                     "operator_code": operator_code or "",
-                    "role": role, "locale": locale,
+                    "role": role,
+                    "locale": locale,
                     "email": email or "",
                     "default_group_id": default_group_id_raw,
                 },
@@ -434,15 +452,26 @@ def new_user():
         u.set_password(password)
         db.session.add(u)
         db.session.commit()
-        log_event(action="create", entity_type="user", entity_id=u.id,
-                  details={"username": username, "role": role})
-        flash(_("Utente %(u)s creato. Comunica le credenziali e invitalo a "
-                "cambiare la password al primo accesso.", u=username),
-              "success")
+        log_event(
+            action="create",
+            entity_type="user",
+            entity_id=u.id,
+            details={"username": username, "role": role},
+        )
+        flash(
+            _(
+                "Utente %(u)s creato. Comunica le credenziali e invitalo a "
+                "cambiare la password al primo accesso.",
+                u=username,
+            ),
+            "success",
+        )
         return redirect(url_for("settings.users"))
 
     return render_template(
-        "settings/new_user.html", form_data={}, groups=groups,
+        "settings/new_user.html",
+        form_data={},
+        groups=groups,
     )
 
 
@@ -470,12 +499,13 @@ def backups():
     db_uri = current_app.config["SQLALCHEMY_DATABASE_URI"]
     live_db_encrypted = False
     if db_uri.startswith("sqlite:///"):
-        live_db_path = Path(db_uri[len("sqlite:///"):])
+        live_db_path = Path(db_uri[len("sqlite:///") :])
         if live_db_path.exists() and not str(live_db_path).startswith(":memory"):
             live_db_encrypted = db_crypto.is_encrypted_db(live_db_path)
 
     # Passphrase source info (patch 14.3)
     from stoic_eln.services import passphrase_store
+
     pp_source = passphrase_store.current_source()
     pp_sources = [
         {
@@ -509,12 +539,12 @@ def backups():
 def backups_run():
     """Create a backup right now, then prune by retention."""
     from stoic_eln.services import backup as backup_service
+
     try:
         bf = backup_service.create_backup(reason="manual")
         backup_service.prune_old_backups()
         flash(
-            _("Backup creato: %(name)s (%(mb).2f MB).",
-              name=bf.filename, mb=bf.size_mb),
+            _("Backup creato: %(name)s (%(mb).2f MB).", name=bf.filename, mb=bf.size_mb),
             "success",
         )
     except Exception as e:
@@ -529,6 +559,7 @@ def backups_download(filename: str):
     """Stream a backup file to the browser as an attachment."""
     from flask import send_from_directory
     from stoic_eln.services import backup as backup_service
+
     # Defensive: reject path traversal even though Flask's
     # send_from_directory would catch it. Filename must match our
     # convention.
@@ -536,7 +567,9 @@ def backups_download(filename: str):
         abort(404)
     backup_dir = backup_service.get_backup_dir()
     return send_from_directory(
-        backup_dir, filename, as_attachment=True,
+        backup_dir,
+        filename,
+        as_attachment=True,
         download_name=filename,
     )
 
@@ -570,8 +603,11 @@ def backups_restore(filename: str):
         backup_service.create_backup(reason="pre-restore")
         backup_service.restore_backup(filename)
         flash(
-            _("Ripristino effettuato da %(name)s. Riavvia l'applicazione "
-              "perché le modifiche abbiano effetto.", name=filename),
+            _(
+                "Ripristino effettuato da %(name)s. Riavvia l'applicazione "
+                "perché le modifiche abbiano effetto.",
+                name=filename,
+            ),
             "warning",
         )
     except Exception as e:
@@ -585,6 +621,7 @@ def backups_restore(filename: str):
 def backups_delete(filename: str):
     """Delete a single backup file."""
     from stoic_eln.services import backup as backup_service
+
     if backup_service._parse_timestamp(filename) is None:
         abort(404)
     backup_dir = backup_service.get_backup_dir()
@@ -601,8 +638,7 @@ def backups_delete(filename: str):
         )
         flash(_("Backup %(name)s eliminato.", name=filename), "success")
     except OSError as e:
-        flash(_("Impossibile eliminare il backup: %(err)s", err=str(e)),
-              "danger")
+        flash(_("Impossibile eliminare il backup: %(err)s", err=str(e)), "danger")
     return redirect(url_for("settings.backups"))
 
 
@@ -644,8 +680,10 @@ def backups_config():
         details={"enabled": enabled},
     )
     flash(
-        _("Configurazione backup salvata. Riavvia l'applicazione "
-          "per applicare il nuovo orario allo scheduler."),
+        _(
+            "Configurazione backup salvata. Riavvia l'applicazione "
+            "per applicare il nuovo orario allo scheduler."
+        ),
         "success",
     )
     return redirect(url_for("settings.backups"))
@@ -684,8 +722,7 @@ def backups_passphrase():
         return redirect(url_for("settings.backups"))
 
     if len(new_pass) < 12:
-        flash(_("La passphrase deve essere lunga almeno 12 caratteri."),
-              "danger")
+        flash(_("La passphrase deve essere lunga almeno 12 caratteri."), "danger")
         return redirect(url_for("settings.backups"))
 
     # Self-test: encrypt + decrypt a probe blob with the new
@@ -693,8 +730,10 @@ def backups_passphrase():
     result = backup_crypto.verify_passphrase(new_pass)
     if not result.ok:
         flash(
-            _("Test crittografia fallito: %(err)s. La passphrase non "
-              "è stata salvata.", err=result.error),
+            _(
+                "Test crittografia fallito: %(err)s. La passphrase non è stata salvata.",
+                err=result.error,
+            ),
             "danger",
         )
         return redirect(url_for("settings.backups"))
@@ -709,10 +748,12 @@ def backups_passphrase():
         details={"path": str(instance_path / "backup.key")},
     )
     flash(
-        _("Passphrase salvata in instance/backup.key. "
-          "I prossimi backup saranno cifrati con AES-256-GCM. "
-          "ATTENZIONE: conserva la passphrase in un posto sicuro; "
-          "se la perdi, i backup cifrati saranno irrecuperabili."),
+        _(
+            "Passphrase salvata in instance/backup.key. "
+            "I prossimi backup saranno cifrati con AES-256-GCM. "
+            "ATTENZIONE: conserva la passphrase in un posto sicuro; "
+            "se la perdi, i backup cifrati saranno irrecuperabili."
+        ),
         "warning",
     )
     return redirect(url_for("settings.backups"))
@@ -737,8 +778,7 @@ def backups_passphrase_disable():
 
     confirm = request.form.get("confirm") == "yes"
     if not confirm:
-        flash(_("Conferma la disattivazione spuntando la casella."),
-              "warning")
+        flash(_("Conferma la disattivazione spuntando la casella."), "warning")
         return redirect(url_for("settings.backups"))
 
     key_file.unlink()
@@ -749,8 +789,10 @@ def backups_passphrase_disable():
         details={},
     )
     flash(
-        _("Crittografia disattivata. I prossimi backup saranno in "
-          "chiaro. I backup cifrati esistenti rimangono cifrati."),
+        _(
+            "Crittografia disattivata. I prossimi backup saranno in "
+            "chiaro. I backup cifrati esistenti rimangono cifrati."
+        ),
         "warning",
     )
     return redirect(url_for("settings.backups"))
@@ -797,9 +839,11 @@ def backups_passphrase_source():
         details={"source": new_source},
     )
 
-    msg = _("Sorgente passphrase impostata su '%(s)s'. "
-            "Il cambio è attivo dal prossimo riavvio di Stoic.",
-            s=new_source)
+    msg = _(
+        "Sorgente passphrase impostata su '%(s)s'. "
+        "Il cambio è attivo dal prossimo riavvio di Stoic.",
+        s=new_source,
+    )
     if new_source == passphrase_store.SOURCE_PROMPT:
         msg += " " + _(
             "Da ora in poi Stoic ti chiederà la passphrase a ogni "
@@ -823,8 +867,7 @@ def backups_passphrase_key_delete():
 
     confirm = request.form.get("confirm") == "yes"
     if not confirm:
-        flash(_("Conferma l'eliminazione spuntando la casella."),
-              "warning")
+        flash(_("Conferma l'eliminazione spuntando la casella."), "warning")
         return redirect(url_for("settings.backups"))
 
     key_file = Path(current_app.instance_path) / "backup.key"
@@ -841,12 +884,13 @@ def backups_passphrase_key_delete():
             details={},
         )
         flash(
-            _("File instance/backup.key eliminato. "
-              "La passphrase ora esiste solo nella tua testa "
-              "(e in RAM mentre Stoic gira)."),
+            _(
+                "File instance/backup.key eliminato. "
+                "La passphrase ora esiste solo nella tua testa "
+                "(e in RAM mentre Stoic gira)."
+            ),
             "success",
         )
     except OSError as e:
-        flash(_("Impossibile eliminare il file: %(err)s", err=str(e)),
-              "danger")
+        flash(_("Impossibile eliminare il file: %(err)s", err=str(e)), "danger")
     return redirect(url_for("settings.backups"))

@@ -48,20 +48,12 @@ class Group(db.Model):
     __tablename__ = "group"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    slug: Mapped[str] = mapped_column(
-        String(64), unique=True, nullable=False, index=True
-    )
+    slug: Mapped[str] = mapped_column(String(64), unique=True, nullable=False, index=True)
     name: Mapped[str] = mapped_column(String(120), nullable=False)
     description: Mapped[str | None] = mapped_column(String(500), nullable=True)
-    is_default: Mapped[bool] = mapped_column(
-        Boolean, default=False, nullable=False, index=True
-    )
-    is_active: Mapped[bool] = mapped_column(
-        Boolean, default=True, nullable=False
-    )
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime, default=_now_utc, nullable=False
-    )
+    is_default: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, index=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now_utc, nullable=False)
 
     memberships: Mapped[list[GroupMembership]] = relationship(
         "GroupMembership",
@@ -77,31 +69,35 @@ class GroupMembership(db.Model):
     """Link table: a User belongs to a Group with an optional role."""
 
     __tablename__ = "group_membership"
-    __table_args__ = (
-        UniqueConstraint("user_id", "group_id", name="uq_user_group"),
-    )
+    __table_args__ = (UniqueConstraint("user_id", "group_id", name="uq_user_group"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("user.id", ondelete="CASCADE"),
-        nullable=False, index=True,
+        Integer,
+        ForeignKey("user.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
     )
     group_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("group.id", ondelete="CASCADE"),
-        nullable=False, index=True,
+        Integer,
+        ForeignKey("group.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
     )
     role: Mapped[str] = mapped_column(
-        String(16), default="member", nullable=False,
+        String(16),
+        default="member",
+        nullable=False,
     )
     """One of: 'leader', 'member'."""
     joined_at: Mapped[datetime] = mapped_column(
-        DateTime, default=_now_utc, nullable=False,
+        DateTime,
+        default=_now_utc,
+        nullable=False,
     )
 
     group: Mapped[Group] = relationship("Group", back_populates="memberships")
     user: Mapped[User] = relationship("User")
 
     def __repr__(self) -> str:
-        return (
-            f"<GroupMembership user={self.user_id} group={self.group_id}>"
-        )
+        return f"<GroupMembership user={self.user_id} group={self.group_id}>"

@@ -27,9 +27,7 @@ class RunStep(db.Model):
     __tablename__ = "run_step"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    run_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("run.id"), nullable=False, index=True
-    )
+    run_id: Mapped[int] = mapped_column(Integer, ForeignKey("run.id"), nullable=False, index=True)
 
     # Snapshot of step metadata
     template_step_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
@@ -51,8 +49,7 @@ class RunStep(db.Model):
         back_populates="step",
         cascade="all, delete-orphan",
         order_by="RunChecklistItem.position",
-        primaryjoin="and_(RunStep.id==RunChecklistItem.step_id, "
-                    "RunChecklistItem.run_id==None)",
+        primaryjoin="and_(RunStep.id==RunChecklistItem.step_id, RunChecklistItem.run_id==None)",
     )
 
     def __repr__(self) -> str:
@@ -102,10 +99,12 @@ class RunStepComponent(db.Model):
 
     step: Mapped[RunStep] = relationship("RunStep", back_populates="components")
     substance: Mapped[Substance | None] = relationship(
-        "Substance", foreign_keys=[substance_id],
+        "Substance",
+        foreign_keys=[substance_id],
     )
     mixture: Mapped[Mixture | None] = relationship(
-        "Mixture", foreign_keys=[mixture_id],
+        "Mixture",
+        foreign_keys=[mixture_id],
     )
     inventory_item: Mapped[InventoryItem | None] = relationship("InventoryItem")
 

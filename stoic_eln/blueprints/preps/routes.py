@@ -33,10 +33,7 @@ def list_view():
     mixture_id_raw = (request.args.get("mixture_id") or "").strip()
     year_raw = (request.args.get("year") or "").strip()
 
-    query = (
-        db.session.query(MixturePrep)
-        .join(Mixture, Mixture.id == MixturePrep.mixture_id)
-    )
+    query = db.session.query(MixturePrep).join(Mixture, Mixture.id == MixturePrep.mixture_id)
 
     if q:
         like = f"%{q}%"
@@ -65,11 +62,9 @@ def list_view():
 
     # Surface a few stat dropdowns
     years = [
-        r[0] for r in (
-            db.session.query(MixturePrep.year)
-            .distinct()
-            .order_by(desc(MixturePrep.year))
-            .all()
+        r[0]
+        for r in (
+            db.session.query(MixturePrep.year).distinct().order_by(desc(MixturePrep.year)).all()
         )
     ]
     # Only mixtures that have at least one preparation
@@ -83,13 +78,17 @@ def list_view():
 
     if request.headers.get("HX-Request"):
         return render_template(
-            "preps/_list_table.html", preps=preps, q=q,
+            "preps/_list_table.html",
+            preps=preps,
+            q=q,
         )
 
     return render_template(
         "preps/list.html",
-        preps=preps, q=q,
-        years=years, mixtures=mixtures,
+        preps=preps,
+        q=q,
+        years=years,
+        mixtures=mixtures,
         selected_mixture_id=mixture_id,
         selected_year=year,
     )
@@ -112,6 +111,7 @@ def detail(prep_id: int):
     # attachments (the recipe SOP, annotated procedure) live on the
     # parent Mixture and are shown there.
     from stoic_eln.services.attachments import list_attachments
+
     attachments_for_entity = list_attachments("mixture_prep", prep.id)
 
     return render_template(

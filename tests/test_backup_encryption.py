@@ -41,9 +41,7 @@ def encrypted_app(tmp_path):
     instance_path.mkdir()
 
     # Drop a passphrase file
-    (instance_path / "backup.key").write_text(
-        "correct horse battery staple", encoding="utf-8"
-    )
+    (instance_path / "backup.key").write_text("correct horse battery staple", encoding="utf-8")
 
     class _EncTestingConfig(TestingConfig):
         SQLALCHEMY_DATABASE_URI = f"sqlite:///{db_path}"
@@ -60,6 +58,7 @@ def encrypted_app(tmp_path):
         # reads instance/backup.key. Otherwise the default
         # (SOURCE_NONE) would skip the file even if it exists.
         from stoic_eln.services import passphrase_store as _ps
+
         _ps.set_source(_ps.SOURCE_FILE)
         db.session.commit()
         yield app
@@ -108,6 +107,7 @@ def test_encrypt_decrypt_roundtrip():
 def test_wrong_passphrase_fails_authenticated():
     """A wrong passphrase raises (AES-GCM authentication fails)."""
     from cryptography.exceptions import InvalidTag
+
     ct = backup_crypto.encrypt_bytes(b"secret", "right")
     with pytest.raises(InvalidTag):
         backup_crypto.decrypt_bytes(ct, "wrong")
@@ -116,6 +116,7 @@ def test_wrong_passphrase_fails_authenticated():
 def test_tampered_blob_fails():
     """Flipping a byte in the ciphertext fails the GCM auth check."""
     from cryptography.exceptions import InvalidTag
+
     ct = bytearray(backup_crypto.encrypt_bytes(b"secret", "pw"))
     # Flip a bit deep in the ciphertext (past the header)
     ct[50] ^= 0x01
@@ -130,9 +131,7 @@ def test_each_encryption_is_unique():
     assert ct1 != ct2  # different salt + nonce
     # Both should decrypt to the same thing though.
     assert (
-        backup_crypto.decrypt_bytes(ct1, "pw")
-        == backup_crypto.decrypt_bytes(ct2, "pw")
-        == b"same"
+        backup_crypto.decrypt_bytes(ct1, "pw") == backup_crypto.decrypt_bytes(ct2, "pw") == b"same"
     )
 
 
@@ -161,6 +160,7 @@ def test_resolve_passphrase_env_takes_precedence(tmp_path, monkeypatch, app):
     source-driven model (patch 14.3) precedence is determined by
     the configured source rather than a hard-coded order."""
     from stoic_eln.services import passphrase_store as ps
+
     ps.set_source(ps.SOURCE_ENV)
     (tmp_path / "backup.key").write_text("from-file", encoding="utf-8")
     monkeypatch.setenv("STOIC_BACKUP_PASSPHRASE", "from-env")
@@ -170,6 +170,7 @@ def test_resolve_passphrase_env_takes_precedence(tmp_path, monkeypatch, app):
 def test_resolve_passphrase_file_used_when_env_absent(tmp_path, monkeypatch, app):
     """When source=='file', the file is read regardless of env var."""
     from stoic_eln.services import passphrase_store as ps
+
     ps.set_source(ps.SOURCE_FILE)
     monkeypatch.delenv("STOIC_BACKUP_PASSPHRASE", raising=False)
     (tmp_path / "backup.key").write_text("from-file", encoding="utf-8")
@@ -180,6 +181,7 @@ def test_resolve_passphrase_returns_none_when_source_is_none(tmp_path, app):
     """When source=='none' (the default), no passphrase is
     returned even if a file or env var is set."""
     from stoic_eln.services import passphrase_store as ps
+
     ps.set_source(ps.SOURCE_NONE)
     (tmp_path / "backup.key").write_text("would-be-returned", encoding="utf-8")
     assert backup_crypto.resolve_passphrase(tmp_path) is None
@@ -246,9 +248,7 @@ def test_encrypted_backup_decrypts_to_valid_sqlite(encrypted_app, tmp_path):
         decoded = tmp_path / "decoded.db"
         decoded.write_bytes(sql_bytes)
         conn = sqlite3.connect(str(decoded))
-        cur = conn.execute(
-            "SELECT value FROM app_setting WHERE key=?", ("test.marker",)
-        )
+        cur = conn.execute("SELECT value FROM app_setting WHERE key=?", ("test.marker",))
         row = cur.fetchone()
         conn.close()
         assert row is not None
@@ -273,9 +273,7 @@ def test_restore_encrypted_backup(encrypted_app):
         # Verify via fresh sqlite connection (SQLAlchemy session is
         # disposed by restore_backup).
         conn = sqlite3.connect(str(live_db))
-        cur = conn.execute(
-            "SELECT value FROM app_setting WHERE key=?", ("test.marker",)
-        )
+        cur = conn.execute("SELECT value FROM app_setting WHERE key=?", ("test.marker",))
         row = cur.fetchone()
         conn.close()
         assert row is not None
@@ -288,6 +286,7 @@ def test_restore_encrypted_fails_without_passphrase(encrypted_app):
     audit log still records the attempt (so the file does change
     in that one row), but the user data must be intact."""
     from stoic_eln.services import passphrase_store as _ps
+
     with encrypted_app.app_context():
         AppSetting.set("test.marker", "alpha")
         db.session.commit()
@@ -321,6 +320,7 @@ def test_restore_encrypted_fails_with_wrong_passphrase(encrypted_app):
     """Wrong passphrase: restore fails with a clear error, live
     DB is left valid with the pre-attempt data."""
     from stoic_eln.services import passphrase_store as _ps
+
     with encrypted_app.app_context():
         AppSetting.set("test.marker", "alpha")
         db.session.commit()
@@ -371,9 +371,7 @@ def test_plain_backup_still_works_without_passphrase(plain_app):
         backup_service.restore_backup(bf.filename)
 
         conn = sqlite3.connect(str(backup_service.get_db_path()))
-        row = conn.execute(
-            "SELECT value FROM app_setting WHERE key=?", ("test.marker",)
-        ).fetchone()
+        row = conn.execute("SELECT value FROM app_setting WHERE key=?", ("test.marker",)).fetchone()
         conn.close()
         assert row[0] == "alpha"
 

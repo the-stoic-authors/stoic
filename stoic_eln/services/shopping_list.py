@@ -60,8 +60,7 @@ def get_flags() -> dict:
     }
 
 
-def set_flags(*, include_low_stock: bool, include_empty: bool,
-              include_expiring: bool) -> None:
+def set_flags(*, include_low_stock: bool, include_empty: bool, include_expiring: bool) -> None:
     AppSetting.set(SETTING_INCLUDE_LOW, "true" if include_low_stock else "false")
     AppSetting.set(SETTING_INCLUDE_EMPTY, "true" if include_empty else "false")
     AppSetting.set(SETTING_INCLUDE_EXPIRING, "true" if include_expiring else "false")
@@ -72,15 +71,15 @@ class ShoppingSuggestion:
     """A single proposed re-order line."""
 
     substance: Substance
-    reason: str                     # 'low_stock' | 'empty' | 'expiring'
+    reason: str  # 'low_stock' | 'empty' | 'expiring'
     suggested_quantity_g: float | None
     suggested_quantity_mL: float | None
-    suggested_unit: str             # 'g' or 'mL' or ''
+    suggested_unit: str  # 'g' or 'mL' or ''
     last_supplier: str | None
     last_catalogue_number: str | None
     last_cost_per_unit: float | None
     estimated_total_cost_eur: float | None
-    has_open_order: bool            # already a planned/ordered Order?
+    has_open_order: bool  # already a planned/ordered Order?
 
     @property
     def reason_label_color(self) -> tuple[str, str]:
@@ -114,10 +113,16 @@ def _available(item: InventoryItem, today: date) -> bool:
 
 def _total_available(sub: Substance, today: date) -> tuple[float, str]:
     """Return (total_qty, unit) where unit is 'g' or 'mL' or ''."""
-    g_total = sum((it.quantity_g or 0) for it in sub.inventory_items
-                  if _available(it, today) and it.quantity_g is not None)
-    mL_total = sum((it.quantity_mL or 0) for it in sub.inventory_items
-                   if _available(it, today) and it.quantity_mL is not None)
+    g_total = sum(
+        (it.quantity_g or 0)
+        for it in sub.inventory_items
+        if _available(it, today) and it.quantity_g is not None
+    )
+    mL_total = sum(
+        (it.quantity_mL or 0)
+        for it in sub.inventory_items
+        if _available(it, today) and it.quantity_mL is not None
+    )
     if g_total > 0 and mL_total == 0:
         return g_total, "g"
     if mL_total > 0 and g_total == 0:
@@ -163,8 +168,9 @@ def _has_open_order(sub: Substance) -> bool:
 # ── Suggestion construction ─────────────────────────────────────────────
 
 
-def _build_suggestion(sub: Substance, reason: str, today: date,
-                      *, expiring_days: int = 30) -> ShoppingSuggestion:
+def _build_suggestion(
+    sub: Substance, reason: str, today: date, *, expiring_days: int = 30
+) -> ShoppingSuggestion:
     """Build the suggestion fields for one substance."""
     # Suggested quantity = threshold + 50% buffer (Rico's formula A).
     qty_g: float | None = None
@@ -246,10 +252,12 @@ def build_shopping_list(
         candidates = (
             db.session.query(Substance)
             .filter(Substance.is_active.is_(True))
-            .filter(or_(
-                Substance.low_stock_threshold_g.isnot(None),
-                Substance.low_stock_threshold_mL.isnot(None),
-            ))
+            .filter(
+                or_(
+                    Substance.low_stock_threshold_g.isnot(None),
+                    Substance.low_stock_threshold_mL.isnot(None),
+                )
+            )
             .order_by(func.lower(Substance.name).asc())
             .all()
         )
@@ -261,8 +269,9 @@ def build_shopping_list(
             # only if include_empty is set (and we don't want duplicates).
             if total <= 0:
                 continue
-            suggestions.append(_build_suggestion(sub, "low_stock", today,
-                                                  expiring_days=expiring_days))
+            suggestions.append(
+                _build_suggestion(sub, "low_stock", today, expiring_days=expiring_days)
+            )
             seen_ids.add(sub.id)
 
     # --- 2) Empty ---
@@ -282,8 +291,9 @@ def build_shopping_list(
                 continue  # never had a lot → user hasn't really used this
             total, _u = _total_available(sub, today)
             if total <= 0:
-                suggestions.append(_build_suggestion(sub, "empty", today,
-                                                      expiring_days=expiring_days))
+                suggestions.append(
+                    _build_suggestion(sub, "empty", today, expiring_days=expiring_days)
+                )
                 seen_ids.add(sub.id)
 
     # --- 3) Expiring (the *only* available lot expires within window) ---
@@ -306,8 +316,9 @@ def build_shopping_list(
             if len(with_exp) != len(avail):
                 continue  # at least one lot has no expiry → fine
             if all(it.expiry_date <= cutoff for it in with_exp):
-                suggestions.append(_build_suggestion(sub, "expiring", today,
-                                                      expiring_days=expiring_days))
+                suggestions.append(
+                    _build_suggestion(sub, "expiring", today, expiring_days=expiring_days)
+                )
                 seen_ids.add(sub.id)
 
     if not include_with_open_orders:

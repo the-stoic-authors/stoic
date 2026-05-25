@@ -56,19 +56,13 @@ def mark_as_ordered(
     db.session.flush()
 
 
-def cancel_order(order: Order, *, reason: str | None = None,
-                 actor: User | None = None) -> None:  # noqa: ARG001
+def cancel_order(order: Order, *, reason: str | None = None, actor: User | None = None) -> None:  # noqa: ARG001
     """Cancel a planned or ordered order."""
     if order.status not in (STATUS_PLANNED, STATUS_ORDERED):
-        raise OrderError(
-            f"Non si può annullare un ordine in stato '{order.status}'."
-        )
+        raise OrderError(f"Non si può annullare un ordine in stato '{order.status}'.")
     order.status = STATUS_CANCELLED
     if reason:
-        order.notes = (
-            (order.notes + "\n\n" if order.notes else "")
-            + f"[Annullato] {reason}"
-        )
+        order.notes = (order.notes + "\n\n" if order.notes else "") + f"[Annullato] {reason}"
     db.session.flush()
 
 
@@ -108,9 +102,7 @@ def receive_order(
         not provided.
     """
     if order.status not in (STATUS_PLANNED, STATUS_ORDERED):
-        raise OrderError(
-            f"Non si può ricevere un ordine in stato '{order.status}'."
-        )
+        raise OrderError(f"Non si può ricevere un ordine in stato '{order.status}'.")
 
     # Prefer actual amount; fall back to ordered amount if unspecified
     qty_g = actual_quantity_g if actual_quantity_g is not None else order.ordered_quantity_g
@@ -118,11 +110,7 @@ def receive_order(
     if not (qty_g and qty_g > 0) and not (qty_mL and qty_mL > 0):
         raise OrderError("Quantità ricevuta mancante o nulla.")
 
-    cost = (
-        actual_total_eur
-        if actual_total_eur is not None
-        else order.ordered_total_eur
-    )
+    cost = actual_total_eur if actual_total_eur is not None else order.ordered_total_eur
 
     rec_at = received_at or date.today()
 
@@ -155,9 +143,7 @@ def receive_order(
     order.inventory_item_id = lot.id
     order.status = STATUS_RECEIVED_PARTIAL if is_partial else STATUS_RECEIVED
     if notes_extra:
-        order.notes = (
-            (order.notes + "\n\n" if order.notes else "") + notes_extra
-        )
+        order.notes = (order.notes + "\n\n" if order.notes else "") + notes_extra
     db.session.flush()
 
     return lot

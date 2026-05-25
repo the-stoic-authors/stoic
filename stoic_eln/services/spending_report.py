@@ -34,8 +34,7 @@ def _week_bucket_label(d: date) -> str:
     monday = d - timedelta(days=d.weekday())
     sunday = monday + timedelta(days=6)
     # Italian month abbreviations to match the rest of the UI.
-    months_it = ["gen", "feb", "mar", "apr", "mag", "giu",
-                 "lug", "ago", "set", "ott", "nov", "dic"]
+    months_it = ["gen", "feb", "mar", "apr", "mag", "giu", "lug", "ago", "set", "ott", "nov", "dic"]
     if monday.year == sunday.year:
         return (
             f"{monday.day} {months_it[monday.month - 1]} – "
@@ -52,9 +51,20 @@ def _month_bucket_key(d: date) -> str:
 
 
 def _month_bucket_label(d: date) -> str:
-    months_it = ["gennaio", "febbraio", "marzo", "aprile", "maggio",
-                 "giugno", "luglio", "agosto", "settembre", "ottobre",
-                 "novembre", "dicembre"]
+    months_it = [
+        "gennaio",
+        "febbraio",
+        "marzo",
+        "aprile",
+        "maggio",
+        "giugno",
+        "luglio",
+        "agosto",
+        "settembre",
+        "ottobre",
+        "novembre",
+        "dicembre",
+    ]
     return f"{months_it[d.month - 1]} {d.year}"
 
 
@@ -77,10 +87,10 @@ def _year_bucket_label(d: date) -> str:
 
 
 _BUCKETERS = {
-    "week":    (_week_bucket_key, _week_bucket_label),
-    "month":   (_month_bucket_key, _month_bucket_label),
+    "week": (_week_bucket_key, _week_bucket_label),
+    "month": (_month_bucket_key, _month_bucket_label),
     "quarter": (_quarter_bucket_key, _quarter_bucket_label),
-    "year":    (_year_bucket_key, _year_bucket_label),
+    "year": (_year_bucket_key, _year_bucket_label),
 }
 
 
@@ -90,15 +100,16 @@ _BUCKETERS = {
 @dataclass(frozen=True)
 class SpendingBucket:
     """One row in the spending report."""
-    key: str             # sort/identity key, e.g. "2026-W21"
-    label: str           # human label, e.g. "18 mag – 24 mag 2026"
-    total_eur: float     # sum of purchase costs in this bucket
+
+    key: str  # sort/identity key, e.g. "2026-W21"
+    label: str  # human label, e.g. "18 mag – 24 mag 2026"
+    total_eur: float  # sum of purchase costs in this bucket
     purchase_count: int  # how many lots fell into this bucket
 
 
 @dataclass(frozen=True)
 class SpendingReport:
-    bucket: str          # one of: week, month, quarter, year
+    bucket: str  # one of: week, month, quarter, year
     date_from: date | None
     date_to: date | None
     rows: list[SpendingBucket]

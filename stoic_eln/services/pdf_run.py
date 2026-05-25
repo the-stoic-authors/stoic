@@ -154,10 +154,16 @@ def _academic_styles() -> dict:
         fontName="Times-Italic",
     )
     return dict(
-        title=title, subtitle=subtitle, abstract=abstract,
-        section=section, subsection=subsection,
-        body=body, body_small=body_small,
-        table_cell=table_cell, mono=mono, note=note,
+        title=title,
+        subtitle=subtitle,
+        abstract=abstract,
+        section=section,
+        subsection=subsection,
+        body=body,
+        body_small=body_small,
+        table_cell=table_cell,
+        mono=mono,
+        note=note,
     )
 
 
@@ -168,9 +174,7 @@ def _esc(s: str | None) -> str:
     """Escape special characters for ReportLab Paragraph (XML-like)."""
     if s is None:
         return ""
-    return (str(s).replace("&", "&amp;")
-                  .replace("<", "&lt;")
-                  .replace(">", "&gt;"))
+    return str(s).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
 def _fmt_amount(g: float | None, mL: float | None) -> str:
@@ -210,8 +214,9 @@ def _on_page(canvas, doc, *, run, total_pages_callback=None):
     # Header rule
     canvas.setStrokeColor(colors.HexColor("#888"))
     canvas.setLineWidth(0.4)
-    canvas.line(_MARGIN_LEFT, _PAGE_H - _MARGIN_TOP + 8,
-                _PAGE_W - _MARGIN_RIGHT, _PAGE_H - _MARGIN_TOP + 8)
+    canvas.line(
+        _MARGIN_LEFT, _PAGE_H - _MARGIN_TOP + 8, _PAGE_W - _MARGIN_RIGHT, _PAGE_H - _MARGIN_TOP + 8
+    )
     # Header left: Stoic wordmark — small caps, modest weight
     canvas.setFont("Times-Bold", 10)
     canvas.setFillColor(colors.HexColor("#0a9ca7"))  # the brand teal accent
@@ -222,22 +227,20 @@ def _on_page(canvas, doc, *, run, total_pages_callback=None):
     # Header right: report kind
     canvas.setFont("Times-Italic", 9)
     canvas.setFillColor(colors.HexColor("#666"))
-    canvas.drawRightString(_PAGE_W - _MARGIN_RIGHT, _PAGE_H - _MARGIN_TOP + 14,
-                           "Run report")
+    canvas.drawRightString(_PAGE_W - _MARGIN_RIGHT, _PAGE_H - _MARGIN_TOP + 14, "Run report")
 
     # ── Footer ────────────────────────────────────────────────────────
     canvas.setStrokeColor(colors.HexColor("#888"))
-    canvas.line(_MARGIN_LEFT, _MARGIN_BOTTOM - 8,
-                _PAGE_W - _MARGIN_RIGHT, _MARGIN_BOTTOM - 8)
+    canvas.line(_MARGIN_LEFT, _MARGIN_BOTTOM - 8, _PAGE_W - _MARGIN_RIGHT, _MARGIN_BOTTOM - 8)
     # Footer left: run code
     canvas.setFont("Courier", 8)
     canvas.setFillColor(colors.HexColor("#444"))
-    canvas.drawString(_MARGIN_LEFT, _MARGIN_BOTTOM - 18,
-                      run.code or "—")
+    canvas.drawString(_MARGIN_LEFT, _MARGIN_BOTTOM - 18, run.code or "—")
     # Footer right: page X
     canvas.setFont("Times-Roman", 8)
     canvas.drawRightString(
-        _PAGE_W - _MARGIN_RIGHT, _MARGIN_BOTTOM - 18,
+        _PAGE_W - _MARGIN_RIGHT,
+        _MARGIN_BOTTOM - 18,
         f"Pagina {doc.page}",
     )
     canvas.restoreState()
@@ -267,9 +270,7 @@ def _build_header(run: Run, styles: dict) -> list:
 
     # Abstract: status + scale + yield in 2-3 lines
     abstract_lines = []
-    abstract_lines.append(
-        f"<b>Stato:</b> {_esc(run.status_label_it)}."
-    )
+    abstract_lines.append(f"<b>Stato:</b> {_esc(run.status_label_it)}.")
     if run.scale_input_value and run.scale_input_unit:
         abstract_lines.append(
             f"<b>Scala:</b> {run.scale_input_value} {run.scale_input_unit} "
@@ -326,14 +327,16 @@ def _build_components_table(run: Run, styles: dict, *, full: bool) -> list:
         if c.inventory_item:
             lot = c.inventory_item.batch_code or ""
 
-        rows.append([
-            Paragraph(name, cell),
-            Paragraph(_esc(role), cell),
-            Paragraph(_esc(eq), cell),
-            Paragraph(_esc(target), cell),
-            Paragraph(_esc(actual), cell),
-            Paragraph(f"<font face='Courier'>{_esc(lot)}</font>", cell),
-        ])
+        rows.append(
+            [
+                Paragraph(name, cell),
+                Paragraph(_esc(role), cell),
+                Paragraph(_esc(eq), cell),
+                Paragraph(_esc(target), cell),
+                Paragraph(_esc(actual), cell),
+                Paragraph(f"<font face='Courier'>{_esc(lot)}</font>", cell),
+            ]
+        )
 
     col_widths = [
         _FRAME_WIDTH * 0.27,
@@ -344,19 +347,23 @@ def _build_components_table(run: Run, styles: dict, *, full: bool) -> list:
         _FRAME_WIDTH * 0.20,
     ]
     t = Table(rows, colWidths=col_widths, repeatRows=1)
-    t.setStyle(TableStyle([
-        ("FONTNAME", (0, 0), (-1, 0), "Times-Bold"),
-        ("FONTSIZE", (0, 0), (-1, 0), 9),
-        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#e9e9e2")),
-        ("LINEBELOW", (0, 0), (-1, 0), 0.5, colors.HexColor("#888")),
-        ("LINEBELOW", (0, -1), (-1, -1), 0.3, colors.HexColor("#bbb")),
-        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-        ("LEFTPADDING", (0, 0), (-1, -1), 4),
-        ("RIGHTPADDING", (0, 0), (-1, -1), 4),
-        ("TOPPADDING", (0, 0), (-1, -1), 3),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
-        ("ALIGN", (2, 1), (4, -1), "RIGHT"),
-    ]))
+    t.setStyle(
+        TableStyle(
+            [
+                ("FONTNAME", (0, 0), (-1, 0), "Times-Bold"),
+                ("FONTSIZE", (0, 0), (-1, 0), 9),
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#e9e9e2")),
+                ("LINEBELOW", (0, 0), (-1, 0), 0.5, colors.HexColor("#888")),
+                ("LINEBELOW", (0, -1), (-1, -1), 0.3, colors.HexColor("#bbb")),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 4),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+                ("TOPPADDING", (0, 0), (-1, -1), 3),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+                ("ALIGN", (2, 1), (4, -1), "RIGHT"),
+            ]
+        )
+    )
     flow.append(t)
     return flow
 
@@ -398,16 +405,20 @@ def _build_scheme(run: Run, styles: dict) -> list:
             flow.append(img)
         except Exception:
             logger.exception("Failed to embed scheme image")
-            flow.append(Paragraph(
-                f"<font face='Courier'>{_esc(smiles)}</font>",
-                styles["mono"],
-            ))
+            flow.append(
+                Paragraph(
+                    f"<font face='Courier'>{_esc(smiles)}</font>",
+                    styles["mono"],
+                )
+            )
     else:
         # Fallback: SMILES as text in monospace
-        flow.append(Paragraph(
-            f"<font face='Courier'>{_esc(smiles)}</font>",
-            styles["mono"],
-        ))
+        flow.append(
+            Paragraph(
+                f"<font face='Courier'>{_esc(smiles)}</font>",
+                styles["mono"],
+            )
+        )
     return flow
 
 
@@ -421,9 +432,7 @@ def _build_main_reaction(run: Run, styles: dict, *, section_no: int) -> list:
     if rxn is None:
         return flow
 
-    flow.append(Paragraph(
-        f"{section_no}. Reazione principale", styles["section"]
-    ))
+    flow.append(Paragraph(f"{section_no}. Reazione principale", styles["section"]))
 
     # Conditions one-liner
     parts = []
@@ -432,36 +441,42 @@ def _build_main_reaction(run: Run, styles: dict, *, section_no: int) -> list:
     if rxn.duration_hours is not None:
         parts.append(f"{rxn.duration_hours:g} h")
     if rxn.atmosphere:
-        atm = {"air": "aria", "N2": "N₂", "Ar": "Ar",
-               "vacuum": "vuoto", "H2": "H₂", "O2": "O₂"}.get(
-                   rxn.atmosphere, rxn.atmosphere)
+        atm = {
+            "air": "aria",
+            "N2": "N₂",
+            "Ar": "Ar",
+            "vacuum": "vuoto",
+            "H2": "H₂",
+            "O2": "O₂",
+        }.get(rxn.atmosphere, rxn.atmosphere)
         parts.append(atm)
     if rxn.pressure_bar is not None:
         parts.append(f"{rxn.pressure_bar:g} bar")
     if parts:
-        flow.append(Paragraph(
-            f"<b>Condizioni:</b> "
-            f"<font face='Courier'>{_esc(' · '.join(parts))}</font>",
-            styles["body_small"],
-        ))
+        flow.append(
+            Paragraph(
+                f"<b>Condizioni:</b> <font face='Courier'>{_esc(' · '.join(parts))}</font>",
+                styles["body_small"],
+            )
+        )
 
     if rxn.description:
         flow.append(Paragraph(_esc(rxn.description), styles["body"]))
 
     if rxn.procedure:
         flow.append(Paragraph("Procedimento", styles["subsection"]))
-        flow.append(Paragraph(
-            _esc(rxn.procedure).replace("\n", "<br/>"), styles["body"]
-        ))
+        flow.append(Paragraph(_esc(rxn.procedure).replace("\n", "<br/>"), styles["body"]))
 
     if run.checklist_items:
         flow.append(Paragraph("Check list", styles["subsection"]))
         for item in sorted(run.checklist_items, key=lambda x: x.position):
             mark = "☑" if getattr(item, "is_done", False) else "☐"
-            flow.append(Paragraph(
-                f"{mark} {_esc(item.text)}",
-                styles["body_small"],
-            ))
+            flow.append(
+                Paragraph(
+                    f"{mark} {_esc(item.text)}",
+                    styles["body_small"],
+                )
+            )
 
     return flow
 
@@ -489,8 +504,7 @@ def _build_steps(run: Run, styles: dict, *, section_no: int) -> list:
     for i, step in enumerate(sorted(run.steps, key=lambda x: x.position), 1):
         sub_no = f"{section_no}.{i}"
         title = (
-            f"{sub_no} — <i>{_esc(kind_label.get(step.kind, step.kind))}</i> · "
-            f"{_esc(step.title)}"
+            f"{sub_no} — <i>{_esc(kind_label.get(step.kind, step.kind))}</i> · {_esc(step.title)}"
         )
         flow.append(Paragraph(title, styles["subsection"]))
 
@@ -502,45 +516,59 @@ def _build_steps(run: Run, styles: dict, *, section_no: int) -> list:
                 name = sub.name if sub else "?"
                 role = _component_role_label_it(sc.role)
                 amount = _fmt_amount(sc.actual_mass_g, sc.actual_volume_mL)
-                rows.append([
-                    Paragraph(_esc(name), cell),
-                    Paragraph(_esc(role), cell),
-                    Paragraph(_esc(amount), cell),
-                ])
-            t = Table(rows, colWidths=[
-                _FRAME_WIDTH * 0.45,
-                _FRAME_WIDTH * 0.30,
-                _FRAME_WIDTH * 0.25,
-            ], repeatRows=1)
-            t.setStyle(TableStyle([
-                ("FONTNAME", (0, 0), (-1, 0), "Times-Bold"),
-                ("FONTSIZE", (0, 0), (-1, 0), 9),
-                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#f0f0e9")),
-                ("LINEBELOW", (0, 0), (-1, 0), 0.4, colors.HexColor("#888")),
-                ("LINEBELOW", (0, -1), (-1, -1), 0.3, colors.HexColor("#ccc")),
-                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                ("LEFTPADDING", (0, 0), (-1, -1), 4),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 4),
-                ("TOPPADDING", (0, 0), (-1, -1), 2),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
-                ("ALIGN", (2, 1), (2, -1), "RIGHT"),
-            ]))
+                rows.append(
+                    [
+                        Paragraph(_esc(name), cell),
+                        Paragraph(_esc(role), cell),
+                        Paragraph(_esc(amount), cell),
+                    ]
+                )
+            t = Table(
+                rows,
+                colWidths=[
+                    _FRAME_WIDTH * 0.45,
+                    _FRAME_WIDTH * 0.30,
+                    _FRAME_WIDTH * 0.25,
+                ],
+                repeatRows=1,
+            )
+            t.setStyle(
+                TableStyle(
+                    [
+                        ("FONTNAME", (0, 0), (-1, 0), "Times-Bold"),
+                        ("FONTSIZE", (0, 0), (-1, 0), 9),
+                        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#f0f0e9")),
+                        ("LINEBELOW", (0, 0), (-1, 0), 0.4, colors.HexColor("#888")),
+                        ("LINEBELOW", (0, -1), (-1, -1), 0.3, colors.HexColor("#ccc")),
+                        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                        ("LEFTPADDING", (0, 0), (-1, -1), 4),
+                        ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+                        ("TOPPADDING", (0, 0), (-1, -1), 2),
+                        ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
+                        ("ALIGN", (2, 1), (2, -1), "RIGHT"),
+                    ]
+                )
+            )
             flow.append(t)
 
         if step.description:
             flow.append(Spacer(1, 4))
-            flow.append(Paragraph(
-                _esc(step.description).replace("\n", "<br/>"),
-                styles["body"],
-            ))
+            flow.append(
+                Paragraph(
+                    _esc(step.description).replace("\n", "<br/>"),
+                    styles["body"],
+                )
+            )
 
         if step.checklist_items:
             for item in sorted(step.checklist_items, key=lambda x: x.position):
                 mark = "☑" if getattr(item, "is_done", False) else "☐"
-                flow.append(Paragraph(
-                    f"{mark} {_esc(item.text)}",
-                    styles["body_small"],
-                ))
+                flow.append(
+                    Paragraph(
+                        f"{mark} {_esc(item.text)}",
+                        styles["body_small"],
+                    )
+                )
 
     return flow
 
@@ -551,7 +579,8 @@ def _build_steps(run: Run, styles: dict, *, section_no: int) -> list:
 def _build_cost(run: Run, styles: dict, *, section_no: int) -> list:
     """Section: cost breakdown (Settimana 6 patch 5)."""
     from stoic_eln.services.run_cost import (
-        compute_run_cost, product_unit_metrics,
+        compute_run_cost,
+        product_unit_metrics,
     )
     from stoic_eln.services.currency import format_currency
 
@@ -568,15 +597,11 @@ def _build_cost(run: Run, styles: dict, *, section_no: int) -> list:
             f"<b>Totale cumulativo:</b> {format_currency(bd.total_eur)} "
             f"<i>(di cui {format_currency(bd.intermediates_total_eur)} di intermedi)</i>"
         )
-        summary_parts.append(
-            f"<b>Diretto:</b> {format_currency(bd.direct_total_eur)}"
-        )
+        summary_parts.append(f"<b>Diretto:</b> {format_currency(bd.direct_total_eur)}")
     else:
         summary_parts.append(f"<b>Totale:</b> {format_currency(bd.total_eur)}")
     if bd.incomplete_count > 0:
-        summary_parts.append(
-            f"<i>{bd.incomplete_count} voci senza prezzo (non incluse)</i>"
-        )
+        summary_parts.append(f"<i>{bd.incomplete_count} voci senza prezzo (non incluse)</i>")
     flow.append(Paragraph(" · ".join(summary_parts), styles["body"]))
 
     # Per-unit metrics on the cumulative basis (the meaningful one)
@@ -590,11 +615,12 @@ def _build_cost(run: Run, styles: dict, *, section_no: int) -> list:
         if metrics.per_mol is not None:
             unit_parts.append(f"{format_currency(metrics.per_mol)}/mol")
         if unit_parts:
-            flow.append(Paragraph(
-                "<b>Costo unitario del prodotto (cumulativo):</b> "
-                + " · ".join(unit_parts),
-                styles["body"],
-            ))
+            flow.append(
+                Paragraph(
+                    "<b>Costo unitario del prodotto (cumulativo):</b> " + " · ".join(unit_parts),
+                    styles["body"],
+                )
+            )
 
     head = ["Sostanza", "Ruolo", "Quantità", "Costo"]
     rows = [head]
@@ -605,21 +631,24 @@ def _build_cost(run: Run, styles: dict, *, section_no: int) -> list:
             name = f"<i>[{_esc(l.step_title)}]</i> {_esc(l.substance_name)}"
         else:
             name = _esc(l.substance_name)
-        cost_str = (format_currency(l.cost_eur, decimals=4)
-                    if l.cost_eur is not None else "—")
-        rows.append([
-            Paragraph(name, cell),
-            Paragraph(_esc(l.role), cell),
-            Paragraph(_esc(l.actual_quantity_display), cell),
-            Paragraph(cost_str, cell),
-        ])
+        cost_str = format_currency(l.cost_eur, decimals=4) if l.cost_eur is not None else "—"
+        rows.append(
+            [
+                Paragraph(name, cell),
+                Paragraph(_esc(l.role), cell),
+                Paragraph(_esc(l.actual_quantity_display), cell),
+                Paragraph(cost_str, cell),
+            ]
+        )
     # Footer row
-    rows.append([
-        Paragraph("<b>TOTALE</b>", cell),
-        Paragraph("", cell),
-        Paragraph("", cell),
-        Paragraph(f"<b>{format_currency(bd.total_eur)}</b>", cell),
-    ])
+    rows.append(
+        [
+            Paragraph("<b>TOTALE</b>", cell),
+            Paragraph("", cell),
+            Paragraph("", cell),
+            Paragraph(f"<b>{format_currency(bd.total_eur)}</b>", cell),
+        ]
+    )
 
     col_widths = [
         _FRAME_WIDTH * 0.45,
@@ -628,20 +657,24 @@ def _build_cost(run: Run, styles: dict, *, section_no: int) -> list:
         _FRAME_WIDTH * 0.20,
     ]
     t = Table(rows, colWidths=col_widths, repeatRows=1)
-    t.setStyle(TableStyle([
-        ("FONTNAME", (0, 0), (-1, 0), "Times-Bold"),
-        ("FONTSIZE", (0, 0), (-1, 0), 9),
-        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#e9e9e2")),
-        ("LINEBELOW", (0, 0), (-1, 0), 0.5, colors.HexColor("#888")),
-        ("LINEABOVE", (0, -1), (-1, -1), 0.5, colors.HexColor("#888")),
-        ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#f5f5f0")),
-        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-        ("LEFTPADDING", (0, 0), (-1, -1), 4),
-        ("RIGHTPADDING", (0, 0), (-1, -1), 4),
-        ("TOPPADDING", (0, 0), (-1, -1), 3),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
-        ("ALIGN", (2, 1), (3, -1), "RIGHT"),
-    ]))
+    t.setStyle(
+        TableStyle(
+            [
+                ("FONTNAME", (0, 0), (-1, 0), "Times-Bold"),
+                ("FONTSIZE", (0, 0), (-1, 0), 9),
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#e9e9e2")),
+                ("LINEBELOW", (0, 0), (-1, 0), 0.5, colors.HexColor("#888")),
+                ("LINEABOVE", (0, -1), (-1, -1), 0.5, colors.HexColor("#888")),
+                ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#f5f5f0")),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 4),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+                ("TOPPADDING", (0, 0), (-1, -1), 3),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+                ("ALIGN", (2, 1), (3, -1), "RIGHT"),
+            ]
+        )
+    )
     flow.append(t)
     return flow
 
@@ -652,16 +685,20 @@ def _build_notes(run: Run, styles: dict, *, section_no: int) -> list:
         return flow
     flow.append(Paragraph(f"{section_no}. Note", styles["section"]))
     if run.notes:
-        flow.append(Paragraph(
-            _esc(run.notes).replace("\n", "<br/>"),
-            styles["body"],
-        ))
+        flow.append(
+            Paragraph(
+                _esc(run.notes).replace("\n", "<br/>"),
+                styles["body"],
+            )
+        )
     if run.post_completion_notes:
         flow.append(Paragraph("Post-mortem", styles["subsection"]))
-        flow.append(Paragraph(
-            _esc(run.post_completion_notes).replace("\n", "<br/>"),
-            styles["body"],
-        ))
+        flow.append(
+            Paragraph(
+                _esc(run.post_completion_notes).replace("\n", "<br/>"),
+                styles["body"],
+            )
+        )
     return flow
 
 
@@ -673,9 +710,9 @@ def _build_signature_block(run: Run, styles: dict) -> list:
     op_name = ""
     op_date = ""
     if run.operator:
-        op_name = (run.operator.full_name
-                   or run.operator.username
-                   or run.operator.operator_code or "")
+        op_name = (
+            run.operator.full_name or run.operator.username or run.operator.operator_code or ""
+        )
     if run.completed_at:
         op_date = run.completed_at.strftime("%Y-%m-%d")
     elif run.started_at:
@@ -691,33 +728,33 @@ def _build_signature_block(run: Run, styles: dict) -> list:
 
     # Two-column table: operator (left) | supervisor (right)
     rows = [
-        [Paragraph("<b>Operatore</b>", cell),
-         Paragraph("<b>Supervisore</b>", cell)],
-        [Paragraph(_esc(op_name) or "&nbsp;", cell),
-         Paragraph("&nbsp;", cell)],
-        [Paragraph(_esc(op_date) or "&nbsp;", cell),
-         Paragraph("&nbsp;", cell)],
-        [Paragraph("Firma", note_st),
-         Paragraph("Firma", note_st)],
+        [Paragraph("<b>Operatore</b>", cell), Paragraph("<b>Supervisore</b>", cell)],
+        [Paragraph(_esc(op_name) or "&nbsp;", cell), Paragraph("&nbsp;", cell)],
+        [Paragraph(_esc(op_date) or "&nbsp;", cell), Paragraph("&nbsp;", cell)],
+        [Paragraph("Firma", note_st), Paragraph("Firma", note_st)],
         # Empty row that creates the signature space
         [Paragraph("&nbsp;", cell), Paragraph("&nbsp;", cell)],
     ]
 
     half = _FRAME_WIDTH / 2 - 4
     t = Table(rows, colWidths=[half, half])
-    t.setStyle(TableStyle([
-        ("VALIGN", (0, 0), (-1, -1), "TOP"),
-        ("LEFTPADDING", (0, 0), (-1, -1), 6),
-        ("RIGHTPADDING", (0, 0), (-1, -1), 6),
-        ("TOPPADDING", (0, 0), (-1, -1), 3),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
-        # Bottom border on row 4 ("Firma" labels) — that's the signature line
-        ("LINEBELOW", (0, 3), (-1, 3), 0.6, colors.HexColor("#444")),
-        # Vertical separator between operator and supervisor columns
-        ("LINEBEFORE", (1, 0), (1, -1), 0.3, colors.HexColor("#bbb")),
-        # Make the bottom row tall so there's actual writing space
-        ("BOTTOMPADDING", (0, 4), (-1, 4), 28),
-    ]))
+    t.setStyle(
+        TableStyle(
+            [
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 6),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+                ("TOPPADDING", (0, 0), (-1, -1), 3),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+                # Bottom border on row 4 ("Firma" labels) — that's the signature line
+                ("LINEBELOW", (0, 3), (-1, 3), 0.6, colors.HexColor("#444")),
+                # Vertical separator between operator and supervisor columns
+                ("LINEBEFORE", (1, 0), (1, -1), 0.3, colors.HexColor("#bbb")),
+                # Make the bottom row tall so there's actual writing space
+                ("BOTTOMPADDING", (0, 4), (-1, 4), 28),
+            ]
+        )
+    )
     flow.append(KeepTogether(t))
     return flow
 
@@ -739,11 +776,15 @@ def _build_doc(run: Run, flow: list) -> bytes:
         author="Stoic",
     )
     frame = Frame(
-        _MARGIN_LEFT, _MARGIN_BOTTOM,
-        _FRAME_WIDTH, _PAGE_H - _MARGIN_TOP - _MARGIN_BOTTOM,
+        _MARGIN_LEFT,
+        _MARGIN_BOTTOM,
+        _FRAME_WIDTH,
+        _PAGE_H - _MARGIN_TOP - _MARGIN_BOTTOM,
         id="main",
-        leftPadding=0, rightPadding=0,
-        topPadding=0, bottomPadding=0,
+        leftPadding=0,
+        rightPadding=0,
+        topPadding=0,
+        bottomPadding=0,
     )
     template = PageTemplate(
         id="Run",

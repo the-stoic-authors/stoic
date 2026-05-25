@@ -41,12 +41,12 @@ if TYPE_CHECKING:
 class CostLine:
     """One line in the cost breakdown."""
 
-    source: str          # "main" | "step"
+    source: str  # "main" | "step"
     step_title: str | None  # only for "step" lines
     substance_name: str
-    role: str            # 'starting_material', 'reactant', 'solvent', etc.
-    actual_quantity_display: str    # "0.785 g" or "25.0 mL" or "—"
-    has_lot: bool        # whether inventory_item_id is set
+    role: str  # 'starting_material', 'reactant', 'solvent', etc.
+    actual_quantity_display: str  # "0.785 g" or "25.0 mL" or "—"
+    has_lot: bool  # whether inventory_item_id is set
     has_cost_data: bool  # whether the lot has a total_cost_eur and unit cost
     cost_eur: float | None  # the line cost; None if data missing
     is_from_internal_lot: bool  # True if the lot was produced by another run
@@ -75,9 +75,9 @@ class RunCostBreakdown:
     """
 
     lines: list[CostLine]
-    total_eur: float                    # CUMULATIVE — everything
-    direct_total_eur: float             # only externally-purchased
-    intermediates_total_eur: float      # cumulative − direct
+    total_eur: float  # CUMULATIVE — everything
+    direct_total_eur: float  # only externally-purchased
+    intermediates_total_eur: float  # cumulative − direct
     incomplete_count: int
     is_product_priced: bool
 
@@ -97,9 +97,7 @@ class RunCostBreakdown:
 # ─── Helpers ────────────────────────────────────────────────────────
 
 
-def _line_cost(actual_g: float | None,
-               actual_mL: float | None,
-               lot) -> float | None:
+def _line_cost(actual_g: float | None, actual_mL: float | None, lot) -> float | None:
     """Return the line cost in EUR, or None if data missing.
 
     Uses the lot's ``cost_per_unit`` (€/g or €/mL based on the lot's
@@ -160,8 +158,7 @@ def compute_run_cost(run: Run) -> RunCostBreakdown:
             step_title=None,
             substance_name=sub.name if sub else "?",
             role=c.role,
-            actual_quantity_display=_qty_display(c.actual_mass_g,
-                                                  c.actual_volume_mL),
+            actual_quantity_display=_qty_display(c.actual_mass_g, c.actual_volume_mL),
             has_lot=lot is not None,
             has_cost_data=lot is not None and lot.cost_per_unit is not None,
             cost_eur=cost,
@@ -185,8 +182,7 @@ def compute_run_cost(run: Run) -> RunCostBreakdown:
                 step_title=step.title,
                 substance_name=sub.name if sub else "?",
                 role=sc.role,
-                actual_quantity_display=_qty_display(sc.actual_mass_g,
-                                                      sc.actual_volume_mL),
+                actual_quantity_display=_qty_display(sc.actual_mass_g, sc.actual_volume_mL),
                 has_lot=lot is not None,
                 has_cost_data=lot is not None and lot.cost_per_unit is not None,
                 cost_eur=cost,
@@ -197,13 +193,10 @@ def compute_run_cost(run: Run) -> RunCostBreakdown:
             lines.append(line)
 
     cumulative = sum(l.cost_eur or 0.0 for l in lines)
-    direct = sum(
-        (l.cost_eur or 0.0) for l in lines
-        if not l.is_from_internal_lot
-    )
+    direct = sum((l.cost_eur or 0.0) for l in lines if not l.is_from_internal_lot)
     intermediates = cumulative - direct
 
-    has_yield = (run.yield_g is not None and run.yield_g > 0)
+    has_yield = run.yield_g is not None and run.yield_g > 0
 
     return RunCostBreakdown(
         lines=lines,
@@ -215,8 +208,7 @@ def compute_run_cost(run: Run) -> RunCostBreakdown:
     )
 
 
-def compute_run_cost_cumulative(run: Run,
-                                  breakdown: RunCostBreakdown | None = None) -> float:
+def compute_run_cost_cumulative(run: Run, breakdown: RunCostBreakdown | None = None) -> float:
     """Convenience wrapper: returns the cumulative cost only.
 
     Used by ``complete_run`` to allocate cost to product lots.
@@ -231,10 +223,11 @@ class CostMetrics:
 
     Each field is None if not derivable (missing yield, MW, density).
     """
+
     per_mol: float | None
     per_g: float | None
     per_mL: float | None
-    basis_eur: float          # the total cost this metric was derived from
+    basis_eur: float  # the total cost this metric was derived from
 
 
 def product_unit_metrics(run: Run, basis_eur: float) -> CostMetrics:
@@ -243,8 +236,7 @@ def product_unit_metrics(run: Run, basis_eur: float) -> CostMetrics:
     The basis is typically ``breakdown.total_eur`` (cumulative) or
     ``breakdown.direct_total_eur`` (direct). Caller picks.
     """
-    empty = CostMetrics(per_mol=None, per_g=None, per_mL=None,
-                        basis_eur=basis_eur)
+    empty = CostMetrics(per_mol=None, per_g=None, per_mL=None, basis_eur=basis_eur)
     if basis_eur <= 0:
         return empty
     if not run.yield_g or run.yield_g <= 0:
@@ -280,8 +272,7 @@ def product_unit_metrics(run: Run, basis_eur: float) -> CostMetrics:
         if volume_mL > 0:
             per_mL = basis_eur / volume_mL
 
-    return CostMetrics(per_mol=per_mol, per_g=per_g, per_mL=per_mL,
-                       basis_eur=basis_eur)
+    return CostMetrics(per_mol=per_mol, per_g=per_g, per_mL=per_mL, basis_eur=basis_eur)
 
 
 def cost_per_mol_product(run: Run, breakdown: RunCostBreakdown) -> float | None:

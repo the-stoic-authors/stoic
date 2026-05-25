@@ -6,6 +6,7 @@ leave behind.
 
 Run: .venv/bin/pytest tests/diagnose_v3.py -s --no-header -v
 """
+
 from __future__ import annotations
 
 import os
@@ -23,8 +24,7 @@ def test_v3_reproduce_with_prints(tmp_path, monkeypatch, app):
     print(f"  app object id: {id(app)}")
     print(f"  app.instance_path: {app.instance_path}")
     print(f"  app.config['TESTING']: {app.config.get('TESTING')}")
-    print(f"  app.config['SQLALCHEMY_DATABASE_URI']: "
-          f"{app.config.get('SQLALCHEMY_DATABASE_URI')}")
+    print(f"  app.config['SQLALCHEMY_DATABASE_URI']: {app.config.get('SQLALCHEMY_DATABASE_URI')}")
 
     from stoic_eln.services import passphrase_store as ps
 
@@ -33,11 +33,11 @@ def test_v3_reproduce_with_prints(tmp_path, monkeypatch, app):
     print("  Pre-test state:")
     print(f"    is_cached: {ps.is_cached()}")
     print(f"    current_source(): {ps.current_source()!r}")
-    print(f"    env STOIC_BACKUP_PASSPHRASE: "
-          f"{os.environ.get('STOIC_BACKUP_PASSPHRASE')!r}")
+    print(f"    env STOIC_BACKUP_PASSPHRASE: {os.environ.get('STOIC_BACKUP_PASSPHRASE')!r}")
 
     # Check marker file
     from pathlib import Path
+
     marker = Path(app.instance_path) / "auth_source"
     print(f"    marker exists at {marker}: {marker.exists()}")
     if marker.exists():
@@ -55,6 +55,7 @@ def test_v3_reproduce_with_prints(tmp_path, monkeypatch, app):
 
     # AppSetting check
     from stoic_eln.models.settings import AppSetting
+
     db_value = AppSetting.get("auth.passphrase_source")
     print(f"      AppSetting.get('auth.passphrase_source'): {db_value!r}")
 
@@ -63,8 +64,7 @@ def test_v3_reproduce_with_prints(tmp_path, monkeypatch, app):
 
     # Set env
     monkeypatch.setenv("STOIC_BACKUP_PASSPHRASE", "from-env")
-    print(f"    after setenv: env = "
-          f"{os.environ.get('STOIC_BACKUP_PASSPHRASE')!r}")
+    print(f"    after setenv: env = {os.environ.get('STOIC_BACKUP_PASSPHRASE')!r}")
 
     # Diagnostics before the call
     print()

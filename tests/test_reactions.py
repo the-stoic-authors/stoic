@@ -98,12 +98,14 @@ def test_generate_reaction_code_first(app):
         code = generate_reaction_code()
         # Should be RX-{current_year}-0001
         from datetime import date
+
         assert code == f"RX-{date.today().year}-0001"
 
 
 def test_generate_reaction_code_increments(app):
     with app.app_context():
         from datetime import date
+
         year = date.today().year
 
         # Insert a reaction with last code XXXX
@@ -124,11 +126,19 @@ def test_reaction_components_partitioning(app):
         db.session.add_all([rxn, sm, cat, prod])
         db.session.flush()
 
-        db.session.add_all([
-            ReactionComponent(reaction_id=rxn.id, substance_id=sm.id, role="starting_material", position=0),
-            ReactionComponent(reaction_id=rxn.id, substance_id=cat.id, role="catalyst", position=1),
-            ReactionComponent(reaction_id=rxn.id, substance_id=prod.id, role="product", position=2),
-        ])
+        db.session.add_all(
+            [
+                ReactionComponent(
+                    reaction_id=rxn.id, substance_id=sm.id, role="starting_material", position=0
+                ),
+                ReactionComponent(
+                    reaction_id=rxn.id, substance_id=cat.id, role="catalyst", position=1
+                ),
+                ReactionComponent(
+                    reaction_id=rxn.id, substance_id=prod.id, role="product", position=2
+                ),
+            ]
+        )
         db.session.commit()
 
         assert len(rxn.starting_materials) == 1
@@ -149,11 +159,19 @@ def test_reaction_derive_scheme_smiles(app):
         db.session.add_all([rxn, sm, cat, prod])
         db.session.flush()
 
-        db.session.add_all([
-            ReactionComponent(reaction_id=rxn.id, substance_id=sm.id, role="starting_material", position=0),
-            ReactionComponent(reaction_id=rxn.id, substance_id=cat.id, role="catalyst", position=1),
-            ReactionComponent(reaction_id=rxn.id, substance_id=prod.id, role="product", position=2),
-        ])
+        db.session.add_all(
+            [
+                ReactionComponent(
+                    reaction_id=rxn.id, substance_id=sm.id, role="starting_material", position=0
+                ),
+                ReactionComponent(
+                    reaction_id=rxn.id, substance_id=cat.id, role="catalyst", position=1
+                ),
+                ReactionComponent(
+                    reaction_id=rxn.id, substance_id=prod.id, role="product", position=2
+                ),
+            ]
+        )
         db.session.commit()
 
         scheme_smi = rxn.derive_scheme_smiles()
@@ -176,10 +194,16 @@ def test_reaction_derive_scheme_smiles_no_reagents(app):
         prod = Substance(name="EtOAc", smiles="CCOC(=O)C")
         db.session.add_all([rxn, sm, prod])
         db.session.flush()
-        db.session.add_all([
-            ReactionComponent(reaction_id=rxn.id, substance_id=sm.id, role="starting_material", position=0),
-            ReactionComponent(reaction_id=rxn.id, substance_id=prod.id, role="product", position=1),
-        ])
+        db.session.add_all(
+            [
+                ReactionComponent(
+                    reaction_id=rxn.id, substance_id=sm.id, role="starting_material", position=0
+                ),
+                ReactionComponent(
+                    reaction_id=rxn.id, substance_id=prod.id, role="product", position=1
+                ),
+            ]
+        )
         db.session.commit()
 
         # No reagents → use the >> shortcut
@@ -218,7 +242,9 @@ def _login(client, app):
             u.set_password("password123")
             db.session.add(u)
             db.session.commit()
-    client.post("/auth/login", data={"username": "admin", "password": "password123", "submit": "Accedi"})
+    client.post(
+        "/auth/login", data={"username": "admin", "password": "password123", "submit": "Accedi"}
+    )
 
 
 def test_reactions_list_requires_auth(client):
@@ -239,10 +265,12 @@ def test_reactions_list_renders(client, app):
 
 def test_reactions_search(client, app):
     with app.app_context():
-        db.session.add_all([
-            Reaction(code="RX-2026-0001", title="Suzuki coupling"),
-            Reaction(code="RX-2026-0002", title="Heck reaction"),
-        ])
+        db.session.add_all(
+            [
+                Reaction(code="RX-2026-0001", title="Suzuki coupling"),
+                Reaction(code="RX-2026-0002", title="Heck reaction"),
+            ]
+        )
         db.session.commit()
     _login(client, app)
     resp = client.get("/reactions/?q=suzuki")
@@ -257,7 +285,9 @@ def test_reactions_search_by_substance_name(client, app):
         sub = Substance(name="UniqueSubstance123", smiles="CC")
         db.session.add_all([rxn, sub])
         db.session.flush()
-        db.session.add(ReactionComponent(reaction_id=rxn.id, substance_id=sub.id, role="reactant", position=0))
+        db.session.add(
+            ReactionComponent(reaction_id=rxn.id, substance_id=sub.id, role="reactant", position=0)
+        )
         db.session.commit()
     _login(client, app)
     resp = client.get("/reactions/?q=UniqueSubstance")
@@ -387,14 +417,22 @@ def test_add_component_with_equivalents_uses_limiting_mmol(client, app):
     # First add SM → auto-limiting at eq=1
     client.post(
         f"/reactions/{rid}/components/new",
-        data={"substance_id": str(sm_id), "mixture_id": "",
-              "role": "starting_material", "equivalents": "1.0"},
+        data={
+            "substance_id": str(sm_id),
+            "mixture_id": "",
+            "role": "starting_material",
+            "equivalents": "1.0",
+        },
     )
     # Then add catalyst with eq=0.05
     client.post(
         f"/reactions/{rid}/components/new",
-        data={"substance_id": str(cat_id), "mixture_id": "",
-              "role": "catalyst", "equivalents": "0.05"},
+        data={
+            "substance_id": str(cat_id),
+            "mixture_id": "",
+            "role": "catalyst",
+            "equivalents": "0.05",
+        },
     )
     with app.app_context():
         components = (
@@ -489,10 +527,17 @@ def test_only_one_limiting_per_reaction(client, app):
         b = Substance(name="B")
         db.session.add_all([rxn, a, b])
         db.session.flush()
-        ca = ReactionComponent(reaction_id=rxn.id, substance_id=a.id, role="reactant",
-                               position=0, is_limiting=True, amount_mmol=1.0)
-        cb = ReactionComponent(reaction_id=rxn.id, substance_id=b.id, role="reactant",
-                               position=1, is_limiting=False)
+        ca = ReactionComponent(
+            reaction_id=rxn.id,
+            substance_id=a.id,
+            role="reactant",
+            position=0,
+            is_limiting=True,
+            amount_mmol=1.0,
+        )
+        cb = ReactionComponent(
+            reaction_id=rxn.id, substance_id=b.id, role="reactant", position=1, is_limiting=False
+        )
         db.session.add_all([ca, cb])
         db.session.commit()
         rid = rxn.id

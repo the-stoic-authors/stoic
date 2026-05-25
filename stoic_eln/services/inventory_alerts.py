@@ -46,11 +46,7 @@ class InventorySummary:
 
     @property
     def total_alerts(self) -> int:
-        return (
-            len(self.expired_lots)
-            + len(self.expiring_lots)
-            + len(self.low_stock_substances)
-        )
+        return len(self.expired_lots) + len(self.expiring_lots) + len(self.low_stock_substances)
 
 
 def get_summary(
@@ -69,37 +65,39 @@ def get_summary(
     today = date.today()
     expiring_cutoff = today + timedelta(days=expiring_window_days)
 
-    base_q = db.session.query(InventoryItem).filter(
-        InventoryItem.is_active.is_(True)
-    )
+    base_q = db.session.query(InventoryItem).filter(InventoryItem.is_active.is_(True))
     if group_id is not None:
         base_q = base_q.filter(InventoryItem.group_id == group_id)
 
     # Expired
     expired_lots = (
         base_q.filter(InventoryItem.expiry_date.isnot(None))
-              .filter(InventoryItem.expiry_date < today)
-              .filter(or_(
-                  InventoryItem.quantity_g > 0,
-                  InventoryItem.quantity_mL > 0,
-              ))
-              .join(Substance, InventoryItem.substance_id == Substance.id)
-              .order_by(InventoryItem.expiry_date.asc())
-              .all()
+        .filter(InventoryItem.expiry_date < today)
+        .filter(
+            or_(
+                InventoryItem.quantity_g > 0,
+                InventoryItem.quantity_mL > 0,
+            )
+        )
+        .join(Substance, InventoryItem.substance_id == Substance.id)
+        .order_by(InventoryItem.expiry_date.asc())
+        .all()
     )
 
     # Expiring soon
     expiring_lots = (
         base_q.filter(InventoryItem.expiry_date.isnot(None))
-              .filter(InventoryItem.expiry_date >= today)
-              .filter(InventoryItem.expiry_date <= expiring_cutoff)
-              .filter(or_(
-                  InventoryItem.quantity_g > 0,
-                  InventoryItem.quantity_mL > 0,
-              ))
-              .join(Substance, InventoryItem.substance_id == Substance.id)
-              .order_by(InventoryItem.expiry_date.asc())
-              .all()
+        .filter(InventoryItem.expiry_date >= today)
+        .filter(InventoryItem.expiry_date <= expiring_cutoff)
+        .filter(
+            or_(
+                InventoryItem.quantity_g > 0,
+                InventoryItem.quantity_mL > 0,
+            )
+        )
+        .join(Substance, InventoryItem.substance_id == Substance.id)
+        .order_by(InventoryItem.expiry_date.asc())
+        .all()
     )
 
     # Low stock — fetch all substances with thresholds, filter in-memory
@@ -107,31 +105,24 @@ def get_summary(
     candidates = (
         db.session.query(Substance)
         .filter(Substance.is_active.is_(True))
-        .filter(or_(
-            Substance.low_stock_threshold_g.isnot(None),
-            Substance.low_stock_threshold_mL.isnot(None),
-        ))
+        .filter(
+            or_(
+                Substance.low_stock_threshold_g.isnot(None),
+                Substance.low_stock_threshold_mL.isnot(None),
+            )
+        )
         .all()
     )
     low_stock_substances = [s for s in candidates if s.is_low_stock]
     low_stock_substances.sort(key=lambda s: s.name)
 
     # KPIs
-    total_substances = (
-        db.session.query(Substance)
-        .filter(Substance.is_active.is_(True))
-        .count()
-    )
-    active_lots_q = (
-        db.session.query(InventoryItem)
-        .filter(InventoryItem.is_active.is_(True))
-    )
+    total_substances = db.session.query(Substance).filter(Substance.is_active.is_(True)).count()
+    active_lots_q = db.session.query(InventoryItem).filter(InventoryItem.is_active.is_(True))
     if group_id is not None:
         active_lots_q = active_lots_q.filter(InventoryItem.group_id == group_id)
     total_active_lots = active_lots_q.count()
-    total_value = sum(
-        (lot.total_cost_eur or 0.0) for lot in active_lots_q.all()
-    )
+    total_value = sum((lot.total_cost_eur or 0.0) for lot in active_lots_q.all())
 
     return InventorySummary(
         expired_lots=expired_lots,
@@ -148,19 +139,21 @@ def get_summary(
 def _open_orders(*, group_id: int | None = None):
     """Open orders (planned + ordered) — most overdue first."""
     from stoic_eln.models.order import Order, OPEN_STATUSES
-    q = (db.session.query(Order)
-         .filter(Order.status.in_(OPEN_STATUSES)))
+
+    q = db.session.query(Order).filter(Order.status.in_(OPEN_STATUSES))
     if group_id is not None:
         q = q.filter(Order.group_id == group_id)
-    return (q.order_by(Order.expected_delivery_date.asc().nulls_last(),
-                       Order.created_at.asc()).all())
+    return q.order_by(Order.expected_delivery_date.asc().nulls_last(), Order.created_at.asc()).all()
 
 
 def _open_orders_total(*, group_id: int | None = None) -> float:
     from stoic_eln.models.order import Order, OPEN_STATUSES
-    q = (db.session.query(Order)
-         .filter(Order.status.in_(OPEN_STATUSES))
-         .filter(Order.ordered_total_eur.isnot(None)))
+
+    q = (
+        db.session.query(Order)
+        .filter(Order.status.in_(OPEN_STATUSES))
+        .filter(Order.ordered_total_eur.isnot(None))
+    )
     if group_id is not None:
         q = q.filter(Order.group_id == group_id)
     return sum((o.ordered_total_eur or 0.0) for o in q.all())

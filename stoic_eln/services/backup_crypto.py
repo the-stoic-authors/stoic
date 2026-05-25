@@ -84,7 +84,7 @@ MAGIC = b"STOICENC"
 VERSION = 1
 SALT_BYTES = 16
 NONCE_BYTES = 12  # AES-GCM standard
-KEY_BYTES = 32    # AES-256
+KEY_BYTES = 32  # AES-256
 HEADER_LEN = len(MAGIC) + 1 + SALT_BYTES + NONCE_BYTES  # 37 bytes
 
 # Argon2id parameters — moderate strength for a backup KDF.
@@ -96,7 +96,7 @@ HEADER_LEN = len(MAGIC) + 1 + SALT_BYTES + NONCE_BYTES  # 37 bytes
 # modern server-class hardware. Backup creation is not
 # latency-sensitive, so this is fine.
 _KDF_TIME_COST = 3
-_KDF_MEMORY_COST = 64 * 1024   # 64 MiB
+_KDF_MEMORY_COST = 64 * 1024  # 64 MiB
 _KDF_PARALLELISM = 2
 
 
@@ -114,6 +114,7 @@ def resolve_passphrase(instance_path: Path) -> str | None:
     directly to make the contract clearer.
     """
     from stoic_eln.services import passphrase_store
+
     return passphrase_store.get_passphrase(instance_path)
 
 
@@ -123,6 +124,7 @@ def has_passphrase(instance_path: Path) -> bool:
     version (``has_passphrase_available``). Safe to call from
     web endpoints / templates which mustn't prompt on stdin."""
     from stoic_eln.services import passphrase_store
+
     return passphrase_store.has_passphrase_available(instance_path)
 
 
@@ -156,6 +158,7 @@ def write_passphrase_file(instance_path: Path, passphrase: str) -> Path:
 def _derive_key(passphrase: str, salt: bytes) -> bytes:
     """Derive a 32-byte key from passphrase + salt using Argon2id."""
     from argon2.low_level import Type, hash_secret_raw
+
     return hash_secret_raw(
         secret=passphrase.encode("utf-8"),
         salt=salt,
@@ -219,6 +222,7 @@ def decrypt_bytes(blob: bytes, passphrase: str) -> bytes:
     ct = blob[nonce_off + NONCE_BYTES :]
 
     from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+
     key = _derive_key(passphrase, salt)
     aes = AESGCM(key)
     return aes.decrypt(nonce, ct, associated_data=None)
@@ -240,6 +244,7 @@ def is_encrypted(prefix: bytes) -> bool:
 @dataclass(frozen=True)
 class VerificationResult:
     """Outcome of a self-test encrypt+decrypt round trip."""
+
     ok: bool
     error: str | None = None
 

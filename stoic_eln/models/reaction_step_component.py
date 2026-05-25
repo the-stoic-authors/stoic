@@ -101,15 +101,23 @@ class ReactionStepComponent(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
 
     step_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("reaction_step.id", ondelete="CASCADE"),
-        nullable=False, index=True,
+        Integer,
+        ForeignKey("reaction_step.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
     )
     # XOR: exactly one of substance_id / mixture_id is set.
     substance_id: Mapped[int | None] = mapped_column(
-        Integer, ForeignKey("substance.id"), nullable=True, index=True,
+        Integer,
+        ForeignKey("substance.id"),
+        nullable=True,
+        index=True,
     )
     mixture_id: Mapped[int | None] = mapped_column(
-        Integer, ForeignKey("mixture.id"), nullable=True, index=True,
+        Integer,
+        ForeignKey("mixture.id"),
+        nullable=True,
+        index=True,
     )
 
     position: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
@@ -124,9 +132,7 @@ class ReactionStepComponent(db.Model):
     concentration_M: Mapped[float | None] = mapped_column(Float, nullable=True)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime, default=_now_utc, nullable=False
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now_utc, nullable=False)
 
     __table_args__ = (
         CheckConstraint(
@@ -137,14 +143,14 @@ class ReactionStepComponent(db.Model):
     )
 
     # Relationships
-    step: Mapped[ReactionStep] = relationship(
-        "ReactionStep", back_populates="components"
-    )
+    step: Mapped[ReactionStep] = relationship("ReactionStep", back_populates="components")
     substance: Mapped[Substance | None] = relationship(
-        "Substance", foreign_keys=[substance_id],
+        "Substance",
+        foreign_keys=[substance_id],
     )
     mixture: Mapped[Mixture | None] = relationship(
-        "Mixture", foreign_keys=[mixture_id],
+        "Mixture",
+        foreign_keys=[mixture_id],
     )
 
     def __repr__(self) -> str:

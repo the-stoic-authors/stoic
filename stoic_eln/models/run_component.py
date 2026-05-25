@@ -42,9 +42,7 @@ class RunComponent(db.Model):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
 
-    run_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("run.id"), nullable=False, index=True
-    )
+    run_id: Mapped[int] = mapped_column(Integer, ForeignKey("run.id"), nullable=False, index=True)
 
     template_component_id: Mapped[int | None] = mapped_column(
         Integer, ForeignKey("reaction_component.id"), nullable=True
@@ -95,10 +93,12 @@ class RunComponent(db.Model):
     # Relationships
     run: Mapped[Run] = relationship("Run", back_populates="components")
     substance: Mapped[Substance | None] = relationship(
-        "Substance", foreign_keys=[substance_id],
+        "Substance",
+        foreign_keys=[substance_id],
     )
     mixture: Mapped[Mixture | None] = relationship(
-        "Mixture", foreign_keys=[mixture_id],
+        "Mixture",
+        foreign_keys=[mixture_id],
     )
     inventory_item: Mapped[InventoryItem | None] = relationship("InventoryItem")
     template_component: Mapped[ReactionComponent | None] = relationship(

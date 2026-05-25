@@ -84,23 +84,32 @@ def label_for_action(action: str) -> tuple[str, str]:
 @dataclass
 class AuditFilters:
     """Normalized audit query filters."""
+
     user_id: int | None = None
     action: str | None = None
     entity_type: str | None = None
     date_from: date | None = None
     date_to: date | None = None
-    q: str | None = None       # free-text in details/entity_id
+    q: str | None = None  # free-text in details/entity_id
 
     def is_empty(self) -> bool:
-        return all(v is None for v in (
-            self.user_id, self.action, self.entity_type,
-            self.date_from, self.date_to, self.q,
-        ))
+        return all(
+            v is None
+            for v in (
+                self.user_id,
+                self.action,
+                self.entity_type,
+                self.date_from,
+                self.date_to,
+                self.q,
+            )
+        )
 
 
 @dataclass
 class AuditPage:
     """One page of audit events plus paging metadata."""
+
     events: list[AuditLog]
     total: int
     page: int
@@ -143,17 +152,18 @@ def _apply_filters(query, f: AuditFilters):
         like = f"%{f.q}%"
         # Match action, entity_type, entity_id, details JSON dump
         # SQLite stores JSON as TEXT, so a LIKE works for free-text search
-        query = query.filter(or_(
-            AuditLog.action.ilike(like),
-            AuditLog.entity_type.ilike(like),
-            db.cast(AuditLog.entity_id, db.String).ilike(like),
-            db.cast(AuditLog.details, db.String).ilike(like),
-        ))
+        query = query.filter(
+            or_(
+                AuditLog.action.ilike(like),
+                AuditLog.entity_type.ilike(like),
+                db.cast(AuditLog.entity_id, db.String).ilike(like),
+                db.cast(AuditLog.details, db.String).ilike(like),
+            )
+        )
     return query
 
 
-def query_events(filters: AuditFilters,
-                 *, page: int = 1, page_size: int = 50) -> AuditPage:
+def query_events(filters: AuditFilters, *, page: int = 1, page_size: int = 50) -> AuditPage:
     """Paginated, filtered query — newest first."""
     page = max(1, page)
     page_size = max(1, min(page_size, 500))
@@ -162,47 +172,58 @@ def query_events(filters: AuditFilters,
     base = _apply_filters(base, filters)
 
     total = base.count()
-    events = (base
-              .order_by(AuditLog.created_at.desc(), AuditLog.id.desc())
-              .offset((page - 1) * page_size)
-              .limit(page_size).all())
+    events = (
+        base.order_by(AuditLog.created_at.desc(), AuditLog.id.desc())
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+        .all()
+    )
     return AuditPage(events=events, total=total, page=page, page_size=page_size)
 
 
-def recent_events(n: int = 10,
-                  *, filters: AuditFilters | None = None) -> list[AuditLog]:
+def recent_events(n: int = 10, *, filters: AuditFilters | None = None) -> list[AuditLog]:
     """Most recent N events, optionally filtered. For dashboard widget."""
     n = max(1, min(n, 200))
     base = db.session.query(AuditLog)
     if filters is not None:
         base = _apply_filters(base, filters)
-    return (base
-            .order_by(AuditLog.created_at.desc(), AuditLog.id.desc())
-            .limit(n).all())
+    return base.order_by(AuditLog.created_at.desc(), AuditLog.id.desc()).limit(n).all()
 
 
 # ── Distinct values for filter dropdowns ───────────────────────────
 
 
 def distinct_actions() -> list[str]:
-    rows = (db.session.query(AuditLog.action)
-            .filter(AuditLog.action.isnot(None))
-            .distinct().order_by(AuditLog.action.asc()).all())
+    rows = (
+        db.session.query(AuditLog.action)
+        .filter(AuditLog.action.isnot(None))
+        .distinct()
+        .order_by(AuditLog.action.asc())
+        .all()
+    )
     return [r[0] for r in rows if r[0]]
 
 
 def distinct_entity_types() -> list[str]:
-    rows = (db.session.query(AuditLog.entity_type)
-            .filter(AuditLog.entity_type.isnot(None))
-            .distinct().order_by(AuditLog.entity_type.asc()).all())
+    rows = (
+        db.session.query(AuditLog.entity_type)
+        .filter(AuditLog.entity_type.isnot(None))
+        .distinct()
+        .order_by(AuditLog.entity_type.asc())
+        .all()
+    )
     return [r[0] for r in rows if r[0]]
 
 
 def distinct_users() -> list[User]:
     """Users who have generated at least one audit event."""
-    rows = (db.session.query(User)
-            .join(AuditLog, AuditLog.user_id == User.id)
-            .distinct().order_by(User.full_name.asc()).all())
+    rows = (
+        db.session.query(User)
+        .join(AuditLog, AuditLog.user_id == User.id)
+        .distinct()
+        .order_by(User.full_name.asc())
+        .all()
+    )
     return rows
 
 
@@ -216,29 +237,38 @@ def export_csv(filters: AuditFilters) -> str:
     import json
 
     base = _apply_filters(db.session.query(AuditLog), filters)
-    events = (base
-              .order_by(AuditLog.created_at.desc(), AuditLog.id.desc())
-              .all())
+    events = base.order_by(AuditLog.created_at.desc(), AuditLog.id.desc()).all()
 
     buf = io.StringIO()
     w = csv.writer(buf)
-    w.writerow([
-        "id", "created_at_utc", "user_id", "user_name", "action",
-        "entity_type", "entity_id", "ip_address", "details_json",
-    ])
+    w.writerow(
+        [
+            "id",
+            "created_at_utc",
+            "user_id",
+            "user_name",
+            "action",
+            "entity_type",
+            "entity_id",
+            "ip_address",
+            "details_json",
+        ]
+    )
     for e in events:
         u = e.user_id and db.session.get(User, e.user_id)
-        w.writerow([
-            e.id,
-            e.created_at.strftime("%Y-%m-%d %H:%M:%S") if e.created_at else "",
-            e.user_id or "",
-            (u.full_name if u else ""),
-            e.action or "",
-            e.entity_type or "",
-            e.entity_id if e.entity_id is not None else "",
-            e.ip_address or "",
-            json.dumps(e.details, ensure_ascii=False) if e.details else "",
-        ])
+        w.writerow(
+            [
+                e.id,
+                e.created_at.strftime("%Y-%m-%d %H:%M:%S") if e.created_at else "",
+                e.user_id or "",
+                (u.full_name if u else ""),
+                e.action or "",
+                e.entity_type or "",
+                e.entity_id if e.entity_id is not None else "",
+                e.ip_address or "",
+                json.dumps(e.details, ensure_ascii=False) if e.details else "",
+            ]
+        )
     return buf.getvalue()
 
 

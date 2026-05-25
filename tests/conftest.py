@@ -64,6 +64,7 @@ def _reset_passphrase_cache():
     callback would silently leak into the next test in the same
     pytest session."""
     from stoic_eln.services import passphrase_store as _ps
+
     _ps.reset_cache()
     _ps.set_prompt_callback(None)
     yield

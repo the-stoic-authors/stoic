@@ -46,10 +46,7 @@ _KIND_CHOICES: list[tuple[str, str]] = [
 # from models/mixture.py; users can also type free-form strings if
 # they need something exotic (the model doesn't validate against a
 # fixed list — see the model docstring).
-_CONC_UNIT_CHOICES: list[tuple[str, str]] = (
-    [("", "—")]
-    + [(u, u) for u in CONCENTRATION_UNITS]
-)
+_CONC_UNIT_CHOICES: list[tuple[str, str]] = [("", "—")] + [(u, u) for u in CONCENTRATION_UNITS]
 
 
 class MixtureForm(FlaskForm):

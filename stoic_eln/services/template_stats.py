@@ -39,11 +39,12 @@ if TYPE_CHECKING:
 @dataclass
 class RunPoint:
     """One data point per completed run, used for tables and charts."""
+
     run_id: int
     run_code: str
     completed_at: datetime | None
-    cost_eur: float                 # cumulative
-    cost_per_g: float | None        # cumulative €/g of product
+    cost_eur: float  # cumulative
+    cost_per_g: float | None  # cumulative €/g of product
     yield_percent: float | None
     yield_g: float | None
     operator_name: str | None
@@ -52,10 +53,11 @@ class RunPoint:
 @dataclass
 class TemplateStats:
     """Aggregate cost/yield stats over the completed runs of one template."""
+
     template_code_base: str
-    template_title: str | None      # latest title (most recent reaction's)
+    template_title: str | None  # latest title (most recent reaction's)
     n_runs: int
-    n_runs_with_cost: int           # subset that have non-zero cost data
+    n_runs_with_cost: int  # subset that have non-zero cost data
 
     avg_cost_eur: float | None
     min_cost_eur: float | None
@@ -66,7 +68,7 @@ class TemplateStats:
     max_cost_per_g: float | None
 
     avg_yield_percent: float | None
-    last_run: RunPoint | None        # most recent
+    last_run: RunPoint | None  # most recent
     points: list[RunPoint] = field(default_factory=list)  # chronological
 
     @property
@@ -102,10 +104,12 @@ def stats_for_template(template_code_base: str) -> TemplateStats:
     runs = (
         db.session.query(Run)
         .join(Reaction, Run.reaction_id == Reaction.id)
-        .filter(and_(
-            Run.status == STATUS_COMPLETED,
-            Reaction.template_code_base == template_code_base,
-        ))
+        .filter(
+            and_(
+                Run.status == STATUS_COMPLETED,
+                Reaction.template_code_base == template_code_base,
+            )
+        )
         .order_by(Run.completed_at.asc().nulls_last(), Run.created_at.asc())
         .all()
     )
@@ -121,9 +125,14 @@ def stats_for_template(template_code_base: str) -> TemplateStats:
         .first()
     )
 
-    def _avg(vals): return (sum(vals) / len(vals)) if vals else None
-    def _min(vals): return min(vals) if vals else None
-    def _max(vals): return max(vals) if vals else None
+    def _avg(vals):
+        return (sum(vals) / len(vals)) if vals else None
+
+    def _min(vals):
+        return min(vals) if vals else None
+
+    def _max(vals):
+        return max(vals) if vals else None
 
     costs = [p.cost_eur for p in points_with_cost]
     cpgs = [p.cost_per_g for p in points_with_cost if p.cost_per_g is not None]
@@ -164,8 +173,7 @@ def all_templates_stats() -> list[TemplateStats]:
     out.sort(
         key=lambda s: (
             -s.n_runs,
-            -(s.last_run.completed_at.timestamp()
-              if s.last_run and s.last_run.completed_at else 0),
+            -(s.last_run.completed_at.timestamp() if s.last_run and s.last_run.completed_at else 0),
         )
     )
     return out
@@ -218,13 +226,13 @@ def render_sparkline_svg(
     y_range = y_max - y_min
     if y_range == 0:
         # Flat line — show at midline
-        coords = [(pad + (i - x_min) / (x_max - x_min) * inner_w,
-                   pad + inner_h / 2)
-                  for i in xs]
+        coords = [(pad + (i - x_min) / (x_max - x_min) * inner_w, pad + inner_h / 2) for i in xs]
     else:
         coords = [
-            (pad + (i - x_min) / (x_max - x_min) * inner_w,
-             pad + inner_h - (v - y_min) / y_range * inner_h)
+            (
+                pad + (i - x_min) / (x_max - x_min) * inner_w,
+                pad + inner_h - (v - y_min) / y_range * inner_h,
+            )
             for i, v in pairs
         ]
 
@@ -232,10 +240,7 @@ def render_sparkline_svg(
     path_d = "M " + " L ".join(f"{x:.1f},{y:.1f}" for x, y in coords)
 
     # Dots on each point
-    dots = "".join(
-        f'<circle cx="{x:.1f}" cy="{y:.1f}" r="2.5" fill="{color}"/>'
-        for x, y in coords
-    )
+    dots = "".join(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="2.5" fill="{color}"/>' for x, y in coords)
 
     # Labels for first and last value
     first_x, first_y = coords[0]
@@ -250,12 +255,12 @@ def render_sparkline_svg(
         f'aria-label="trend">'
         f'<path d="{path_d}" fill="none" stroke="{color}" '
         f'stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>'
-        f'{dots}'
+        f"{dots}"
         f'<text x="{first_x:.1f}" y="{first_y - 6:.1f}" '
         f'font-size="9" fill="#888" text-anchor="start">{fmt(first_v)}</text>'
         f'<text x="{last_x:.1f}" y="{last_y - 6:.1f}" '
         f'font-size="9" fill="#222" font-weight="bold" '
         f'text-anchor="end">{fmt(last_v)}</text>'
-        f'</svg>'
+        f"</svg>"
     )
     return svg

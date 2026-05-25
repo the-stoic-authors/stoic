@@ -1,4 +1,5 @@
 """Notes blueprint (Settimana 6 patch 9)."""
+
 from flask import Blueprint
 
 bp = Blueprint("notes", __name__, url_prefix="/notes")

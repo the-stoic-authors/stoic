@@ -51,12 +51,8 @@ class ReactionForm(FlaskForm):
     )
 
     # Conditions
-    temperature_c = FloatField(
-        _l("Temperatura (°C)"), validators=[Optional()]
-    )
-    duration_hours = FloatField(
-        _l("Durata (h)"), validators=[Optional(), NumberRange(min=0)]
-    )
+    temperature_c = FloatField(_l("Temperatura (°C)"), validators=[Optional()])
+    duration_hours = FloatField(_l("Durata (h)"), validators=[Optional(), NumberRange(min=0)])
     atmosphere = SelectField(
         _l("Atmosfera"),
         choices=[
@@ -70,9 +66,7 @@ class ReactionForm(FlaskForm):
         ],
         validators=[Optional()],
     )
-    pressure_bar = FloatField(
-        _l("Pressione (bar)"), validators=[Optional(), NumberRange(min=0)]
-    )
+    pressure_bar = FloatField(_l("Pressione (bar)"), validators=[Optional(), NumberRange(min=0)])
 
     # Scheme override
     scheme_smiles = StringField(
@@ -89,9 +83,7 @@ class ReactionForm(FlaskForm):
         validators=[Optional(), Length(max=500)],
         render_kw={"placeholder": "DOI, paper, SOP interno…"},
     )
-    notes = TextAreaField(
-        _l("Note"), validators=[Optional()], render_kw={"rows": 2}
-    )
+    notes = TextAreaField(_l("Note"), validators=[Optional()], render_kw={"rows": 2})
 
     submit = SubmitField(_l("Salva"))
 
@@ -104,12 +96,8 @@ class ReactionComponentForm(FlaskForm):
     the XOR contract before persisting.
     """
 
-    substance_id = IntegerField(
-        _l("Sostanza"), validators=[Optional(), NumberRange(min=1)]
-    )
-    mixture_id = IntegerField(
-        _l("Miscela"), validators=[Optional(), NumberRange(min=1)]
-    )
+    substance_id = IntegerField(_l("Sostanza"), validators=[Optional(), NumberRange(min=1)])
+    mixture_id = IntegerField(_l("Miscela"), validators=[Optional(), NumberRange(min=1)])
     role = SelectField(
         _l("Ruolo"),
         choices=ROLE_CHOICES,
@@ -120,15 +108,9 @@ class ReactionComponentForm(FlaskForm):
         _l("Equivalenti"),
         validators=[Optional(), NumberRange(min=0)],
     )
-    amount_mmol = FloatField(
-        _l("mmol"), validators=[Optional(), NumberRange(min=0)]
-    )
-    amount_g = FloatField(
-        _l("g"), validators=[Optional(), NumberRange(min=0)]
-    )
-    amount_mL = FloatField(
-        _l("mL"), validators=[Optional(), NumberRange(min=0)]
-    )
+    amount_mmol = FloatField(_l("mmol"), validators=[Optional(), NumberRange(min=0)])
+    amount_g = FloatField(_l("g"), validators=[Optional(), NumberRange(min=0)])
+    amount_mL = FloatField(_l("mL"), validators=[Optional(), NumberRange(min=0)])
     is_limiting = BooleanField(_l("Reagente limitante"))
     concentration_M = FloatField(
         _l("Concentrazione (M)"),

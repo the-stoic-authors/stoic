@@ -43,10 +43,15 @@ def _ghs_response_etoh():
                         {
                             "Value": {
                                 "StringWithMarkup": [
-                                    {"String": "GHS02", "Markup": [
-                                        {"URL": "https://example.com/pictograms/GHS02.svg",
-                                         "Type": "Icon"}
-                                    ]}
+                                    {
+                                        "String": "GHS02",
+                                        "Markup": [
+                                            {
+                                                "URL": "https://example.com/pictograms/GHS02.svg",
+                                                "Type": "Icon",
+                                            }
+                                        ],
+                                    }
                                 ]
                             }
                         },
@@ -142,9 +147,9 @@ def test_search_by_cas_returns_full_result():
 @respx.mock
 def test_search_not_found_raises():
     pubchem.cache_clear()
-    respx.get("https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/asdfqwerty999/cids/JSON").mock(
-        return_value=Response(404)
-    )
+    respx.get(
+        "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/asdfqwerty999/cids/JSON"
+    ).mock(return_value=Response(404))
     with pytest.raises(pubchem.PubChemNotFound):
         pubchem.search("asdfqwerty999", query_type="name")
 
@@ -176,10 +181,11 @@ def test_search_caches_results():
 @respx.mock
 def test_search_handles_missing_ghs_gracefully():
     pubchem.cache_clear()
-    respx.get("https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/12345/property/" +
-              pubchem.PROPERTIES + "/JSON").mock(
-        return_value=Response(200, json=_props_response(cid=12345, MolecularFormula="C5H4N4O"))
-    )
+    respx.get(
+        "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/12345/property/"
+        + pubchem.PROPERTIES
+        + "/JSON"
+    ).mock(return_value=Response(200, json=_props_response(cid=12345, MolecularFormula="C5H4N4O")))
     respx.get("https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/12345/synonyms/JSON").mock(
         return_value=Response(200, json=_synonyms_response(["Hypoxanthine"]))
     )
@@ -219,35 +225,38 @@ def test_smiles_extracted_from_new_pubchem_property_name():
     pubchem.cache_clear()
     with respx.mock(assert_all_called=False) as router:
         router.get(
-            f"{pubchem.PUBCHEM_BASE}/compound/cid/702/property/"
-            f"{pubchem.PROPERTIES}/JSON"
+            f"{pubchem.PUBCHEM_BASE}/compound/cid/702/property/{pubchem.PROPERTIES}/JSON"
         ).mock(
             return_value=Response(
                 200,
-                json={"PropertyTable": {"Properties": [{
-                    "CID": 702,
-                    "MolecularFormula": "C2H6O",
-                    "MolecularWeight": "46.07",
-                    # NEW property names only — server doesn't send the
-                    # deprecated keys at all.
-                    "SMILES": "CCO",
-                    "ConnectivitySMILES": "CCO",
-                    "InChI": "InChI=1S/C2H6O/c1-2-3/h3H,2H2,1H3",
-                    "InChIKey": "LFQSCWFLJHTTHZ-UHFFFAOYSA-N",
-                    "IUPACName": "ethanol",
-                }]}},
+                json={
+                    "PropertyTable": {
+                        "Properties": [
+                            {
+                                "CID": 702,
+                                "MolecularFormula": "C2H6O",
+                                "MolecularWeight": "46.07",
+                                # NEW property names only — server doesn't send the
+                                # deprecated keys at all.
+                                "SMILES": "CCO",
+                                "ConnectivitySMILES": "CCO",
+                                "InChI": "InChI=1S/C2H6O/c1-2-3/h3H,2H2,1H3",
+                                "InChIKey": "LFQSCWFLJHTTHZ-UHFFFAOYSA-N",
+                                "IUPACName": "ethanol",
+                            }
+                        ]
+                    }
+                },
             )
         )
-        router.get(
-            f"{pubchem.PUBCHEM_BASE}/compound/cid/702/synonyms/JSON"
-        ).mock(return_value=Response(200, json=_synonyms_response(["ethanol"])))
-        router.get(
-            f"{pubchem.PUBCHEM_VIEW}/data/compound/702/JSON"
-        ).mock(return_value=Response(404))
+        router.get(f"{pubchem.PUBCHEM_BASE}/compound/cid/702/synonyms/JSON").mock(
+            return_value=Response(200, json=_synonyms_response(["ethanol"]))
+        )
+        router.get(f"{pubchem.PUBCHEM_VIEW}/data/compound/702/JSON").mock(
+            return_value=Response(404)
+        )
         result = pubchem.search("702", query_type="cid")
-    assert result.smiles == "CCO", (
-        f"expected CCO from new SMILES property, got {result.smiles!r}"
-    )
+    assert result.smiles == "CCO", f"expected CCO from new SMILES property, got {result.smiles!r}"
 
 
 def test_smiles_prefers_stereo_aware_form():
@@ -256,35 +265,38 @@ def test_smiles_prefers_stereo_aware_form():
     the stereo-aware one — it carries strictly more information.
     """
     pubchem.cache_clear()
-    stereo = "C[C@H](O)CC"        # has stereo
-    connectivity = "CC(O)CC"      # no stereo
+    stereo = "C[C@H](O)CC"  # has stereo
+    connectivity = "CC(O)CC"  # no stereo
     with respx.mock(assert_all_called=False) as router:
         router.get(
-            f"{pubchem.PUBCHEM_BASE}/compound/cid/123/property/"
-            f"{pubchem.PROPERTIES}/JSON"
+            f"{pubchem.PUBCHEM_BASE}/compound/cid/123/property/{pubchem.PROPERTIES}/JSON"
         ).mock(
             return_value=Response(
                 200,
-                json={"PropertyTable": {"Properties": [{
-                    "CID": 123,
-                    "MolecularFormula": "C4H10O",
-                    "MolecularWeight": "74.12",
-                    "SMILES": stereo,
-                    "ConnectivitySMILES": connectivity,
-                    "InChIKey": "X-Y-Z",
-                }]}},
+                json={
+                    "PropertyTable": {
+                        "Properties": [
+                            {
+                                "CID": 123,
+                                "MolecularFormula": "C4H10O",
+                                "MolecularWeight": "74.12",
+                                "SMILES": stereo,
+                                "ConnectivitySMILES": connectivity,
+                                "InChIKey": "X-Y-Z",
+                            }
+                        ]
+                    }
+                },
             )
         )
-        router.get(
-            f"{pubchem.PUBCHEM_BASE}/compound/cid/123/synonyms/JSON"
-        ).mock(return_value=Response(200, json=_synonyms_response([])))
-        router.get(
-            f"{pubchem.PUBCHEM_VIEW}/data/compound/123/JSON"
-        ).mock(return_value=Response(404))
+        router.get(f"{pubchem.PUBCHEM_BASE}/compound/cid/123/synonyms/JSON").mock(
+            return_value=Response(200, json=_synonyms_response([]))
+        )
+        router.get(f"{pubchem.PUBCHEM_VIEW}/data/compound/123/JSON").mock(
+            return_value=Response(404)
+        )
         result = pubchem.search("123", query_type="cid")
-    assert result.smiles == stereo, (
-        f"expected stereo-aware SMILES preferred, got {result.smiles!r}"
-    )
+    assert result.smiles == stereo, f"expected stereo-aware SMILES preferred, got {result.smiles!r}"
 
 
 def test_smiles_falls_back_to_legacy_names_when_only_those_present():
@@ -295,26 +307,31 @@ def test_smiles_falls_back_to_legacy_names_when_only_those_present():
     pubchem.cache_clear()
     with respx.mock(assert_all_called=False) as router:
         router.get(
-            f"{pubchem.PUBCHEM_BASE}/compound/cid/702/property/"
-            f"{pubchem.PROPERTIES}/JSON"
+            f"{pubchem.PUBCHEM_BASE}/compound/cid/702/property/{pubchem.PROPERTIES}/JSON"
         ).mock(
             return_value=Response(
                 200,
-                json={"PropertyTable": {"Properties": [{
-                    "CID": 702,
-                    "MolecularFormula": "C2H6O",
-                    "IsomericSMILES": "CCO",
-                    "CanonicalSMILES": "CCO",
-                    "InChIKey": "LFQSCWFLJHTTHZ-UHFFFAOYSA-N",
-                }]}},
+                json={
+                    "PropertyTable": {
+                        "Properties": [
+                            {
+                                "CID": 702,
+                                "MolecularFormula": "C2H6O",
+                                "IsomericSMILES": "CCO",
+                                "CanonicalSMILES": "CCO",
+                                "InChIKey": "LFQSCWFLJHTTHZ-UHFFFAOYSA-N",
+                            }
+                        ]
+                    }
+                },
             )
         )
-        router.get(
-            f"{pubchem.PUBCHEM_BASE}/compound/cid/702/synonyms/JSON"
-        ).mock(return_value=Response(200, json=_synonyms_response([])))
-        router.get(
-            f"{pubchem.PUBCHEM_VIEW}/data/compound/702/JSON"
-        ).mock(return_value=Response(404))
+        router.get(f"{pubchem.PUBCHEM_BASE}/compound/cid/702/synonyms/JSON").mock(
+            return_value=Response(200, json=_synonyms_response([]))
+        )
+        router.get(f"{pubchem.PUBCHEM_VIEW}/data/compound/702/JSON").mock(
+            return_value=Response(404)
+        )
         result = pubchem.search("702", query_type="cid")
     assert result.smiles == "CCO"
 

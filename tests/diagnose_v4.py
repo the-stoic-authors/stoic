@@ -7,6 +7,7 @@ ordering).
 
 Run: .venv/bin/pytest tests/diagnose_v4.py -s --no-header -v
 """
+
 from __future__ import annotations
 
 # These imports are EXACTLY the same as test_backup_encryption.py.
@@ -25,14 +26,13 @@ from stoic_eln.services import backup_crypto
 # Same file-scoped fixtures as test_backup_encryption.py
 # (verbatim copy of encrypted_app, plain_app).
 
+
 @pytest.fixture
 def encrypted_app(tmp_path):
     db_path = tmp_path / "stoic_test.db"
     instance_path = tmp_path / "inst"
     instance_path.mkdir()
-    (instance_path / "backup.key").write_text(
-        "correct horse battery staple", encoding="utf-8"
-    )
+    (instance_path / "backup.key").write_text("correct horse battery staple", encoding="utf-8")
 
     class _EncTestingConfig(TestingConfig):
         SQLALCHEMY_DATABASE_URI = f"sqlite:///{db_path}"
@@ -42,6 +42,7 @@ def encrypted_app(tmp_path):
         db.create_all()
         AppSetting.set("backup.path", str(tmp_path / "backups"))
         from stoic_eln.services import passphrase_store as _ps
+
         _ps.set_source(_ps.SOURCE_FILE)
         db.session.commit()
         yield app
@@ -74,6 +75,7 @@ def test_resolve_passphrase_env_takes_precedence(tmp_path, monkeypatch, app):
     source-driven model (patch 14.3) precedence is determined by
     the configured source rather than a hard-coded order."""
     from stoic_eln.services import passphrase_store as ps
+
     ps.set_source(ps.SOURCE_ENV)
     (tmp_path / "backup.key").write_text("from-file", encoding="utf-8")
     monkeypatch.setenv("STOIC_BACKUP_PASSPHRASE", "from-env")

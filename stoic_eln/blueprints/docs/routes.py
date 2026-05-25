@@ -17,6 +17,7 @@ repo root. They are rendered to HTML at request time with the
 extensions). Rendering is cheap and the docs are small (~15 KB
 per file), so we skip caching.
 """
+
 from __future__ import annotations
 
 from functools import wraps
@@ -57,11 +58,13 @@ _MANUAL_REGISTRY: dict[str, tuple[str, str, bool]] = {
 
 def _admin_required(view):
     """Decorator: 403 if current user is not an admin."""
+
     @wraps(view)
     def wrapper(*args, **kwargs):
         if not getattr(current_user, "is_admin", False):
             abort(403)
         return view(*args, **kwargs)
+
     return wrapper
 
 
@@ -165,20 +168,26 @@ def index():
     user_is_admin = bool(getattr(current_user, "is_admin", False))
     available: list[tuple[str, str, str]] = [
         # (slug, title, short description)
-        ("user", _("Manuale utente"),
-         _("Workflow tipico in laboratorio: sostanze, reazioni, "
-           "run, miscele, etichette.")),
+        (
+            "user",
+            _("Manuale utente"),
+            _("Workflow tipico in laboratorio: sostanze, reazioni, run, miscele, etichette."),
+        ),
     ]
     if user_is_admin:
         available.append(
-            ("admin", _("Manuale amministratore"),
-             _("Installazione, gestione utenti, cifratura, backup, "
-               "deployment."))
+            (
+                "admin",
+                _("Manuale amministratore"),
+                _("Installazione, gestione utenti, cifratura, backup, deployment."),
+            )
         )
         available.append(
-            ("developer", _("Manuale sviluppatore"),
-             _("Architettura, modelli, blueprint, testing, "
-               "internazionalizzazione."))
+            (
+                "developer",
+                _("Manuale sviluppatore"),
+                _("Architettura, modelli, blueprint, testing, internazionalizzazione."),
+            )
         )
     return render_template(
         "docs/index.html",

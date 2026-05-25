@@ -16,9 +16,7 @@ from stoic_eln.models.group import Group, GroupMembership
 
 def ensure_default_group() -> Group:
     """Return the Default group, creating it if needed."""
-    g = (db.session.query(Group)
-         .filter(Group.slug == "default")
-         .one_or_none())
+    g = db.session.query(Group).filter(Group.slug == "default").one_or_none()
     if g is None:
         g = Group(
             slug="default",
@@ -34,10 +32,11 @@ def ensure_default_group() -> Group:
 
 def ensure_membership(user, group: Group, *, role: str = "member") -> GroupMembership:
     """Add the user to the group if not already a member."""
-    existing = (db.session.query(GroupMembership)
-                .filter(GroupMembership.user_id == user.id,
-                        GroupMembership.group_id == group.id)
-                .one_or_none())
+    existing = (
+        db.session.query(GroupMembership)
+        .filter(GroupMembership.user_id == user.id, GroupMembership.group_id == group.id)
+        .one_or_none()
+    )
     if existing:
         return existing
     m = GroupMembership(user_id=user.id, group_id=group.id, role=role)

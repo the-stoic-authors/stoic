@@ -12,35 +12,64 @@ from stoic_eln.services.hazard_phrases import parse_codes, resolve_phrases
 def _seed_phrases(app):
     """Drop a few canonical CLP phrases used by the tests."""
     with app.app_context():
-        db.session.add_all([
-            HazardPhrase(code="H225", category="H",
-                         text_en="Highly flammable liquid and vapour.",
-                         text_it="Liquido e vapori facilmente infiammabili."),
-            HazardPhrase(code="H319", category="H",
-                         text_en="Causes serious eye irritation.",
-                         text_it="Provoca grave irritazione oculare."),
-            HazardPhrase(code="P210", category="P",
-                         text_en="Keep away from heat.",
-                         text_it="Tenere lontano da fonti di calore."),
-            HazardPhrase(code="P301", category="P",
-                         text_en="IF SWALLOWED:",
-                         text_it="IN CASO DI INGESTIONE:"),
-            HazardPhrase(code="P330", category="P",
-                         text_en="Rinse mouth.",
-                         text_it="Sciacquare la bocca."),
-            HazardPhrase(code="P331", category="P",
-                         text_en="Do NOT induce vomiting.",
-                         text_it="NON provocare il vomito."),
-            HazardPhrase(code="P302", category="P",
-                         text_en="IF ON SKIN:",
-                         text_it="IN CASO DI CONTATTO CON LA PELLE:"),
-            HazardPhrase(code="P361", category="P",
-                         text_en="Take off immediately all contaminated clothing.",
-                         text_it="Togliere immediatamente tutti gli indumenti contaminati."),
-            HazardPhrase(code="P354", category="P",
-                         text_en="Immediately rinse with water for several minutes.",
-                         text_it="Sciacquare immediatamente con acqua per diversi minuti."),
-        ])
+        db.session.add_all(
+            [
+                HazardPhrase(
+                    code="H225",
+                    category="H",
+                    text_en="Highly flammable liquid and vapour.",
+                    text_it="Liquido e vapori facilmente infiammabili.",
+                ),
+                HazardPhrase(
+                    code="H319",
+                    category="H",
+                    text_en="Causes serious eye irritation.",
+                    text_it="Provoca grave irritazione oculare.",
+                ),
+                HazardPhrase(
+                    code="P210",
+                    category="P",
+                    text_en="Keep away from heat.",
+                    text_it="Tenere lontano da fonti di calore.",
+                ),
+                HazardPhrase(
+                    code="P301",
+                    category="P",
+                    text_en="IF SWALLOWED:",
+                    text_it="IN CASO DI INGESTIONE:",
+                ),
+                HazardPhrase(
+                    code="P330",
+                    category="P",
+                    text_en="Rinse mouth.",
+                    text_it="Sciacquare la bocca.",
+                ),
+                HazardPhrase(
+                    code="P331",
+                    category="P",
+                    text_en="Do NOT induce vomiting.",
+                    text_it="NON provocare il vomito.",
+                ),
+                HazardPhrase(
+                    code="P302",
+                    category="P",
+                    text_en="IF ON SKIN:",
+                    text_it="IN CASO DI CONTATTO CON LA PELLE:",
+                ),
+                HazardPhrase(
+                    code="P361",
+                    category="P",
+                    text_en="Take off immediately all contaminated clothing.",
+                    text_it="Togliere immediatamente tutti gli indumenti contaminati.",
+                ),
+                HazardPhrase(
+                    code="P354",
+                    category="P",
+                    text_en="Immediately rinse with water for several minutes.",
+                    text_it="Sciacquare immediatamente con acqua per diversi minuti.",
+                ),
+            ]
+        )
         db.session.commit()
 
 
@@ -106,7 +135,10 @@ def test_resolve_mixed_atomic_and_composed(app):
             "en",
         )
     assert [r["code"] for r in out] == [
-        "H225", "P301+P330+P331", "P302+P361+P354", "P210",
+        "H225",
+        "P301+P330+P331",
+        "P302+P361+P354",
+        "P210",
     ]
     assert "flammable" in out[0]["text"].lower()
     assert "IF SWALLOWED:" in out[1]["text"]
@@ -147,6 +179,7 @@ def test_pubchem_regex_captures_composed_codes():
     """The regex in pubchem._fill_ghs must capture P301+P330+P331
     as a single token, not three. Direct regex test."""
     import re
+
     pat = (
         r"\b("
         r"(?:H\d{3}|EUH\d{3}|P\d{3})"

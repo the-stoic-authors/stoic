@@ -10,7 +10,8 @@ reagent-usage frequency, group-level budget tracking.
 from flask import Blueprint
 
 bp = Blueprint(
-    "reports", __name__,
+    "reports",
+    __name__,
     template_folder="../../templates/reports",
     url_prefix="/reports",
 )

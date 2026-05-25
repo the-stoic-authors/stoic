@@ -47,8 +47,10 @@ class User(db.Model, UserMixin):
     # group". A user can be a member of multiple groups via GroupMembership;
     # this just picks one as the active context.
     default_group_id: Mapped[int | None] = mapped_column(
-        Integer, ForeignKey("group.id", ondelete="SET NULL"),
-        nullable=True, index=True,
+        Integer,
+        ForeignKey("group.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
     )
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_now_utc, nullable=False)
     last_login_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)

@@ -112,10 +112,12 @@ def detail(substance_id: int):
 
     # Notes (Settimana 6 patch 9)
     from stoic_eln.services.notes import list_notes
+
     notes_for_entity = list_notes("substance", sub.id)
 
     # Attachments (Settimana 6 patch 10)
     from stoic_eln.services.attachments import list_attachments
+
     attachments_for_entity = list_attachments("substance", sub.id)
 
     return render_template(
@@ -157,15 +159,13 @@ def create():
 
         # Detect duplicate by InChIKey
         if sub.inchi_key:
-            existing = (
-                db.session.query(Substance)
-                .filter_by(inchi_key=sub.inchi_key)
-                .first()
-            )
+            existing = db.session.query(Substance).filter_by(inchi_key=sub.inchi_key).first()
             if existing:
                 flash(
-                    _("Esiste già una sostanza con questo InChIKey: %(name)s",
-                      name=existing.display_name),
+                    _(
+                        "Esiste già una sostanza con questo InChIKey: %(name)s",
+                        name=existing.display_name,
+                    ),
                     "warning",
                 )
                 return redirect(url_for("substances.detail", substance_id=existing.id))
@@ -318,11 +318,7 @@ def import_pubchem():
             # Check for duplicate before showing preview
             existing = None
             if result.inchi_key:
-                existing = (
-                    db.session.query(Substance)
-                    .filter_by(inchi_key=result.inchi_key)
-                    .first()
-                )
+                existing = db.session.query(Substance).filter_by(inchi_key=result.inchi_key).first()
 
             # Stash result in session for confirmation step
             session["pubchem_result"] = {
@@ -385,9 +381,7 @@ def import_confirm():
 
     inchi_key = data.get("inchi_key")
     if inchi_key:
-        existing = (
-            db.session.query(Substance).filter_by(inchi_key=inchi_key).first()
-        )
+        existing = db.session.query(Substance).filter_by(inchi_key=inchi_key).first()
         if existing:
             flash(
                 _("Sostanza già presente: '%(name)s'", name=existing.display_name),

@@ -52,11 +52,7 @@ def resolve_phrases(codes: list[str], locale: str) -> list[dict]:
             if seg:
                 atomic_segments.add(seg)
 
-    rows = (
-        db.session.query(HazardPhrase)
-        .filter(HazardPhrase.code.in_(atomic_segments))
-        .all()
-    )
+    rows = db.session.query(HazardPhrase).filter(HazardPhrase.code.in_(atomic_segments)).all()
     by_code = {r.code: r for r in rows}
 
     out: list[dict] = []
@@ -64,10 +60,12 @@ def resolve_phrases(codes: list[str], locale: str) -> list[dict]:
         segments = [s.strip() for s in code.split("+") if s.strip()]
         if len(segments) == 1:
             phrase = by_code.get(segments[0])
-            out.append({
-                "code": code,
-                "text": phrase.text(locale) if phrase else "",
-            })
+            out.append(
+                {
+                    "code": code,
+                    "text": phrase.text(locale) if phrase else "",
+                }
+            )
         else:
             # Composed code: P301+P330+P331 → join individual texts.
             # Skip empty fragments so a missing translation doesn't
@@ -77,10 +75,12 @@ def resolve_phrases(codes: list[str], locale: str) -> list[dict]:
                 p = by_code.get(seg)
                 if p:
                     parts.append(p.text(locale))
-            out.append({
-                "code": code,
-                "text": " ".join(parts),
-            })
+            out.append(
+                {
+                    "code": code,
+                    "text": " ".join(parts),
+                }
+            )
     return out
 
 

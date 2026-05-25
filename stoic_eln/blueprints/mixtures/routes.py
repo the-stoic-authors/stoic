@@ -95,8 +95,12 @@ def _parse_component_rows(form_data) -> list[dict]:
     # Pad shorter lists with empty strings — defensive against
     # partially-filled rows.
     n = max(
-        len(kinds), len(ref_ids), len(roles),
-        len(concs), len(units), len(notes),
+        len(kinds),
+        len(ref_ids),
+        len(roles),
+        len(concs),
+        len(units),
+        len(notes),
     )
     kinds += [""] * (n - len(kinds))
     ref_ids += [""] * (n - len(ref_ids))
@@ -109,7 +113,7 @@ def _parse_component_rows(form_data) -> list[dict]:
     for i in range(n):
         raw_ref = (ref_ids[i] or "").strip()
         if not raw_ref:
-            continue   # skip empty rows
+            continue  # skip empty rows
         try:
             ref_id = int(raw_ref)
         except (TypeError, ValueError):
@@ -130,15 +134,17 @@ def _parse_component_rows(form_data) -> list[dict]:
         except ValueError:
             conc = None
 
-        rows.append({
-            "kind": kind,
-            "substance_id": ref_id if kind == "substance" else None,
-            "child_mixture_id": ref_id if kind == "mixture" else None,
-            "role": role,
-            "concentration": conc,
-            "concentration_unit": (units[i] or "").strip() or None,
-            "notes": (notes[i] or "").strip() or None,
-        })
+        rows.append(
+            {
+                "kind": kind,
+                "substance_id": ref_id if kind == "substance" else None,
+                "child_mixture_id": ref_id if kind == "mixture" else None,
+                "role": role,
+                "concentration": conc,
+                "concentration_unit": (units[i] or "").strip() or None,
+                "notes": (notes[i] or "").strip() or None,
+            }
+        )
     return rows
 
 
@@ -152,9 +158,7 @@ def _apply_form_to_mixture(form: MixtureForm, mixture: Mixture, form_data):
     mixture.kind = form.kind.data
     mixture.description = form.description.data or None
     mixture.primary_concentration = form.primary_concentration.data
-    mixture.primary_concentration_unit = (
-        form.primary_concentration_unit.data or None
-    )
+    mixture.primary_concentration_unit = form.primary_concentration_unit.data or None
 
     # Primary solvent ID — coerce string to int|None
     raw_solvent = (form.primary_solvent_id.data or "").strip()
@@ -169,12 +173,8 @@ def _apply_form_to_mixture(form: MixtureForm, mixture: Mixture, form_data):
     #     (an empty list is meaningful: it explicitly clears hazards)
     if form.use_ghs_override.data:
         mixture.ghs_pictograms_override = list(form.ghs_pictograms.data or [])
-        mixture.h_phrases_override = _parse_phrase_codes(
-            form.h_phrases_text.data or ""
-        )
-        mixture.p_phrases_override = _parse_phrase_codes(
-            form.p_phrases_text.data or ""
-        )
+        mixture.h_phrases_override = _parse_phrase_codes(form.h_phrases_text.data or "")
+        mixture.p_phrases_override = _parse_phrase_codes(form.p_phrases_text.data or "")
     else:
         mixture.ghs_pictograms_override = None
         mixture.h_phrases_override = None
@@ -230,6 +230,7 @@ def list_view():
 
     if q:
         from sqlalchemy.orm import aliased
+
         like = f"%{q}%"
         comp = aliased(MixtureComponent)
         sub = aliased(Substance)
@@ -274,6 +275,7 @@ def detail(mixture_id: int):
         abort(404)
 
     from flask_babel import get_locale
+
     locale = str(get_locale())
     # Show the EFFECTIVE hazards (override if set, else derived).
     h_phrases = _phrase_dict(m.effective_h_phrases, locale)
@@ -284,6 +286,7 @@ def detail(mixture_id: int):
     # Notes + attachments — same pattern as substances detail
     from stoic_eln.services.attachments import list_attachments
     from stoic_eln.services.notes import list_notes
+
     notes_for_entity = list_notes("mixture", m.id)
     attachments_for_entity = list_attachments("mixture", m.id)
 
@@ -347,9 +350,7 @@ def edit(mixture_id: int):
             form.ghs_pictograms.data = m.ghs_pictograms_override or []
             form.h_phrases_text.data = ", ".join(m.h_phrases_override or [])
             form.p_phrases_text.data = ", ".join(m.p_phrases_override or [])
-        form.primary_solvent_id.data = (
-            str(m.primary_solvent_id) if m.primary_solvent_id else ""
-        )
+        form.primary_solvent_id.data = str(m.primary_solvent_id) if m.primary_solvent_id else ""
 
     if form.validate_on_submit():
         _apply_form_to_mixture(form, m, request.form)
@@ -385,8 +386,7 @@ def delete(mixture_id: int):
     active_lots = [it for it in m.inventory_items if it.is_active]
     if active_lots:
         flash(
-            _("Non posso disattivare: ci sono lotti attivi (%(n)d)",
-              n=len(active_lots)),
+            _("Non posso disattivare: ci sono lotti attivi (%(n)d)", n=len(active_lots)),
             "warning",
         )
         return redirect(url_for("mixtures.detail", mixture_id=m.id))
@@ -410,10 +410,7 @@ def substance_picker():
     JS in the form to populate the autocomplete dropdown.
     """
     q = request.args.get("q", "").strip()
-    query = (
-        db.session.query(Substance)
-        .filter(Substance.is_active.is_(True))
-    )
+    query = db.session.query(Substance).filter(Substance.is_active.is_(True))
     if q:
         like = f"%{q}%"
         query = query.filter(
@@ -535,11 +532,13 @@ def prepare_form(mixture_id: int):
     from stoic_eln.services.prep_code import (
         generate_prep_code,
     )
+
     preview_code = ""
     if suggestion is not None:
         try:
             preview_code, _seq = generate_prep_code(
-                mixture_name=m.name, mixture_id=m.id,
+                mixture_name=m.name,
+                mixture_id=m.id,
             )
         except Exception:  # noqa: BLE001 — preview is best-effort
             logger.exception("Failed to preview prep code")
@@ -587,9 +586,12 @@ def execute_prep(mixture_id: int):
         target_qty = float((f.get("target_quantity") or "0").replace(",", "."))
     except ValueError:
         flash(_("Quantità target non valida."), "danger")
-        return redirect(url_for(
-            "mixtures.prepare_form", mixture_id=mixture_id,
-        ))
+        return redirect(
+            url_for(
+                "mixtures.prepare_form",
+                mixture_id=mixture_id,
+            )
+        )
     target_unit = (f.get("target_unit") or "").strip()
 
     lot_ids = f.getlist("consumption_lot_id[]")
@@ -614,11 +616,13 @@ def execute_prep(mixture_id: int):
         if qty <= 0:
             continue
         try:
-            consumptions.append(ConsumptionInput(
-                inventory_item_id=int(raw_lot),
-                quantity_consumed=qty,
-                quantity_unit=(units[i] or "mL").strip(),
-            ))
+            consumptions.append(
+                ConsumptionInput(
+                    inventory_item_id=int(raw_lot),
+                    quantity_consumed=qty,
+                    quantity_unit=(units[i] or "mL").strip(),
+                )
+            )
         except (TypeError, ValueError):
             continue
 
@@ -627,10 +631,14 @@ def execute_prep(mixture_id: int):
             _("Nessun lotto precursore selezionato. Seleziona almeno uno."),
             "warning",
         )
-        return redirect(url_for(
-            "mixtures.prepare_form", mixture_id=mixture_id,
-            target_quantity=target_qty, target_unit=target_unit,
-        ))
+        return redirect(
+            url_for(
+                "mixtures.prepare_form",
+                mixture_id=mixture_id,
+                target_quantity=target_qty,
+                target_unit=target_unit,
+            )
+        )
 
     inp = PrepInput(
         mixture_id=m.id,
@@ -650,18 +658,26 @@ def execute_prep(mixture_id: int):
         # Validation failure (lot empty, quantity exceeds available, …).
         # The service rolled back already; surface the error.
         flash(str(e), "danger")
-        return redirect(url_for(
-            "mixtures.prepare_form", mixture_id=mixture_id,
-            target_quantity=target_qty, target_unit=target_unit,
-        ))
+        return redirect(
+            url_for(
+                "mixtures.prepare_form",
+                mixture_id=mixture_id,
+                target_quantity=target_qty,
+                target_unit=target_unit,
+            )
+        )
     except Exception:  # noqa: BLE001
         db.session.rollback()
         logger.exception("Failed to execute preparation")
         flash(_("Errore imprevisto durante la preparazione."), "danger")
-        return redirect(url_for(
-            "mixtures.prepare_form", mixture_id=mixture_id,
-            target_quantity=target_qty, target_unit=target_unit,
-        ))
+        return redirect(
+            url_for(
+                "mixtures.prepare_form",
+                mixture_id=mixture_id,
+                target_quantity=target_qty,
+                target_unit=target_unit,
+            )
+        )
 
     log_event(
         action="create",
@@ -679,9 +695,12 @@ def execute_prep(mixture_id: int):
         "success",
     )
     # Redirect to the new lot's detail (which is an InventoryItem)
-    return redirect(url_for(
-        "inventory.edit", item_id=prep.output_inventory_item_id,
-    ))
+    return redirect(
+        url_for(
+            "inventory.edit",
+            item_id=prep.output_inventory_item_id,
+        )
+    )
 
 
 # ── HTMX: recompute consumption row when lot changes ────────────
@@ -714,9 +733,7 @@ def recompute_prep_row(mixture_id: int):
     try:
         component_id = int(f.get("component_id") or 0)
         lot_id = int(f.get("lot_id") or 0) if (f.get("lot_id") or "").strip() else None
-        target_quantity = float(
-            (f.get("target_quantity") or "0").replace(",", ".")
-        )
+        target_quantity = float((f.get("target_quantity") or "0").replace(",", "."))
     except ValueError:
         abort(400)
     target_unit = (f.get("target_unit") or "").strip() or "L"
@@ -747,6 +764,7 @@ def recompute_prep_row(mixture_id: int):
             _are_dilution_compatible,
             _normalize_to_mL,
         )
+
         chosen_lot = db.session.get(InventoryItem, lot_id)
         if (
             chosen_lot is not None
@@ -758,14 +776,17 @@ def recompute_prep_row(mixture_id: int):
                 stock_info.concentration is not None
                 and stock_info.unit
                 and _are_dilution_compatible(
-                    stock_info.unit, m.primary_concentration_unit,
+                    stock_info.unit,
+                    m.primary_concentration_unit,
                 )
             ):
                 c_target = _normalize_concentration(
-                    m.primary_concentration, m.primary_concentration_unit,
+                    m.primary_concentration,
+                    m.primary_concentration_unit,
                 )
                 c_stock = _normalize_concentration(
-                    stock_info.concentration, stock_info.unit,
+                    stock_info.concentration,
+                    stock_info.unit,
                 )
                 if c_target is not None and c_stock and c_stock > 0:
                     ratio = c_target / c_stock

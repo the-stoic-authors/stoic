@@ -77,8 +77,7 @@ def list_view():
     group_filter = request.args.get("group", "").strip()
     q = request.args.get("q", "").strip()
 
-    query = (db.session.query(Order)
-             .join(Substance, Order.substance_id == Substance.id))
+    query = db.session.query(Order).join(Substance, Order.substance_id == Substance.id)
 
     if status == "open":
         query = query.filter(Order.status.in_(OPEN_STATUSES))
@@ -89,39 +88,44 @@ def list_view():
     if supplier_filter:
         query = query.filter(Order.supplier == supplier_filter)
     if group_filter:
-        query = (query.join(Group, Order.group_id == Group.id)
-                 .filter(Group.slug == group_filter))
+        query = query.join(Group, Order.group_id == Group.id).filter(Group.slug == group_filter)
     if q:
         like = f"%{q}%"
-        query = query.filter(or_(
-            Substance.name.ilike(like),
-            Substance.cas_number.ilike(like),
-            Order.supplier.ilike(like),
-            Order.catalogue_number.ilike(like),
-            Order.internal_order_ref.ilike(like),
-        ))
+        query = query.filter(
+            or_(
+                Substance.name.ilike(like),
+                Substance.cas_number.ilike(like),
+                Order.supplier.ilike(like),
+                Order.catalogue_number.ilike(like),
+                Order.internal_order_ref.ilike(like),
+            )
+        )
 
     # Sort: open orders first by expected delivery, closed by ordered_at desc
-    orders = (query
-              .order_by(
-                  Order.status.asc(),
-                  Order.expected_delivery_date.asc().nulls_last(),
-                  Order.created_at.desc(),
-              ).all())
+    orders = query.order_by(
+        Order.status.asc(),
+        Order.expected_delivery_date.asc().nulls_last(),
+        Order.created_at.desc(),
+    ).all()
 
     # Totals for the footer
-    total_open_eur = sum(
-        (o.ordered_total_eur or 0.0) for o in orders if o.is_open
-    )
+    total_open_eur = sum((o.ordered_total_eur or 0.0) for o in orders if o.is_open)
 
-    suppliers = [r[0] for r in
-                 db.session.query(Order.supplier)
-                 .filter(Order.supplier.isnot(None))
-                 .distinct().order_by(Order.supplier.asc()).all()
-                 if r[0]]
-    groups = (db.session.query(Group)
-              .filter(Group.is_active.is_(True))
-              .order_by(Group.is_default.desc(), Group.name.asc()).all())
+    suppliers = [
+        r[0]
+        for r in db.session.query(Order.supplier)
+        .filter(Order.supplier.isnot(None))
+        .distinct()
+        .order_by(Order.supplier.asc())
+        .all()
+        if r[0]
+    ]
+    groups = (
+        db.session.query(Group)
+        .filter(Group.is_active.is_(True))
+        .order_by(Group.is_default.desc(), Group.name.asc())
+        .all()
+    )
 
     return render_template(
         "orders/list.html",
@@ -178,10 +182,12 @@ def new():
         db.session.add(order)
         db.session.commit()
 
-        log_event(action="create_order", entity_type="order",
-                  entity_id=order.id,
-                  details={"substance_id": sub.id,
-                           "qty_g": qty_g, "qty_mL": qty_mL})
+        log_event(
+            action="create_order",
+            entity_type="order",
+            entity_id=order.id,
+            details={"substance_id": sub.id, "qty_g": qty_g, "qty_mL": qty_mL},
+        )
         flash(_("Ordine pianificato per %(name)s.", name=sub.name), "success")
         return redirect(url_for("orders.detail", order_id=order.id))
 
@@ -189,9 +195,7 @@ def new():
     # shopping list page to send a substance with a suggested
     # quantity/supplier/cost already filled in — the user can still
     # edit anything before submitting.
-    pre_substance = (
-        db.session.get(Substance, pre_substance_id) if pre_substance_id else None
-    )
+    pre_substance = db.session.get(Substance, pre_substance_id) if pre_substance_id else None
 
     pre = {}
     if pre_substance is not None:
@@ -214,9 +218,12 @@ def new():
             "catalogue_number": (request.args.get("catalogue_number") or "").strip() or None,
         }
 
-    substances = (db.session.query(Substance)
-                  .filter(Substance.is_active.is_(True))
-                  .order_by(func.lower(Substance.name).asc()).all())
+    substances = (
+        db.session.query(Substance)
+        .filter(Substance.is_active.is_(True))
+        .order_by(func.lower(Substance.name).asc())
+        .all()
+    )
     return render_template(
         "orders/form.html",
         order=None,
@@ -252,8 +259,7 @@ def edit(order_id: int):
     if order is None:
         abort(404)
     if not order.is_open:
-        flash(_("Ordine non più modificabile (stato: %(s)s).",
-                s=order.status), "warning")
+        flash(_("Ordine non più modificabile (stato: %(s)s).", s=order.status), "warning")
         return redirect(url_for("orders.detail", order_id=order.id))
 
     if request.method == "POST":
@@ -266,14 +272,16 @@ def edit(order_id: int):
         order.internal_order_ref = (request.form.get("internal_order_ref") or "").strip() or None
         order.notes = (request.form.get("notes") or "").strip() or None
         db.session.commit()
-        log_event(action="update_order", entity_type="order",
-                  entity_id=order.id)
+        log_event(action="update_order", entity_type="order", entity_id=order.id)
         flash(_("Ordine aggiornato."), "success")
         return redirect(url_for("orders.detail", order_id=order.id))
 
-    substances = (db.session.query(Substance)
-                  .filter(Substance.is_active.is_(True))
-                  .order_by(func.lower(Substance.name).asc()).all())
+    substances = (
+        db.session.query(Substance)
+        .filter(Substance.is_active.is_(True))
+        .order_by(func.lower(Substance.name).asc())
+        .all()
+    )
     return render_template(
         "orders/form.html",
         order=order,
@@ -297,17 +305,14 @@ def mark_ordered(order_id: int):
             order,
             ordered_at=_parse_date("ordered_at"),
             expected_delivery_date=_parse_date("expected_delivery_date"),
-            internal_order_ref=(
-                (request.form.get("internal_order_ref") or "").strip() or None
-            ),
+            internal_order_ref=((request.form.get("internal_order_ref") or "").strip() or None),
             actor=current_user,
         )
     except order_service.OrderError as e:
         flash(str(e), "danger")
         return redirect(url_for("orders.detail", order_id=order.id))
     db.session.commit()
-    log_event(action="mark_order_ordered", entity_type="order",
-              entity_id=order.id)
+    log_event(action="mark_order_ordered", entity_type="order", entity_id=order.id)
     flash(_("Ordine segnato come ordinato."), "success")
     return redirect(url_for("orders.detail", order_id=order.id))
 
@@ -362,9 +367,12 @@ def receive(order_id: int):
             return redirect(url_for("orders.receive", order_id=order.id))
 
         db.session.commit()
-        log_event(action="receive_order", entity_type="order",
-                  entity_id=order.id,
-                  details={"lot_id": lot.id, "partial": is_partial})
+        log_event(
+            action="receive_order",
+            entity_type="order",
+            entity_id=order.id,
+            details={"lot_id": lot.id, "partial": is_partial},
+        )
 
         if is_partial:
             flash(_("Ordine ricevuto parzialmente. Lotto creato."), "success")
@@ -395,8 +403,9 @@ def cancel(order_id: int):
         flash(str(e), "danger")
         return redirect(url_for("orders.detail", order_id=order.id))
     db.session.commit()
-    log_event(action="cancel_order", entity_type="order",
-              entity_id=order.id, details={"reason": reason})
+    log_event(
+        action="cancel_order", entity_type="order", entity_id=order.id, details={"reason": reason}
+    )
     flash(_("Ordine annullato."), "success")
     return redirect(url_for("orders.detail", order_id=order.id))
 
@@ -465,8 +474,11 @@ def shopping_list_create_orders():
         db.session.add(order)
         n_created += 1
     db.session.commit()
-    log_event(action="bulk_create_orders_from_shopping_list",
-              entity_type="order", details={"n": n_created})
+    log_event(
+        action="bulk_create_orders_from_shopping_list",
+        entity_type="order",
+        details={"n": n_created},
+    )
 
     if n_created:
         flash(_("Creati %(n)d ordini pianificati.", n=n_created), "success")

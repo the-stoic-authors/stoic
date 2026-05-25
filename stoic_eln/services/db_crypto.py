@@ -124,6 +124,7 @@ def is_sqlcipher_available() -> bool:
     """
     try:
         import sqlcipher3  # noqa: F401
+
         return True
     except ImportError:
         return False
@@ -169,6 +170,7 @@ def make_sqlcipher_creator(db_path: str, passphrase: str):
 @dataclass(frozen=True)
 class MigrationResult:
     """Outcome of an encrypt/decrypt migration."""
+
     ok: bool
     src_path: Path
     dst_path: Path
@@ -196,10 +198,14 @@ def encrypt_db(db_path: Path, passphrase: str) -> MigrationResult:
         MigrationResult describing what happened.
     """
     from datetime import datetime
+
     if not db_path.exists():
         return MigrationResult(
-            ok=False, src_path=db_path, dst_path=db_path,
-            sidelined_path=None, table_count=0,
+            ok=False,
+            src_path=db_path,
+            dst_path=db_path,
+            sidelined_path=None,
+            table_count=0,
             error=f"DB file does not exist: {db_path}",
         )
 
@@ -207,32 +213,40 @@ def encrypt_db(db_path: Path, passphrase: str) -> MigrationResult:
         # Already encrypted. Confirm the passphrase works.
         try:
             import sqlcipher3
+
             conn = sqlcipher3.connect(str(db_path))
             safe = passphrase.replace("'", "''")
             conn.execute(f"PRAGMA key='{safe}'")
-            n = conn.execute(
-                "SELECT count(*) FROM sqlite_master WHERE type='table'"
-            ).fetchone()[0]
+            n = conn.execute("SELECT count(*) FROM sqlite_master WHERE type='table'").fetchone()[0]
             conn.close()
             return MigrationResult(
-                ok=True, src_path=db_path, dst_path=db_path,
-                sidelined_path=None, table_count=n,
+                ok=True,
+                src_path=db_path,
+                dst_path=db_path,
+                sidelined_path=None,
+                table_count=n,
                 error="already encrypted with this passphrase (no-op)",
             )
         except Exception as e:
             return MigrationResult(
-                ok=False, src_path=db_path, dst_path=db_path,
-                sidelined_path=None, table_count=0,
-                error=(f"DB is already encrypted but the configured "
-                       f"passphrase doesn't open it: {e}"),
+                ok=False,
+                src_path=db_path,
+                dst_path=db_path,
+                sidelined_path=None,
+                table_count=0,
+                error=(
+                    f"DB is already encrypted but the configured passphrase doesn't open it: {e}"
+                ),
             )
 
     if not is_sqlcipher_available():
         return MigrationResult(
-            ok=False, src_path=db_path, dst_path=db_path,
-            sidelined_path=None, table_count=0,
-            error=("sqlcipher3 is not installed. Run "
-                   "'pip install sqlcipher3-wheels' first."),
+            ok=False,
+            src_path=db_path,
+            dst_path=db_path,
+            sidelined_path=None,
+            table_count=0,
+            error=("sqlcipher3 is not installed. Run 'pip install sqlcipher3-wheels' first."),
         )
 
     import sqlcipher3
@@ -251,9 +265,7 @@ def encrypt_db(db_path: Path, passphrase: str) -> MigrationResult:
         conn = sqlcipher3.connect(str(db_path))
         try:
             safe = passphrase.replace("'", "''")
-            conn.execute(
-                f"ATTACH DATABASE '{tmp_encrypted}' AS encrypted KEY '{safe}'"
-            )
+            conn.execute(f"ATTACH DATABASE '{tmp_encrypted}' AS encrypted KEY '{safe}'")
             conn.execute("SELECT sqlcipher_export('encrypted')")
             conn.execute("DETACH DATABASE encrypted")
         finally:
@@ -274,8 +286,11 @@ def encrypt_db(db_path: Path, passphrase: str) -> MigrationResult:
         if n_tables == 0:
             tmp_encrypted.unlink(missing_ok=True)
             return MigrationResult(
-                ok=False, src_path=db_path, dst_path=db_path,
-                sidelined_path=None, table_count=0,
+                ok=False,
+                src_path=db_path,
+                dst_path=db_path,
+                sidelined_path=None,
+                table_count=0,
                 error="encryption produced an empty DB (no tables found)",
             )
 
@@ -285,8 +300,11 @@ def encrypt_db(db_path: Path, passphrase: str) -> MigrationResult:
         if not is_encrypted_db(tmp_encrypted):
             tmp_encrypted.unlink(missing_ok=True)
             return MigrationResult(
-                ok=False, src_path=db_path, dst_path=db_path,
-                sidelined_path=None, table_count=0,
+                ok=False,
+                src_path=db_path,
+                dst_path=db_path,
+                sidelined_path=None,
+                table_count=0,
                 error="encryption output looks unencrypted; aborting swap",
             )
 
@@ -297,21 +315,29 @@ def encrypt_db(db_path: Path, passphrase: str) -> MigrationResult:
         tmp_encrypted.rename(db_path)
 
         logger.warning(
-            "DB encrypted in place: %s → %s (original sidelined to %s, "
-            "%d tables)",
-            db_path, db_path, sidelined.name, n_tables,
+            "DB encrypted in place: %s → %s (original sidelined to %s, %d tables)",
+            db_path,
+            db_path,
+            sidelined.name,
+            n_tables,
         )
 
         return MigrationResult(
-            ok=True, src_path=db_path, dst_path=db_path,
-            sidelined_path=sidelined, table_count=n_tables,
+            ok=True,
+            src_path=db_path,
+            dst_path=db_path,
+            sidelined_path=sidelined,
+            table_count=n_tables,
         )
 
     except Exception as e:
         tmp_encrypted.unlink(missing_ok=True)
         return MigrationResult(
-            ok=False, src_path=db_path, dst_path=db_path,
-            sidelined_path=None, table_count=0,
+            ok=False,
+            src_path=db_path,
+            dst_path=db_path,
+            sidelined_path=None,
+            table_count=0,
             error=f"encryption failed: {e}",
         )
 
@@ -330,28 +356,39 @@ def decrypt_db(db_path: Path, passphrase: str) -> MigrationResult:
         MigrationResult.
     """
     from datetime import datetime
+
     if not db_path.exists():
         return MigrationResult(
-            ok=False, src_path=db_path, dst_path=db_path,
-            sidelined_path=None, table_count=0,
+            ok=False,
+            src_path=db_path,
+            dst_path=db_path,
+            sidelined_path=None,
+            table_count=0,
             error=f"DB file does not exist: {db_path}",
         )
 
     if not is_encrypted_db(db_path):
         return MigrationResult(
-            ok=True, src_path=db_path, dst_path=db_path,
-            sidelined_path=None, table_count=0,
+            ok=True,
+            src_path=db_path,
+            dst_path=db_path,
+            sidelined_path=None,
+            table_count=0,
             error="DB is already plain (no-op)",
         )
 
     if not is_sqlcipher_available():
         return MigrationResult(
-            ok=False, src_path=db_path, dst_path=db_path,
-            sidelined_path=None, table_count=0,
+            ok=False,
+            src_path=db_path,
+            dst_path=db_path,
+            sidelined_path=None,
+            table_count=0,
             error="sqlcipher3 is not installed",
         )
 
     import sqlcipher3
+
     tmp_plain = db_path.with_suffix(".db.decrypting")
     if tmp_plain.exists():
         tmp_plain.unlink()
@@ -382,8 +419,11 @@ def decrypt_db(db_path: Path, passphrase: str) -> MigrationResult:
         if n_tables == 0:
             tmp_plain.unlink(missing_ok=True)
             return MigrationResult(
-                ok=False, src_path=db_path, dst_path=db_path,
-                sidelined_path=None, table_count=0,
+                ok=False,
+                src_path=db_path,
+                dst_path=db_path,
+                sidelined_path=None,
+                table_count=0,
                 error="decryption produced an empty DB",
             )
 
@@ -393,17 +433,25 @@ def decrypt_db(db_path: Path, passphrase: str) -> MigrationResult:
         tmp_plain.rename(db_path)
         logger.warning(
             "DB decrypted in place: %s (original sidelined to %s, %d tables)",
-            db_path, sidelined.name, n_tables,
+            db_path,
+            sidelined.name,
+            n_tables,
         )
 
         return MigrationResult(
-            ok=True, src_path=db_path, dst_path=db_path,
-            sidelined_path=sidelined, table_count=n_tables,
+            ok=True,
+            src_path=db_path,
+            dst_path=db_path,
+            sidelined_path=sidelined,
+            table_count=n_tables,
         )
     except Exception as e:
         tmp_plain.unlink(missing_ok=True)
         return MigrationResult(
-            ok=False, src_path=db_path, dst_path=db_path,
-            sidelined_path=None, table_count=0,
+            ok=False,
+            src_path=db_path,
+            dst_path=db_path,
+            sidelined_path=None,
+            table_count=0,
             error=f"decryption failed: {e}",
         )

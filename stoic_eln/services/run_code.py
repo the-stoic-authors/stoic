@@ -58,9 +58,7 @@ def set_format(fmt: str) -> None:
 
 def set_scope(scope: str) -> None:
     if scope not in SCOPES:
-        raise ValueError(
-            f"Unknown sequence scope {scope!r}. Allowed: {SCOPES}"
-        )
+        raise ValueError(f"Unknown sequence scope {scope!r}. Allowed: {SCOPES}")
     AppSetting.set(KEY_SCOPE, scope)
 
 
@@ -81,21 +79,16 @@ def validate_format(fmt: str) -> None:
 
     placeholders_used = _PLACEHOLDER_RE.findall(fmt)
     if not placeholders_used:
-        raise ValueError(
-            "Il formato non contiene placeholder. Usa {op}, {tem}, {year}, {seq}."
-        )
+        raise ValueError("Il formato non contiene placeholder. Usa {op}, {tem}, {year}, {seq}.")
 
     bad = [p for p in placeholders_used if p not in PLACEHOLDERS]
     if bad:
         raise ValueError(
-            f"Placeholder non riconosciuti: {bad}. "
-            f"Usa solo: {', '.join(PLACEHOLDERS)}."
+            f"Placeholder non riconosciuti: {bad}. Usa solo: {', '.join(PLACEHOLDERS)}."
         )
 
     if "seq" not in placeholders_used:
-        raise ValueError(
-            "Il formato deve contenere {seq} per garantire codici unici."
-        )
+        raise ValueError("Il formato deve contenere {seq} per garantire codici unici.")
 
     # Try a dry-run format to catch syntax errors (e.g. invalid format spec)
     try:
@@ -121,8 +114,12 @@ def format_run_code(
 
 
 def preview_run_code(
-    *, op: str = "RX", tem: str = "TEM1", year: int | None = None,
-    seq: int = 1, fmt: str | None = None,
+    *,
+    op: str = "RX",
+    tem: str = "TEM1",
+    year: int | None = None,
+    seq: int = 1,
+    fmt: str | None = None,
 ) -> str:
     """Render a sample code for use in the admin UI to preview the format."""
     if year is None:

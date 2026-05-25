@@ -60,6 +60,7 @@ def init_scheduler(app: Flask) -> None:
     try:
         with app.app_context():
             from stoic_eln.services.backup import get_settings
+
             s = get_settings()
             hour, minute = s["hour"], s["minute"]
     except Exception as e:
@@ -72,6 +73,7 @@ def init_scheduler(app: Flask) -> None:
         # delegate to the service-level function.
         with app.app_context():
             from stoic_eln.services.backup import run_scheduled_backup
+
             run_scheduled_backup()
 
     scheduler.add_job(
@@ -81,18 +83,20 @@ def init_scheduler(app: Flask) -> None:
         name="Nightly DB backup",
         replace_existing=True,
         max_instances=1,
-        coalesce=True,   # if missed (e.g. machine asleep), run once on wake
+        coalesce=True,  # if missed (e.g. machine asleep), run once on wake
     )
 
     scheduler.start()
     app.extensions["scheduler"] = scheduler
     logger.info(
         "scheduler started: nightly backup at %02d:%02d UTC",
-        hour, minute,
+        hour,
+        minute,
     )
 
     # Stop the scheduler cleanly on app teardown. Critical for
     # tests and for the reloader, which would otherwise leak
     # threads.
     import atexit
+
     atexit.register(lambda: scheduler.shutdown(wait=False))

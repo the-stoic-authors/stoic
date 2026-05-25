@@ -40,7 +40,9 @@ class Note(db.Model):
     # together is rare; a flat (entity_type, entity_id) pair keeps
     # the schema simple and SQLite-friendly.
     entity_type: Mapped[str] = mapped_column(
-        String(16), nullable=False, index=True,
+        String(16),
+        nullable=False,
+        index=True,
     )
     entity_id: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
 
@@ -49,16 +51,22 @@ class Note(db.Model):
     body: Mapped[str] = mapped_column(Text, nullable=False)
 
     author_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("user.id", ondelete="SET NULL"),
-        nullable=True, index=True,
+        Integer,
+        ForeignKey("user.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
     )
 
     created_at: Mapped[datetime] = mapped_column(
-        DateTime, default=_now_utc, nullable=False, index=True,
+        DateTime,
+        default=_now_utc,
+        nullable=False,
+        index=True,
     )
     # Set when the author edits an existing note; None means never modified.
     updated_at: Mapped[datetime | None] = mapped_column(
-        DateTime, nullable=True,
+        DateTime,
+        nullable=True,
     )
 
     # Relationships
@@ -69,7 +77,9 @@ class Note(db.Model):
         # newest first" — used by the detail pages.
         Index(
             "ix_note_entity_created",
-            "entity_type", "entity_id", "created_at",
+            "entity_type",
+            "entity_id",
+            "created_at",
         ),
     )
 

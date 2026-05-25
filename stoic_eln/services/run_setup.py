@@ -113,23 +113,27 @@ def create_draft(reaction: Reaction, operator: User | None = None) -> Run:
         db.session.flush()
 
         for sc in step.components:
-            db.session.add(RunStepComponent(
-                step_id=rs.id,
-                substance_id=sc.substance_id,
-                mixture_id=sc.mixture_id,
-                role=sc.role,
-                ratio_value=sc.ratio_value,
-                ratio_kind=sc.ratio_kind,
-                position=sc.position,
-            ))
+            db.session.add(
+                RunStepComponent(
+                    step_id=rs.id,
+                    substance_id=sc.substance_id,
+                    mixture_id=sc.mixture_id,
+                    role=sc.role,
+                    ratio_value=sc.ratio_value,
+                    ratio_kind=sc.ratio_kind,
+                    position=sc.position,
+                )
+            )
 
         for it in step.checklist_items:
-            db.session.add(RunChecklistItem(
-                step_id=rs.id,
-                text=it.text,
-                position=it.position,
-                is_done=False,
-            ))
+            db.session.add(
+                RunChecklistItem(
+                    step_id=rs.id,
+                    text=it.text,
+                    position=it.position,
+                    is_done=False,
+                )
+            )
 
     db.session.flush()
     return run
@@ -169,7 +173,7 @@ def _mixture_concentration_M(c) -> float | None:
     if unit == "mM":
         return conc / 1000.0
     if unit == "N":
-        return conc   # monobasic assumption
+        return conc  # monobasic assumption
     sub = c.effective_substance
     if sub is None or not sub.molecular_weight:
         return None
@@ -334,15 +338,11 @@ def start_run(run: Run) -> None:
         if c.actual_mass_g is not None:
             ok = c.inventory_item.use_quantity(c.actual_mass_g, "g")
             if not ok:
-                raise RunStartError(
-                    f"Quantità insufficiente nel lotto di {c.display_name}."
-                )
+                raise RunStartError(f"Quantità insufficiente nel lotto di {c.display_name}.")
         elif c.actual_volume_mL is not None:
             ok = c.inventory_item.use_quantity(c.actual_volume_mL, "mL")
             if not ok:
-                raise RunStartError(
-                    f"Quantità insufficiente nel lotto di {c.display_name}."
-                )
+                raise RunStartError(f"Quantità insufficiente nel lotto di {c.display_name}.")
 
     run.status = STATUS_IN_PROGRESS
     run.started_at = _now_utc()
@@ -353,6 +353,7 @@ def start_run(run: Run) -> None:
 
 class RunCompleteWarning:
     """Warning levels emitted by complete_run."""
+
     YIELD_OVER_100 = "yield_over_100"
     NO_PRODUCT_WEIGHT = "no_product_weight"
 
@@ -398,8 +399,10 @@ def complete_run(run: Run, *, force_no_products: bool = False) -> dict:
         if not force_no_products:
             raise RunStartError(
                 "Pesi dei prodotti non inseriti.",
-                errors=["Pesi dei prodotti non inseriti. Confermare per "
-                        "registrare il run come fallito (resa zero)."]
+                errors=[
+                    "Pesi dei prodotti non inseriti. Confermare per "
+                    "registrare il run come fallito (resa zero)."
+                ],
             )
         run.yield_g = 0.0
         run.yield_percent = 0.0
@@ -453,11 +456,13 @@ def complete_run(run: Run, *, force_no_products: bool = False) -> dict:
         )
         db.session.add(lot)
         created_lots.append((p, lot))
-        lots_created.append({
-            "product_name": p.substance.name if p.substance else "?",
-            "batch_code": batch_code,
-            "quantity_g": p.actual_mass_g,
-        })
+        lots_created.append(
+            {
+                "product_name": p.substance.name if p.substance else "?",
+                "batch_code": batch_code,
+                "quantity_g": p.actual_mass_g,
+            }
+        )
 
     # ── Cost allocation (Settimana 6 patch 5.1) ────────────────────
     # Compute the run's cumulative cost (direct materials +
@@ -473,6 +478,7 @@ def complete_run(run: Run, *, force_no_products: bool = False) -> dict:
             compute_run_cost,
             compute_run_cost_cumulative,
         )
+
         bd = compute_run_cost(run)
         cum_total = compute_run_cost_cumulative(run, bd)
         if cum_total > 0:
