@@ -18,7 +18,6 @@ from stoic_eln.models import (
     Substance,
     User,
 )
-from stoic_eln.models.run_step import RunStepComponent
 from stoic_eln.services import run_setup
 
 

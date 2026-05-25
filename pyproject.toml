@@ -133,6 +133,20 @@ select = [
 ignore = [
     "E501",  # line-too-long (handled by formatter)
     "B008",  # function calls in argument defaults (Flask common pattern)
+    # ── Style-only rules, ignored on the existing codebase ──────────
+    # These are about preference, not bugs. Re-enable per-file in the
+    # future if the team decides to adopt them.
+    "E701",  # if x: y on one line (compact early-return style)
+    "E702",  # multiple statements on one line (db.session pattern in tests)
+    "I001",  # import sorting
+    "B904",  # raise ... from e (exception chaining)
+    "B007",  # unused loop variable (often intentional in our code)
+    "B017",  # pytest.raises(Exception) too broad
+    "B011",  # assert False instead of raise AssertionError
+    "B027",  # empty method in ABC without @abstractmethod
+    "E741",  # ambiguous variable name "l"
+    "C408",  # dict(a=b) instead of {"a": b}
+    "SIM",   # entire flake8-simplify family (ternaries, contextlib, etc.)
 ]
 
 [tool.ruff.format]

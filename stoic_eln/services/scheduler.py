@@ -32,7 +32,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-def init_scheduler(app: "Flask") -> None:
+def init_scheduler(app: Flask) -> None:
     """Initialise the background scheduler. Idempotent and a no-op
     in TESTING mode or when ``BACKUP_SCHEDULER_DISABLED`` is set."""
     if app.config.get("TESTING"):

@@ -9,7 +9,6 @@ Run: .venv/bin/pytest tests/diagnose_v3.py -s --no-header -v
 from __future__ import annotations
 
 import os
-import pytest
 
 from stoic_eln.services import backup_crypto
 
@@ -31,7 +30,7 @@ def test_v3_reproduce_with_prints(tmp_path, monkeypatch, app):
 
     # Pre-test state
     print()
-    print(f"  Pre-test state:")
+    print("  Pre-test state:")
     print(f"    is_cached: {ps.is_cached()}")
     print(f"    current_source(): {ps.current_source()!r}")
     print(f"    env STOIC_BACKUP_PASSPHRASE: "
@@ -46,9 +45,9 @@ def test_v3_reproduce_with_prints(tmp_path, monkeypatch, app):
 
     # Now do EXACTLY what the failing test does
     print()
-    print(f"  --- now doing what the failing test does ---")
+    print("  --- now doing what the failing test does ---")
     ps.set_source(ps.SOURCE_ENV)
-    print(f"    after set_source(ENV):")
+    print("    after set_source(ENV):")
     print(f"      current_source() = {ps.current_source()!r}")
     print(f"      marker now exists: {marker.exists()}")
     if marker.exists():
@@ -69,7 +68,7 @@ def test_v3_reproduce_with_prints(tmp_path, monkeypatch, app):
 
     # Diagnostics before the call
     print()
-    print(f"  Right before resolve_passphrase call:")
+    print("  Right before resolve_passphrase call:")
     print(f"    ps._from_env() = {ps._from_env()!r}")
     print(f"    ps.is_cached() = {ps.is_cached()}")
     print(f"    ps.current_source() = {ps.current_source()!r}")

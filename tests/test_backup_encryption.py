@@ -9,10 +9,8 @@ keep working (backward compatible).
 from __future__ import annotations
 
 import gzip
-import io
 import os
 import sqlite3
-import tempfile
 from pathlib import Path
 
 import pytest

@@ -303,7 +303,7 @@ def test_delete_checklist_item(client, app):
         db.session.add(rxn); db.session.flush()
         item = ChecklistItem(reaction_id=rxn.id, position=0, text="Foo")
         db.session.add(item); db.session.commit()
-        iid = item.id; rid = rxn.id
+        iid = item.id
 
     _login(client, app)
     resp = client.post(f"/reactions/checklist/{iid}/delete", follow_redirects=False)

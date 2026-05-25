@@ -32,7 +32,7 @@ import logging
 import shutil
 import sqlite3
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, UTC
 from pathlib import Path
 
 from flask import current_app
@@ -67,7 +67,7 @@ class BackupFile:
 
 
 def _now_utc() -> datetime:
-    return datetime.now(timezone.utc).replace(tzinfo=None)
+    return datetime.now(UTC).replace(tzinfo=None)
 
 
 def _format_timestamp(ts: datetime) -> str:

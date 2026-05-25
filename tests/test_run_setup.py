@@ -319,7 +319,7 @@ def test_complete_run_creates_inventory_lot_per_product(app, template_with_lots,
         prod_comp = next(c for c in run.components if c.role == "product")
         prod_comp.actual_mass_g = 0.5
 
-        result = run_setup.complete_run(run)
+        run_setup.complete_run(run)
         db.session.commit()
 
         from stoic_eln.models.inventory import InventoryItem as Inv
@@ -497,7 +497,6 @@ def test_update_field_auto_save_uses_field_name(app, client):
     """
     from stoic_eln.extensions import db
     from stoic_eln.models import User, Reaction
-    import re
 
     with app.app_context():
         u = User(username="r", full_name="R", operator_code="RR",
@@ -981,7 +980,7 @@ def test_pdf_endpoint_returns_pdf_content_type(app, client):
     """The /runs/<id>/pdf endpoint streams a PDF with correct headers."""
     from stoic_eln.extensions import db
     from stoic_eln.models import (User, Substance, Reaction,
-                                   ReactionComponent, InventoryItem)
+                                   ReactionComponent)
     from stoic_eln.services import run_setup
 
     with app.app_context():
@@ -1712,7 +1711,7 @@ def test_shopping_list_excludes_planned_after_creation(app, client):
     """After creating planned orders from the shopping list, those
     substances are EXCLUDED from the next list."""
     from stoic_eln.extensions import db
-    from stoic_eln.models import (User, Substance, InventoryItem, Order, Group)
+    from stoic_eln.models import (User, Substance, InventoryItem, Group)
     from stoic_eln.services.shopping_list import build_shopping_list
 
     with app.app_context():
@@ -3790,7 +3789,6 @@ def test_label_pdf_empty_items_raises(app):
 
 def test_label_handles_substance_without_optional_fields(app):
     """Missing CAS / formula / GHS / phrases must not crash the renderer."""
-    from datetime import date
     from stoic_eln.extensions import db
     from stoic_eln.models import Group, InventoryItem, Substance
     from stoic_eln.services.labels import render_labels_pdf
@@ -3887,7 +3885,6 @@ def test_label_ghs_pictograms_actually_embedded(app):
     embedded via drawImage(). We check by size: a label with two
     pictograms should be >> a label with none.
     """
-    from datetime import date
     from stoic_eln.extensions import db
     from stoic_eln.models import Group, InventoryItem, Substance
     from stoic_eln.services.labels import render_labels_pdf
@@ -3946,7 +3943,6 @@ def test_label_pdf_l7164_embeds_2d_structure(app):
     while the helper expected absolute page coordinates, so the
     structure landed somewhere off-label and was never visible.
     """
-    from datetime import date
     from stoic_eln.extensions import db
     from stoic_eln.models import Group, InventoryItem, Substance
     from stoic_eln.services.labels import render_labels_pdf
@@ -3982,7 +3978,6 @@ def test_label_pdf_l7160_skips_2d_structure(app):
     Sanity check: even with SMILES + RDKit available, the PDF for
     L7160 should NOT include a molecule image (no room).
     """
-    from datetime import date
     from stoic_eln.extensions import db
     from stoic_eln.models import Group, InventoryItem, Substance
     from stoic_eln.services.labels import render_labels_pdf

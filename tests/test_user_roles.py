@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import re
 
-import pytest
 
 from stoic_eln.extensions import db
 from stoic_eln.models.user import User

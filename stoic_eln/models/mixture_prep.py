@@ -28,7 +28,7 @@ half-consumed precursors and no orphan lots.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime, UTC
 
 from sqlalchemy import (
     DateTime,
@@ -44,7 +44,7 @@ from stoic_eln.extensions import db
 
 
 def _now_utc() -> datetime:
-    return datetime.now(timezone.utc).replace(tzinfo=None)
+    return datetime.now(UTC).replace(tzinfo=None)
 
 
 # Quantity units accepted on the target side. We keep this small and
@@ -121,7 +121,7 @@ class MixturePrep(db.Model):
     )
     prepared_by = relationship("User", foreign_keys=[prepared_by_id])
 
-    consumptions: Mapped[list["MixturePrepConsumption"]] = relationship(
+    consumptions: Mapped[list[MixturePrepConsumption]] = relationship(
         "MixturePrepConsumption",
         back_populates="prep",
         cascade="all, delete-orphan",

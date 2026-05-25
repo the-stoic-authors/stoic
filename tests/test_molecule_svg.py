@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
 
 from stoic_eln.services.scheme_image import render_molecule_svg
 

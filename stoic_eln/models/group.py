@@ -19,7 +19,7 @@ or project.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime, UTC
 from typing import TYPE_CHECKING
 
 from sqlalchemy import (
@@ -39,7 +39,7 @@ if TYPE_CHECKING:
 
 
 def _now_utc() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class Group(db.Model):
@@ -63,7 +63,7 @@ class Group(db.Model):
         DateTime, default=_now_utc, nullable=False
     )
 
-    memberships: Mapped[list["GroupMembership"]] = relationship(
+    memberships: Mapped[list[GroupMembership]] = relationship(
         "GroupMembership",
         back_populates="group",
         cascade="all, delete-orphan",
@@ -99,7 +99,7 @@ class GroupMembership(db.Model):
     )
 
     group: Mapped[Group] = relationship("Group", back_populates="memberships")
-    user: Mapped["User"] = relationship("User")
+    user: Mapped[User] = relationship("User")
 
     def __repr__(self) -> str:
         return (

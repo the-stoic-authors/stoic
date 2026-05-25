@@ -28,7 +28,7 @@ NaOH solution behaves like water, not like sodium hydroxide).
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime, UTC
 
 from sqlalchemy import (
     JSON,
@@ -43,11 +43,16 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from stoic_eln.extensions import db
+from typing import TYPE_CHECKING
+
 from stoic_eln.models.substance import Substance
+
+if TYPE_CHECKING:
+    from stoic_eln.models.inventory import InventoryItem
 
 
 def _now_utc() -> datetime:
-    return datetime.now(timezone.utc).replace(tzinfo=None)
+    return datetime.now(UTC).replace(tzinfo=None)
 
 
 # ── Mixture kinds ─────────────────────────────────────────────────────
@@ -229,7 +234,7 @@ class Mixture(db.Model):
     primary_solvent: Mapped[Substance | None] = relationship(
         Substance, foreign_keys=[primary_solvent_id],
     )
-    inventory_items: Mapped[list["InventoryItem"]] = relationship(
+    inventory_items: Mapped[list[InventoryItem]] = relationship(
         "InventoryItem",
         back_populates="mixture",
         primaryjoin="Mixture.id == InventoryItem.mixture_id",
@@ -506,7 +511,7 @@ class MixtureComponent(db.Model):
     substance: Mapped[Substance | None] = relationship(
         Substance, foreign_keys=[substance_id],
     )
-    child_mixture: Mapped["Mixture | None"] = relationship(
+    child_mixture: Mapped[Mixture | None] = relationship(
         "Mixture", foreign_keys=[child_mixture_id],
     )
 

@@ -26,14 +26,12 @@ from stoic_eln.blueprints._decorators import supervisor_required
 from stoic_eln.blueprints.mixtures import bp
 from stoic_eln.blueprints.mixtures.forms import MixtureForm
 from stoic_eln.extensions import db
-from stoic_eln.models.hazard_phrase import HazardPhrase
 from stoic_eln.models.inventory import InventoryItem
 from stoic_eln.models.mixture import (
     COMPONENT_ROLES,
     Mixture,
     MixtureComponent,
 )
-from stoic_eln.models.mixture_prep import MixturePrep
 from stoic_eln.models.substance import Substance
 from stoic_eln.services.audit import log_event
 from stoic_eln.services.hazard_phrases import (
@@ -535,7 +533,7 @@ def prepare_form(mixture_id: int):
     # Preview of the auto-generated batch code (operator can override
     # in the form).
     from stoic_eln.services.prep_code import (
-        generate_prep_code, get_format, get_scope,
+        generate_prep_code,
     )
     preview_code = ""
     if suggestion is not None:

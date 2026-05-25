@@ -16,8 +16,8 @@ from stoic_eln.extensions import db
 
 if TYPE_CHECKING:
     from stoic_eln.models.inventory import InventoryItem
+    from stoic_eln.models.mixture import Mixture
     from stoic_eln.models.run import Run
-    from stoic_eln.models.run_component import RunComponent
     from stoic_eln.models.substance import Substance
 
 
@@ -104,7 +104,7 @@ class RunStepComponent(db.Model):
     substance: Mapped[Substance | None] = relationship(
         "Substance", foreign_keys=[substance_id],
     )
-    mixture: Mapped["Mixture | None"] = relationship(
+    mixture: Mapped[Mixture | None] = relationship(
         "Mixture", foreign_keys=[mixture_id],
     )
     inventory_item: Mapped[InventoryItem | None] = relationship("InventoryItem")

@@ -31,8 +31,6 @@ from stoic_eln.extensions import db
 from stoic_eln.models.inventory import InventoryItem
 from stoic_eln.models.reaction import Reaction
 from stoic_eln.models.run import (
-    STATUS_COMPLETED,
-    STATUS_DRAFT,
     STATUS_IN_PROGRESS,
     Run,
 )

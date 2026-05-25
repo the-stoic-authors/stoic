@@ -6,7 +6,7 @@ A substance can have many lots (different purchases over time).
 
 from __future__ import annotations
 
-from datetime import date, datetime, timezone
+from datetime import date, datetime, UTC
 from typing import TYPE_CHECKING
 
 from sqlalchemy import (
@@ -26,12 +26,13 @@ from stoic_eln.extensions import db
 
 if TYPE_CHECKING:
     from stoic_eln.models.group import Group
+    from stoic_eln.models.mixture import Mixture
     from stoic_eln.models.substance import Substance
     from stoic_eln.models.user import User
 
 
 def _now_utc() -> datetime:
-    return datetime.now(timezone.utc).replace(tzinfo=None)
+    return datetime.now(UTC).replace(tzinfo=None)
 
 
 class InventoryItem(db.Model):
@@ -105,12 +106,12 @@ class InventoryItem(db.Model):
     substance: Mapped[Substance | None] = relationship(
         "Substance", back_populates="inventory_items",
     )
-    mixture: Mapped["Mixture | None"] = relationship(
+    mixture: Mapped[Mixture | None] = relationship(
         "Mixture", back_populates="inventory_items",
         primaryjoin="InventoryItem.mixture_id == Mixture.id",
     )
     created_by: Mapped[User | None] = relationship("User", foreign_keys=[created_by_id])
-    group: Mapped["Group"] = relationship(
+    group: Mapped[Group] = relationship(
         "Group", foreign_keys=[group_id]
     )
 

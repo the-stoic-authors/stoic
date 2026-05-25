@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime, UTC
 
 from flask import (
     current_app,
@@ -66,7 +66,7 @@ def login():
         if user.needs_rehash():
             user.set_password(form.password.data)
 
-        user.last_login_at = datetime.now(timezone.utc).replace(tzinfo=None)
+        user.last_login_at = datetime.now(UTC).replace(tzinfo=None)
         db.session.commit()
 
         login_user(user, remember=form.remember_me.data)

@@ -13,17 +13,15 @@ doctor) are split into private helpers for readability.
 from __future__ import annotations
 
 import os
-import shutil
 import subprocess
 import sys
-from pathlib import Path
 
 import click
 
 from stoic_eln import __version__
 from stoic_eln.cli import output as out
 from stoic_eln.cli.platform import (
-    LOG_FILE, PID_FILE, REPO_ROOT,
+    REPO_ROOT,
     current as current_platform,
 )
 
@@ -252,7 +250,7 @@ def _ensure_python_version() -> None:
     if major != 3 or minor < 11:
         out.die(f"Python 3.11+ required. Found {major}.{minor}.")
     if minor == 11:
-        out.warn(f"Python 3.11 detected — 3.12 is recommended.")
+        out.warn("Python 3.11 detected — 3.12 is recommended.")
     else:
         out.ok(f"Python {major}.{minor}")
 
@@ -377,7 +375,7 @@ def _doctor_python() -> None:
     if major == 3 and minor >= 12:
         out.ok(f"Python {major}.{minor}.{sys.version_info.micro}")
     elif major == 3 and minor == 11:
-        out.warn(f"Python 3.11 — works, but 3.12 is recommended.")
+        out.warn("Python 3.11 — works, but 3.12 is recommended.")
     else:
         out.error(f"Python {major}.{minor} is too old — need 3.11+.")
 

@@ -43,21 +43,18 @@ import io
 import json
 import logging
 from dataclasses import dataclass
-from datetime import date
 from pathlib import Path
-from typing import Iterable
+from collections.abc import Iterable
 
 from flask import current_app
 from reportlab.graphics import renderPDF
 from reportlab.graphics.barcode.qr import QrCodeWidget
 from reportlab.graphics.shapes import Drawing, Group
 from reportlab.lib.colors import black, grey
-from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
 from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
 
 from stoic_eln.models.inventory import InventoryItem
 
@@ -437,7 +434,7 @@ def _ghs_png(code: str, *, theme: str = "light") -> bytes | None:
         # renderPM doesn't generate alpha-channel PNGs natively, so we
         # render against a magenta sentinel and post-process with PIL
         # to swap the sentinel pixels to RGBA alpha=0. This produces
-        # a real PNG-with-alpha that ReportLab's ``drawImage(..., 
+        # a real PNG-with-alpha that ReportLab's ``drawImage(...,
         # mask='auto')`` recognises across all versions — the older
         # color-key approach (``mask=[255,255,0,0,255,255]``) worked
         # on some reportlab builds but on others swallowed the glyph

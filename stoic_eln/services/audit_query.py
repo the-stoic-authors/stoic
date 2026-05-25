@@ -17,10 +17,9 @@ so the dashboard timeline and the table page stay in sync.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date, datetime, time, timedelta, timezone
-from typing import Any
+from datetime import date, datetime, time, timedelta
 
-from sqlalchemy import and_, or_
+from sqlalchemy import or_
 
 from stoic_eln.extensions import db
 from stoic_eln.models.audit import AuditLog

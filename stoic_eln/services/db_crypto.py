@@ -80,11 +80,10 @@ accorge subito invece di trovarsi un DB corrotto.
 from __future__ import annotations
 
 import logging
-import os
-import shutil
 import sqlite3
 from dataclasses import dataclass
 from pathlib import Path
+from datetime import UTC
 
 logger = logging.getLogger(__name__)
 
@@ -196,7 +195,7 @@ def encrypt_db(db_path: Path, passphrase: str) -> MigrationResult:
     Returns:
         MigrationResult describing what happened.
     """
-    from datetime import datetime, timezone
+    from datetime import datetime
     if not db_path.exists():
         return MigrationResult(
             ok=False, src_path=db_path, dst_path=db_path,
@@ -292,7 +291,7 @@ def encrypt_db(db_path: Path, passphrase: str) -> MigrationResult:
             )
 
         # Swap: sideline original, install new.
-        ts = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
+        ts = datetime.now(UTC).strftime("%Y%m%d-%H%M%S")
         sidelined = db_path.with_name(f"{db_path.stem}.pre-encrypt-{ts}.db")
         db_path.rename(sidelined)
         tmp_encrypted.rename(db_path)
@@ -330,7 +329,7 @@ def decrypt_db(db_path: Path, passphrase: str) -> MigrationResult:
     Returns:
         MigrationResult.
     """
-    from datetime import datetime, timezone
+    from datetime import datetime
     if not db_path.exists():
         return MigrationResult(
             ok=False, src_path=db_path, dst_path=db_path,
@@ -388,7 +387,7 @@ def decrypt_db(db_path: Path, passphrase: str) -> MigrationResult:
                 error="decryption produced an empty DB",
             )
 
-        ts = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
+        ts = datetime.now(UTC).strftime("%Y%m%d-%H%M%S")
         sidelined = db_path.with_name(f"{db_path.stem}.pre-decrypt-{ts}.db")
         db_path.rename(sidelined)
         tmp_plain.rename(db_path)

@@ -11,7 +11,7 @@ created (Week 4), it will copy the checklist with its own per-run states.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime, UTC
 from typing import TYPE_CHECKING
 
 from sqlalchemy import (
@@ -32,7 +32,7 @@ if TYPE_CHECKING:
 
 
 def _now_utc() -> datetime:
-    return datetime.now(timezone.utc).replace(tzinfo=None)
+    return datetime.now(UTC).replace(tzinfo=None)
 
 
 class ChecklistItem(db.Model):

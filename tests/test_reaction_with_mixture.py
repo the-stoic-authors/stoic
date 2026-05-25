@@ -7,12 +7,10 @@ import pytest
 from stoic_eln.extensions import db
 from stoic_eln.models import (
     Group,
-    InventoryItem,
     Mixture,
     MixtureComponent,
     Reaction,
     ReactionComponent,
-    RunComponent,
     Substance,
     User,
 )

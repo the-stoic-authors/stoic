@@ -15,7 +15,7 @@ Authorisation:
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime, UTC
 
 from flask import abort, flash, redirect, render_template, request, url_for
 from flask_babel import gettext as _
@@ -59,7 +59,7 @@ def _redirect_to_entity(entity_type: str, entity_id: int):
 
 
 def _now_utc() -> datetime:
-    return datetime.now(timezone.utc).replace(tzinfo=None)
+    return datetime.now(UTC).replace(tzinfo=None)
 
 
 def _render_thread_partial(entity_type: str, entity_id: int):

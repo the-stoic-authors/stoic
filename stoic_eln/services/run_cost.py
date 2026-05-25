@@ -135,7 +135,7 @@ def _qty_display(g: float | None, mL: float | None) -> str:
 PRODUCED_ROLES = ("product", "byproduct")
 
 
-def compute_run_cost(run: "Run") -> RunCostBreakdown:
+def compute_run_cost(run: Run) -> RunCostBreakdown:
     """Compute the total materials cost of ``run``.
 
     Walks both ``run.components`` and ``run.steps[*].components``,
@@ -215,7 +215,7 @@ def compute_run_cost(run: "Run") -> RunCostBreakdown:
     )
 
 
-def compute_run_cost_cumulative(run: "Run",
+def compute_run_cost_cumulative(run: Run,
                                   breakdown: RunCostBreakdown | None = None) -> float:
     """Convenience wrapper: returns the cumulative cost only.
 
@@ -237,7 +237,7 @@ class CostMetrics:
     basis_eur: float          # the total cost this metric was derived from
 
 
-def product_unit_metrics(run: "Run", basis_eur: float) -> CostMetrics:
+def product_unit_metrics(run: Run, basis_eur: float) -> CostMetrics:
     """Express ``basis_eur`` as €/mol, €/g, and €/mL of product.
 
     The basis is typically ``breakdown.total_eur`` (cumulative) or
@@ -284,7 +284,7 @@ def product_unit_metrics(run: "Run", basis_eur: float) -> CostMetrics:
                        basis_eur=basis_eur)
 
 
-def cost_per_mol_product(run: "Run", breakdown: RunCostBreakdown) -> float | None:
+def cost_per_mol_product(run: Run, breakdown: RunCostBreakdown) -> float | None:
     """Backwards-compat wrapper: € per mole on the cumulative basis."""
     if not breakdown.is_product_priced:
         return None

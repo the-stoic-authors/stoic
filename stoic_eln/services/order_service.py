@@ -39,7 +39,7 @@ def mark_as_ordered(
     ordered_at: date | None = None,
     expected_delivery_date: date | None = None,
     internal_order_ref: str | None = None,
-    actor: "User | None" = None,  # noqa: ARG001  (audit hook)
+    actor: User | None = None,  # noqa: ARG001  (audit hook)
 ) -> None:
     """Move a 'planned' order to 'ordered'."""
     if order.status != STATUS_PLANNED:
@@ -57,7 +57,7 @@ def mark_as_ordered(
 
 
 def cancel_order(order: Order, *, reason: str | None = None,
-                 actor: "User | None" = None) -> None:  # noqa: ARG001
+                 actor: User | None = None) -> None:  # noqa: ARG001
     """Cancel a planned or ordered order."""
     if order.status not in (STATUS_PLANNED, STATUS_ORDERED):
         raise OrderError(
@@ -84,7 +84,7 @@ def receive_order(
     location: str | None = None,
     notes_extra: str | None = None,
     is_partial: bool = False,
-    actor: "User | None" = None,
+    actor: User | None = None,
 ) -> InventoryItem:
     """Mark an order as received and create the corresponding lot.
 

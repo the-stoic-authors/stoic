@@ -5,7 +5,6 @@ Read-only. List + detail. Filtering by mixture and date range.
 
 from __future__ import annotations
 
-from datetime import date
 
 from flask import abort, render_template, request
 from flask_login import login_required

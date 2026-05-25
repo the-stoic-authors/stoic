@@ -281,7 +281,7 @@ def _parse_audit_filters():
 def audit_log():
     """Paginated, filtered audit log for admins."""
     from stoic_eln.services.audit_query import (
-        AuditFilters, query_events, distinct_actions, distinct_entity_types,
+        query_events, distinct_actions, distinct_entity_types,
         distinct_users, label_for_action,
     )
     filters = _parse_audit_filters()

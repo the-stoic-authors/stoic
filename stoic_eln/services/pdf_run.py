@@ -33,7 +33,7 @@ from typing import TYPE_CHECKING
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
-from reportlab.lib.units import cm, mm
+from reportlab.lib.units import cm
 from reportlab.platypus import (
     BaseDocTemplate,
     Frame,
@@ -246,7 +246,7 @@ def _on_page(canvas, doc, *, run, total_pages_callback=None):
 # ── Header / abstract block ──────────────────────────────────────────────
 
 
-def _build_header(run: "Run", styles: dict) -> list:
+def _build_header(run: Run, styles: dict) -> list:
     """The shared 'title block' on page 1."""
     flow = []
     rxn = run.reaction
@@ -299,7 +299,7 @@ def _build_header(run: "Run", styles: dict) -> list:
 # ── Components table ─────────────────────────────────────────────────────
 
 
-def _build_components_table(run: "Run", styles: dict, *, full: bool) -> list:
+def _build_components_table(run: Run, styles: dict, *, full: bool) -> list:
     """Section 1: components used (substance, role, target, actual, lot)."""
     flow: list = []
     flow.append(Paragraph("1. Componenti", styles["section"]))
@@ -364,7 +364,7 @@ def _build_components_table(run: "Run", styles: dict, *, full: bool) -> list:
 # ── Scheme block ─────────────────────────────────────────────────────────
 
 
-def _build_scheme(run: "Run", styles: dict) -> list:
+def _build_scheme(run: Run, styles: dict) -> list:
     """Section: reaction scheme (RDKit image, with SMILES fallback)."""
     flow: list = []
     rxn = run.reaction
@@ -414,7 +414,7 @@ def _build_scheme(run: "Run", styles: dict) -> list:
 # ── Reaction-level conditions + procedure + checklist ────────────────────
 
 
-def _build_main_reaction(run: "Run", styles: dict, *, section_no: int) -> list:
+def _build_main_reaction(run: Run, styles: dict, *, section_no: int) -> list:
     """Section: main reaction (conditions, description, procedure, checklist)."""
     flow: list = []
     rxn = run.reaction
@@ -469,7 +469,7 @@ def _build_main_reaction(run: "Run", styles: dict, *, section_no: int) -> list:
 # ── Steps (workup, extraction, ...) ──────────────────────────────────────
 
 
-def _build_steps(run: "Run", styles: dict, *, section_no: int) -> list:
+def _build_steps(run: Run, styles: dict, *, section_no: int) -> list:
     """Section: each ReactionStep with components, procedure, checklist."""
     flow: list = []
     if not run.steps:
@@ -548,7 +548,7 @@ def _build_steps(run: "Run", styles: dict, *, section_no: int) -> list:
 # ── Notes + post-mortem ──────────────────────────────────────────────────
 
 
-def _build_cost(run: "Run", styles: dict, *, section_no: int) -> list:
+def _build_cost(run: Run, styles: dict, *, section_no: int) -> list:
     """Section: cost breakdown (Settimana 6 patch 5)."""
     from stoic_eln.services.run_cost import (
         compute_run_cost, product_unit_metrics,
@@ -646,7 +646,7 @@ def _build_cost(run: "Run", styles: dict, *, section_no: int) -> list:
     return flow
 
 
-def _build_notes(run: "Run", styles: dict, *, section_no: int) -> list:
+def _build_notes(run: Run, styles: dict, *, section_no: int) -> list:
     flow: list = []
     if not run.notes and not run.post_completion_notes:
         return flow
@@ -665,7 +665,7 @@ def _build_notes(run: "Run", styles: dict, *, section_no: int) -> list:
     return flow
 
 
-def _build_signature_block(run: "Run", styles: dict) -> list:
+def _build_signature_block(run: Run, styles: dict) -> list:
     """Sign-off block with operator + supervisor lines for the lab notebook."""
     flow: list = []
     flow.append(Spacer(1, 18))
@@ -725,7 +725,7 @@ def _build_signature_block(run: "Run", styles: dict) -> list:
 # ── Document assembly ────────────────────────────────────────────────────
 
 
-def _build_doc(run: "Run", flow: list) -> bytes:
+def _build_doc(run: Run, flow: list) -> bytes:
     """Wrap a flowables story into a paginated A4 PDF."""
     buf = BytesIO()
     doc = BaseDocTemplate(
@@ -755,7 +755,7 @@ def _build_doc(run: "Run", flow: list) -> bytes:
     return buf.getvalue()
 
 
-def render_run_summary(run: "Run") -> bytes:
+def render_run_summary(run: Run) -> bytes:
     """One-page summary PDF: title, abstract, components, yield/notes, signature."""
     styles = _academic_styles()
     flow: list = []
@@ -767,7 +767,7 @@ def render_run_summary(run: "Run") -> bytes:
     return _build_doc(run, flow)
 
 
-def render_run_full(run: "Run") -> bytes:
+def render_run_full(run: Run) -> bytes:
     """Full PDF: everything — components, scheme, main reaction, steps, notes, signature."""
     styles = _academic_styles()
     flow: list = []

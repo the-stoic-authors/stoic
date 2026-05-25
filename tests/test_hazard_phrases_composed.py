@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-import pytest
 
 from stoic_eln.extensions import db
 from stoic_eln.models import HazardPhrase

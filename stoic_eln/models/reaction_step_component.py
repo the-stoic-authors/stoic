@@ -35,7 +35,7 @@ unit is ``ratio_kind``.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime, UTC
 from typing import TYPE_CHECKING
 
 from sqlalchemy import (
@@ -50,7 +50,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from stoic_eln.extensions import db
-from stoic_eln.models.reaction_component import COMPONENT_ROLES, ROLE_LABELS_IT
+from stoic_eln.models.reaction_component import ROLE_LABELS_IT
 
 if TYPE_CHECKING:
     from stoic_eln.models.mixture import Mixture
@@ -59,7 +59,7 @@ if TYPE_CHECKING:
 
 
 def _now_utc() -> datetime:
-    return datetime.now(timezone.utc).replace(tzinfo=None)
+    return datetime.now(UTC).replace(tzinfo=None)
 
 
 RATIO_KINDS: tuple[str, ...] = (

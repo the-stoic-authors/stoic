@@ -5,6 +5,7 @@ from __future__ import annotations
 import pytest
 
 from stoic_eln.services import prep_code
+from datetime import UTC
 
 
 def test_slugify_basic_names(app):
@@ -53,7 +54,7 @@ def test_validate_format_balanced_braces(app):
 def test_generate_prep_code_increments_sequence(app):
     """Two prep codes for the same mixture in the same year get
     sequential seq numbers."""
-    from datetime import datetime, timezone
+    from datetime import datetime
     from stoic_eln.extensions import db
     from stoic_eln.models import Group, Mixture
     from stoic_eln.models.mixture_prep import MixturePrep
@@ -71,7 +72,7 @@ def test_generate_prep_code_increments_sequence(app):
         db.session.add(MixturePrep(
             code=code1, sequence=seq1, year=2026,
             mixture_id=m.id, target_quantity=1.0, target_quantity_unit="L",
-            prepared_at=datetime.now(timezone.utc).replace(tzinfo=None),
+            prepared_at=datetime.now(UTC).replace(tzinfo=None),
         ))
         db.session.commit()
         code2, seq2 = prep_code.generate_prep_code(
@@ -86,7 +87,7 @@ def test_generate_prep_code_increments_sequence(app):
 def test_scope_mix_isolates_sequences_per_mixture(app):
     """Under ``mix`` scope, two different mixtures have independent
     sequence counters."""
-    from datetime import datetime, timezone
+    from datetime import datetime
     from stoic_eln.extensions import db
     from stoic_eln.models import Group, Mixture
     from stoic_eln.models.mixture_prep import MixturePrep
@@ -107,7 +108,7 @@ def test_scope_mix_isolates_sequences_per_mixture(app):
         db.session.add(MixturePrep(
             code=code_a, sequence=seq_a, year=2026,
             mixture_id=m_a.id, target_quantity=1.0, target_quantity_unit="L",
-            prepared_at=datetime.now(timezone.utc).replace(tzinfo=None),
+            prepared_at=datetime.now(UTC).replace(tzinfo=None),
         ))
         db.session.commit()
 

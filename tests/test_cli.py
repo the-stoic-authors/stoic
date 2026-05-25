@@ -11,9 +11,6 @@ should be exercised manually with ``stoic install --daemon`` /
 from __future__ import annotations
 
 import os
-import platform as _stdlib_platform
-import subprocess
-from pathlib import Path
 from unittest.mock import patch
 
 import pytest

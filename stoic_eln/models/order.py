@@ -25,12 +25,11 @@ the difference.
 
 from __future__ import annotations
 
-from datetime import date, datetime, timezone
+from datetime import date, datetime, UTC
 from flask_babel import lazy_gettext as _l
 from typing import TYPE_CHECKING
 
 from sqlalchemy import (
-    Boolean,
     Date,
     DateTime,
     Float,
@@ -51,7 +50,7 @@ if TYPE_CHECKING:
 
 
 def _now_utc() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 # Status values for an order
@@ -141,12 +140,12 @@ class Order(db.Model):
     )
 
     # ── Relationships ─────────────────────────────────────────────────
-    substance: Mapped["Substance"] = relationship("Substance")
-    group: Mapped["Group"] = relationship("Group")
-    inventory_item: Mapped["InventoryItem | None"] = relationship(
+    substance: Mapped[Substance] = relationship("Substance")
+    group: Mapped[Group] = relationship("Group")
+    inventory_item: Mapped[InventoryItem | None] = relationship(
         "InventoryItem", foreign_keys=[inventory_item_id],
     )
-    created_by: Mapped["User | None"] = relationship(
+    created_by: Mapped[User | None] = relationship(
         "User", foreign_keys=[created_by_id],
     )
 

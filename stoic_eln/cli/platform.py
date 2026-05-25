@@ -26,7 +26,6 @@ import platform
 import shutil
 import signal
 import subprocess
-import sys
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
@@ -345,9 +344,9 @@ class MacOSPlatform(GenericPlatform):
             die(f"launchctl load failed: {result.stderr.strip()}")
 
         ok(
-            f"Stoic registered as launchd service. It will start "
-            f"automatically when you log in. Use 'stoic stop' / 'stoic start' "
-            f"to control it."
+            "Stoic registered as launchd service. It will start "
+            "automatically when you log in. Use 'stoic stop' / 'stoic start' "
+            "to control it."
         )
 
     def uninstall_daemon(self) -> None:
@@ -478,9 +477,9 @@ WantedBy=default.target
                        check=True)
 
         ok(
-            f"Stoic registered as systemd user service. To make it "
-            f"start without you logging in, run:\n"
-            f"  sudo loginctl enable-linger $USER"
+            "Stoic registered as systemd user service. To make it "
+            "start without you logging in, run:\n"
+            "  sudo loginctl enable-linger $USER"
         )
 
     def uninstall_daemon(self) -> None:

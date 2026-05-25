@@ -35,8 +35,7 @@ them in.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import datetime, UTC
 
 from stoic_eln.extensions import db
 from stoic_eln.models.inventory import InventoryItem
@@ -62,16 +61,16 @@ class SuggestedConsumption:
     substance_id: int                 # for display
     substance_name: str
     role: str
-    suggested_lot_id: Optional[int]   # InventoryItem.id, or None if no lot
-    suggested_quantity: Optional[float]
-    suggested_unit: Optional[str]
-    available_lots: list["LotSummary"]  # all candidate lots, for the dropdown
+    suggested_lot_id: int | None   # InventoryItem.id, or None if no lot
+    suggested_quantity: float | None
+    suggested_unit: str | None
+    available_lots: list[LotSummary]  # all candidate lots, for the dropdown
     # Detected stock concentration of the suggested precursor lot.
     # Populated only for solute components when the chosen lot has
     # a known concentration (mixture lot whose primary_concentration
     # or matching MixtureComponent is set). The UI surfaces this as
     # "stock conc: 12 N (HCl 12N)" so the operator can confirm.
-    stock_info: Optional["StockInfo"] = None
+    stock_info: StockInfo | None = None
 
 
 @dataclass
@@ -135,7 +134,7 @@ def _candidate_lots(substance_id: int, want_unit: str) -> list[InventoryItem]:
     quantity in the relevant unit category are returned.
     """
     from stoic_eln.models.mixture import (
-        COMPONENT_ROLE_SOLUTE, MixtureComponent,
+        COMPONENT_ROLE_SOLUTE,
     )
 
     # 1. Pure substance lots
@@ -569,8 +568,8 @@ def suggest_consumptions(
         cands = candidates_per_comp[comp.id]
         suggested_lot = cands[0] if cands else None
 
-        suggested_qty: Optional[float] = None
-        suggested_unit_out: Optional[str] = (
+        suggested_qty: float | None = None
+        suggested_unit_out: str | None = (
             target_unit if _is_volumetric_unit(target_unit) else "g"
         )
         row_stock_info: StockInfo | None = None
@@ -786,7 +785,7 @@ def execute_preparation(
         seq = next_sequence_number(
             scope=get_scope(),
             mixture_id=mixture.id,
-            year=datetime.now(timezone.utc).year,
+            year=datetime.now(UTC).year,
         )
     else:
         from stoic_eln.services.prep_code import generate_prep_code
@@ -850,7 +849,7 @@ def execute_preparation(
     prep = MixturePrep(
         code=output_code,
         sequence=seq,
-        year=datetime.now(timezone.utc).year,
+        year=datetime.now(UTC).year,
         mixture_id=mixture.id,
         target_quantity=inp.target_quantity,
         target_quantity_unit=inp.target_quantity_unit,

@@ -12,12 +12,6 @@ from __future__ import annotations
 # These imports are EXACTLY the same as test_backup_encryption.py.
 # Copy them verbatim so we don't accidentally have a different
 # import order or set.
-import gzip
-import io
-import os
-import sqlite3
-import tempfile
-from pathlib import Path
 
 import pytest
 
@@ -25,7 +19,6 @@ from stoic_eln import create_app
 from stoic_eln.config import TestingConfig
 from stoic_eln.extensions import db
 from stoic_eln.models.settings import AppSetting
-from stoic_eln.services import backup as backup_service
 from stoic_eln.services import backup_crypto
 
 

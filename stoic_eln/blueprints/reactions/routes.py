@@ -13,13 +13,11 @@ from stoic_eln.blueprints.reactions import bp
 from stoic_eln.blueprints._decorators import supervisor_required
 from stoic_eln.blueprints.reactions.forms import (
     ReactionComponentForm,
-    ReactionForm,
 )
 from stoic_eln.extensions import db
 from stoic_eln.models.reaction import Reaction
 from stoic_eln.models.reaction_component import COMPONENT_ROLES, ReactionComponent
 from stoic_eln.models.substance import Substance
-from stoic_eln.services import stoichiometry
 from stoic_eln.services.audit import log_event
 from stoic_eln.services.code_generator import generate_reaction_code
 
@@ -243,7 +241,6 @@ def save_draft(reaction_id: int):
     # via "Modifica" of an existing published reaction (parent_published_id
     # is set), the user MAY keep the same code as the parent — that's the
     # whole point of editing.
-    from stoic_eln.services import template_code as tc_service
     norm = tc_service.normalize(raw_code)
     parent_id = rxn.parent_published_id
 

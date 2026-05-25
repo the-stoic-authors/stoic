@@ -139,7 +139,7 @@ def parse_scale_to_mmol(
     amount: float,
     unit: str,
     *,
-    substance: "Substance | None" = None,
+    substance: Substance | None = None,
 ) -> float:
     """Convert an operator-entered scale into mmol of the limiting reagent.
 
@@ -185,7 +185,7 @@ def parse_scale_to_mmol(
 # ─── Substance-state-aware target unit picking ──────────────────────
 
 
-def is_liquid(substance: "Substance | None") -> bool:
+def is_liquid(substance: Substance | None) -> bool:
     """Heuristic: treat anything explicitly liquid (or with a density
     and no explicit solid state) as a liquid.
 

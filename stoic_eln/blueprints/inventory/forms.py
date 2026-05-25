@@ -10,7 +10,7 @@ from wtforms import (
     SubmitField,
     TextAreaField,
 )
-from wtforms.validators import DataRequired, Length, NumberRange, Optional
+from wtforms.validators import Length, NumberRange, Optional
 
 
 class InventoryItemForm(FlaskForm):

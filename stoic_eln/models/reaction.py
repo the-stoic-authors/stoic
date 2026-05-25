@@ -9,7 +9,7 @@ with a role (starting_material, reagent, catalyst, solvent, product, ...).
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime, UTC
 from typing import TYPE_CHECKING
 
 from sqlalchemy import (
@@ -34,7 +34,7 @@ if TYPE_CHECKING:
 
 
 def _now_utc() -> datetime:
-    return datetime.now(timezone.utc).replace(tzinfo=None)
+    return datetime.now(UTC).replace(tzinfo=None)
 
 
 class Reaction(db.Model):
@@ -187,7 +187,7 @@ class Reaction(db.Model):
         cascade="all, delete-orphan",
         order_by="ReactionStep.position.asc()",
     )
-    runs: Mapped[list["Run"]] = relationship(
+    runs: Mapped[list[Run]] = relationship(
         "Run",
         back_populates="reaction",
         order_by="Run.created_at.desc()",

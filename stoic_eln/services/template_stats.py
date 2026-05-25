@@ -74,13 +74,13 @@ class TemplateStats:
         return self.n_runs > 0
 
 
-def _operator_name(run: "Run") -> str | None:
+def _operator_name(run: Run) -> str | None:
     if run.operator is None:
         return None
     return run.operator.full_name or run.operator.username
 
 
-def _build_run_point(run: "Run") -> RunPoint:
+def _build_run_point(run: Run) -> RunPoint:
     """Compute the metric bundle for a single completed run."""
     bd = compute_run_cost(run)
     metrics = product_unit_metrics(run, bd.total_eur)

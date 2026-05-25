@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime, UTC
 
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
@@ -17,7 +17,7 @@ _hasher = PasswordHasher()
 
 def _now_utc() -> datetime:
     """Return current UTC time. Naive datetime stored as UTC by convention."""
-    return datetime.now(timezone.utc).replace(tzinfo=None)
+    return datetime.now(UTC).replace(tzinfo=None)
 
 
 class User(db.Model, UserMixin):

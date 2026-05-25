@@ -63,7 +63,7 @@ import logging
 import os
 import sys
 from pathlib import Path
-from typing import Callable
+from collections.abc import Callable
 
 logger = logging.getLogger(__name__)
 

@@ -15,15 +15,11 @@ Lifecycle:
 
 from __future__ import annotations
 
-from datetime import date, datetime, timezone
+from datetime import date, datetime, UTC
 
 from stoic_eln.extensions import db
-from stoic_eln.models.checklist_item import ChecklistItem
 from stoic_eln.models.inventory import InventoryItem
 from stoic_eln.models.reaction import Reaction
-from stoic_eln.models.reaction_component import ReactionComponent
-from stoic_eln.models.reaction_step import ReactionStep
-from stoic_eln.models.reaction_step_component import ReactionStepComponent
 from stoic_eln.models.run import (
     STATUS_COMPLETED,
     STATUS_DRAFT,
@@ -37,7 +33,7 @@ from stoic_eln.services import run_code as run_code_service
 
 
 def _now_utc() -> datetime:
-    return datetime.now(timezone.utc).replace(tzinfo=None)
+    return datetime.now(UTC).replace(tzinfo=None)
 
 
 # ─── Creation ───────────────────────────────────────────────────────────────

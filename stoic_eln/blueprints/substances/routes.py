@@ -25,7 +25,6 @@ from stoic_eln.blueprints.substances.forms import (
     SubstanceForm,
 )
 from stoic_eln.extensions import db
-from stoic_eln.models.hazard_phrase import HazardPhrase
 from stoic_eln.models.inventory import InventoryItem
 from stoic_eln.models.substance import Substance
 from stoic_eln.services import pubchem

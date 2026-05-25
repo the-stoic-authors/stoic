@@ -29,7 +29,6 @@ clobbers a manual override.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional
 
 from stoic_eln.models.reaction_component import ReactionComponent
 
@@ -42,7 +41,7 @@ class MmolFromVolumeResult:
     incompatible units like %v/v without density). ``reason``
     explains why so the UI can surface it.
     """
-    mmol: Optional[float]
+    mmol: float | None
     reason: str = ""        # empty when mmol is set
 
 
