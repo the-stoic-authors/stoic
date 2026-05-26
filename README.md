@@ -1,5 +1,7 @@
 <div align="center">
 
+![CI](https://github.com/the-stoic-authors/stoic/actions/workflows/ci.yml/badge.svg)
+
 # Stoic
 
 **An open-source electronic lab notebook (ELN) for chemistry labs.**
