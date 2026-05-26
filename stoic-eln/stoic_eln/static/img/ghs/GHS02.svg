@@ -1,5 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="ghs-pictogram" aria-label="GHS02">
-  <rect x="14" y="14" width="72" height="72" transform="rotate(45 50 50)"
-        fill="white" stroke="#e21d26" stroke-width="6"/>
-  <path d="M50 25 Q40 35 42 50 Q35 45 38 60 Q40 70 50 75 Q60 70 62 60 Q65 50 58 45 Q60 35 55 28 Q52 35 50 25 Z" fill="black"/>
-</svg>

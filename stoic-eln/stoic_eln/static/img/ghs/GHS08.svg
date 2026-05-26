@@ -1,5 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="ghs-pictogram" aria-label="GHS08">
-  <rect x="14" y="14" width="72" height="72" transform="rotate(45 50 50)"
-        fill="white" stroke="#e21d26" stroke-width="6"/>
-  <g fill="black"><circle cx="50" cy="38" r="6"/><path d="M44 47 L56 47 L58 70 L42 70 Z"/><path d="M48 50 L52 50 L52 67 L48 67 Z" fill="white"/><polygon points="50,52 53,57 58,55 56,60 60,63 55,64 56,69 51,66 48,68 49,63 44,62 49,59 47,55"/></g>
-</svg>
