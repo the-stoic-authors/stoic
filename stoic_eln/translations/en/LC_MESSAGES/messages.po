@@ -4942,3 +4942,7 @@ msgstr "Pick a substance or mixture to order."
 #: stoic_eln/templates/mixtures/detail.html:33
 msgid "Pianifica un ordine di questa miscela commerciale (es. HCl 12N da Sigma)"
 msgstr "Plan an order of this commercial mixture (e.g. HCl 12N from Sigma)"
+
+#: stoic_eln/templates/inventory/list.html
+msgid "Solventi"
+msgstr "Solvents"

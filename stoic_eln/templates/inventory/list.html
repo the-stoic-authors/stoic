@@ -18,13 +18,30 @@
 <div class="card mb-3 stoic-sticky-search">
   <div class="card-body">
     <form method="get" class="row g-2 align-items-end">
-      <div class="col-md-4">
+      <div class="col-md-3">
         <label class="form-label small text-muted mb-1">{{ _("Cerca") }}</label>
         <input type="search"
                class="form-control form-control-sm"
                name="q"
                value="{{ q }}"
                placeholder="{{ _('lotto, fornitore, sostanza, CAS…') }}">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small text-muted mb-1">{{ _("Tipo") }}</label>
+        <select name="kind" class="form-select form-select-sm">
+          <option value="all" {% if kind == 'all' %}selected{% endif %}>
+            {{ _("Tutti") }}
+          </option>
+          <option value="substance" {% if kind == 'substance' %}selected{% endif %}>
+            {{ _("Sostanze") }}
+          </option>
+          <option value="mixture" {% if kind == 'mixture' %}selected{% endif %}>
+            {{ _("Miscele") }}
+          </option>
+          <option value="solvent" {% if kind == 'solvent' %}selected{% endif %}>
+            {{ _("Solventi") }}
+          </option>
+        </select>
       </div>
       <div class="col-md-2">
         <label class="form-label small text-muted mb-1">{{ _("Stato") }}</label>
@@ -69,16 +86,16 @@
           {% endfor %}
         </select>
       </div>
-      <div class="col-md-2">
+      <div class="col-md-1">
         <button type="submit" class="btn btn-primary btn-sm w-100">
-          <i data-lucide="search"></i> {{ _("Filtra") }}
+          <i data-lucide="search"></i>
         </button>
       </div>
       {# Preserve sort across submit #}
       <input type="hidden" name="sort" value="{{ sort }}">
       <input type="hidden" name="direction" value="{{ direction }}">
     </form>
-    {% if q or status != 'all' or supplier_filter or group_filter %}
+    {% if q or status != 'all' or kind != 'all' or supplier_filter or group_filter %}
     <div class="mt-2">
       <a href="{{ url_for('inventory.list_view') }}" class="text-decoration-none small">
         <i data-lucide="x" style="width:12px;height:12px"></i>

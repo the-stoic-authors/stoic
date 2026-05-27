@@ -25,11 +25,22 @@ def list_view():
 
     q = request.args.get("q", "").strip()
     status = request.args.get("status", "all").lower()
+    kind = request.args.get("kind", "all").lower()
     group_filter = request.args.get("group", "").strip()
     supplier_filter = request.args.get("supplier", "").strip()
     sort = request.args.get("sort", "substance").lower()
     direction = request.args.get("direction", "asc").lower()
     show_inactive = request.args.get("show_inactive") == "1"
+
+    # Validate kind: substance | mixture | solvent | all
+    # - 'substance': all substance lots, including solvents
+    # - 'mixture': only mixture lots
+    # - 'solvent': strict subset of substance lots where
+    #   substance.is_solvent is True. Mixtures have no equivalent
+    #   flag, so they are excluded when filtering by solvent.
+    # - 'all': no kind restriction
+    if kind not in ("all", "substance", "mixture", "solvent"):
+        kind = "all"
 
     # Validate sort key. The substance/mixture name is a polymorphic
     # field — coalesce across the two tables so a single sort key
@@ -134,6 +145,19 @@ def list_view():
     if supplier_filter:
         query = query.filter(InventoryItem.supplier == supplier_filter)
 
+    # kind filter — substance / mixture / solvent / all
+    if kind == "substance":
+        query = query.filter(InventoryItem.substance_id.isnot(None))
+    elif kind == "mixture":
+        query = query.filter(InventoryItem.mixture_id.isnot(None))
+    elif kind == "solvent":
+        # Strict subset: only substance lots whose substance is flagged
+        # as a solvent. Mixtures are excluded — they have no is_solvent
+        # equivalent in their model.
+        query = query.filter(InventoryItem.substance_id.isnot(None)).filter(
+            Substance.is_solvent.is_(True)
+        )
+
     # sort
     sort_col = sort_columns[sort]
     if direction == "desc":
@@ -172,6 +196,7 @@ def list_view():
             items=items,
             q=q,
             status=status,
+            kind=kind,
             sort=sort,
             direction=direction,
             group_filter=group_filter,
@@ -186,6 +211,7 @@ def list_view():
         items=items,
         q=q,
         status=status,
+        kind=kind,
         sort=sort,
         direction=direction,
         group_filter=group_filter,
