@@ -25,7 +25,7 @@
         <label class="form-label small text-muted mb-1">{{ _("Cerca") }}</label>
         <input type="search" class="form-control form-control-sm"
                name="q" value="{{ q }}"
-               placeholder="{{ _('sostanza, fornitore, catalogo, riferimento…') }}">
+               placeholder="{{ _('sostanza, miscela, fornitore, catalogo, riferimento…') }}">
       </div>
       <div class="col-md-2">
         <label class="form-label small text-muted mb-1">{{ _("Stato") }}</label>
@@ -88,7 +88,7 @@
     <table class="table table-hover align-middle mb-0 small">
       <thead>
         <tr>
-          <th>{{ _("Sostanza") }}</th>
+          <th>{{ _("Cosa") }}</th>
           <th>{{ _("Fornitore") }}</th>
           <th class="text-end">{{ _("Quantità") }}</th>
           <th class="text-end">{{ _("Costo") }}</th>
@@ -105,9 +105,17 @@
           <td>
             <a href="{{ url_for('orders.detail', order_id=order.id) }}"
                class="text-decoration-none fw-semibold">
-              {{ order.substance.name }}
+              {{ order.target_name }}
             </a>
-            {% if order.substance.cas_number %}
+            {% if order.kind == 'mixture' %}
+              <span class="badge text-bg-info ms-1"
+                    title="{{ _('Miscela commerciale') }}"
+                    style="font-size: 0.65rem">
+                <i data-lucide="beaker" style="width:10px;height:10px"></i>
+                {{ _("miscela") }}
+              </span>
+            {% endif %}
+            {% if order.kind == 'substance' and order.substance and order.substance.cas_number %}
             <div class="text-muted" style="font-size: 0.75rem">{{ order.substance.cas_number }}</div>
             {% endif %}
           </td>

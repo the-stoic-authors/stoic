@@ -1,4 +1,4 @@
-"""Stoic ELN — Order model (Settimana 6 patch 3).
+"""Stoic ELN — Order model.
 
 An ``Order`` represents a planned or in-progress purchase of a single
 inventory lot. The lifecycle is:
@@ -21,15 +21,31 @@ Partial deliveries (e.g. ordered 5 g, received 4 g) are handled with
 the dedicated ``received_partial`` status and a ``notes`` explanation
 — no second event, no waiting for the rest. The supplier won't ship
 the difference.
+
+Substance vs Mixture
+--------------------
+An ``Order`` targets exactly one of:
+  - a ``Substance`` (a pure reagent: CuBr₂, EtOAc, pyrrolidine), OR
+  - a ``Mixture`` (a commercial preparation: HCl 12N, NaOH 1M, PBS
+    pH 7.4 — anything that ships as a multi-component solution).
+
+Exactly one of ``substance_id`` and ``mixture_id`` is set on every
+order. The XOR is enforced both by a CHECK constraint at the database
+level and by application logic in ``order_service``.
+
+This mirrors the same XOR pattern already in ``InventoryItem``: a lot
+in inventory belongs to either a substance or a mixture, and orders
+follow the same dichotomy end-to-end.
 """
 
 from __future__ import annotations
 
-from datetime import date, datetime, UTC
-from flask_babel import lazy_gettext as _l
+from datetime import UTC, date, datetime
 from typing import TYPE_CHECKING
 
+from flask_babel import lazy_gettext as _l
 from sqlalchemy import (
+    CheckConstraint,
     Date,
     DateTime,
     Float,
@@ -45,6 +61,7 @@ from stoic_eln.extensions import db
 if TYPE_CHECKING:
     from stoic_eln.models.group import Group
     from stoic_eln.models.inventory import InventoryItem
+    from stoic_eln.models.mixture import Mixture
     from stoic_eln.models.substance import Substance
     from stoic_eln.models.user import User
 
@@ -79,10 +96,25 @@ class Order(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
 
     # ── What's being ordered ──────────────────────────────────────────
-    substance_id: Mapped[int] = mapped_column(
+    # An Order targets EITHER a pure Substance or a Mixture (a
+    # commercial solution / eluent / buffer). Exactly one of the two
+    # FKs must be set — the CHECK constraint in ``__table_args__``
+    # enforces this at the database level.
+    #
+    # Pre-Mixture-orders orders only had ``substance_id`` (and it was
+    # NOT NULL). The migration relaxes the NOT NULL on ``substance_id``
+    # and introduces ``mixture_id`` alongside; existing orders remain
+    # ``substance_id``-only and continue to work unchanged.
+    substance_id: Mapped[int | None] = mapped_column(
         Integer,
         ForeignKey("substance.id"),
-        nullable=False,
+        nullable=True,
+        index=True,
+    )
+    mixture_id: Mapped[int | None] = mapped_column(
+        Integer,
+        ForeignKey("mixture.id"),
+        nullable=True,
         index=True,
     )
     group_id: Mapped[int] = mapped_column(
@@ -158,8 +190,28 @@ class Order(db.Model):
         nullable=False,
     )
 
+    # ── Constraints ───────────────────────────────────────────────────
+    # XOR constraint: exactly one of (substance_id, mixture_id) must be
+    # set on every row. Using SQLite-compatible boolean arithmetic
+    # rather than a SQL XOR keyword (not portable). Mirrors the same
+    # pattern used by InventoryItem.
+    __table_args__ = (
+        CheckConstraint(
+            "(CASE WHEN substance_id IS NULL THEN 0 ELSE 1 END) + "
+            "(CASE WHEN mixture_id IS NULL THEN 0 ELSE 1 END) = 1",
+            name="ck_purchase_order_substance_xor_mixture",
+        ),
+    )
+
     # ── Relationships ─────────────────────────────────────────────────
-    substance: Mapped[Substance] = relationship("Substance")
+    substance: Mapped[Substance | None] = relationship(
+        "Substance",
+        foreign_keys=[substance_id],
+    )
+    mixture: Mapped[Mixture | None] = relationship(
+        "Mixture",
+        foreign_keys=[mixture_id],
+    )
     group: Mapped[Group] = relationship("Group")
     inventory_item: Mapped[InventoryItem | None] = relationship(
         "InventoryItem",
@@ -171,12 +223,40 @@ class Order(db.Model):
     )
 
     def __repr__(self) -> str:
-        return (
-            f"<Order #{self.id} {self.substance_id} "
-            f"{self.ordered_quantity_display} status={self.status}>"
+        target = (
+            f"substance={self.substance_id}"
+            if self.substance_id is not None
+            else f"mixture={self.mixture_id}"
         )
+        return f"<Order #{self.id} {target} {self.ordered_quantity_display} status={self.status}>"
 
     # ── Convenience properties ────────────────────────────────────────
+
+    @property
+    def kind(self) -> str:
+        """``'substance'`` or ``'mixture'`` — what this order targets.
+
+        Convenience for templates and routes that need to branch on
+        the order kind without dereferencing the relationships.
+        """
+        return "mixture" if self.mixture_id is not None else "substance"
+
+    @property
+    def target_name(self) -> str:
+        """Human label for what's being ordered.
+
+        Returns the substance or mixture display label, regardless of
+        kind. For Mixture this includes the concentration when set
+        (e.g. "HCl 12N (12 N)") so two mixtures with the same name but
+        different concentrations are distinguishable in lists and
+        dropdowns. Empty string if neither is set (shouldn't happen
+        with the XOR constraint, but defensive).
+        """
+        if self.mixture is not None:
+            return self.mixture.display_label
+        if self.substance is not None:
+            return self.substance.name
+        return ""
 
     @property
     def is_open(self) -> bool:

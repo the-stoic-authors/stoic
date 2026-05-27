@@ -4907,3 +4907,38 @@ msgstr "Product"
 msgid "Sottoprodotto"
 msgstr "Byproduct"
 
+#: stoic_eln/templates/orders/list.html:91
+msgid "Cosa"
+msgstr "What"
+
+#: stoic_eln/templates/orders/list.html:28
+msgid "sostanza, miscela, fornitore, catalogo, riferimento…"
+msgstr "substance, mixture, supplier, catalog, reference…"
+
+#: stoic_eln/templates/orders/form.html:79
+msgid "Cosa stai ordinando?"
+msgstr "What are you ordering?"
+
+#: stoic_eln/templates/orders/form.html:91
+msgid "Miscela commerciale"
+msgstr "Commercial mixture"
+
+#: stoic_eln/templates/orders/form.html:95
+msgid "Es. HCl 12N, NaOH 1M, PBS pH 7.4 — soluzioni commerciali pronte all'uso."
+msgstr "E.g. HCl 12N, NaOH 1M, PBS pH 7.4 — commercial solutions ready to use."
+
+#: stoic_eln/templates/orders/form.html:122
+msgid "Nessuna miscela nel catalogo. Creane una da"
+msgstr "No mixture in the catalog. Create one from"
+
+#: stoic_eln/blueprints/orders/routes.py:172
+msgid "Un ordine può riguardare una sostanza OPPURE una miscela, non entrambe."
+msgstr "An order can target a substance OR a mixture, not both."
+
+#: stoic_eln/blueprints/orders/routes.py:177
+msgid "Seleziona una sostanza o una miscela da ordinare."
+msgstr "Pick a substance or mixture to order."
+
+#: stoic_eln/templates/mixtures/detail.html:33
+msgid "Pianifica un ordine di questa miscela commerciale (es. HCl 12N da Sigma)"
+msgstr "Plan an order of this commercial mixture (e.g. HCl 12N from Sigma)"

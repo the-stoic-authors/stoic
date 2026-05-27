@@ -5,8 +5,17 @@
 <div class="page-header mb-3">
   <h1>
     {{ _("Ricevi ordine") }}:
-    <a href="{{ url_for('substances.detail', substance_id=order.substance.id) }}"
-       class="text-decoration-none">{{ order.substance.name }}</a>
+    {% if order.kind == 'mixture' %}
+      <a href="{{ url_for('mixtures.detail', mixture_id=order.mixture.id) }}"
+         class="text-decoration-none">{{ order.mixture.name }}</a>
+      <span class="badge text-bg-info ms-2">
+        <i data-lucide="beaker" style="width:12px;height:12px"></i>
+        {{ _("miscela") }}
+      </span>
+    {% else %}
+      <a href="{{ url_for('substances.detail', substance_id=order.substance.id) }}"
+         class="text-decoration-none">{{ order.substance.name }}</a>
+    {% endif %}
   </h1>
   <p class="text-muted mb-0">
     {{ _("Ordinato:") }} <strong>{{ order.ordered_quantity_display }}</strong>

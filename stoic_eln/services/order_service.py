@@ -1,4 +1,4 @@
-"""Stoic ELN — Order service (Settimana 6 patch 3).
+"""Stoic ELN — Order service.
 
 Business logic for the order lifecycle:
   - Create a planned order
@@ -7,6 +7,15 @@ Business logic for the order lifecycle:
   - Cancel an order
 
 The Flask routes are thin wrappers around these functions.
+
+Substance vs Mixture
+--------------------
+An Order targets exactly one of Substance or Mixture. ``receive_order``
+creates an ``InventoryItem`` that mirrors the order's kind: if the
+order targets a Substance, the resulting lot is a Substance lot; if
+the order targets a Mixture, the resulting lot is a Mixture lot.
+
+Everything else (planning, mark_as_ordered, cancel) is kind-agnostic.
 """
 
 from __future__ import annotations
@@ -95,7 +104,9 @@ def receive_order(
         is_partial: if True, status will be ``received_partial``.
 
     Returns:
-        the freshly-created ``InventoryItem``.
+        the freshly-created ``InventoryItem``. The lot's kind mirrors
+        the order's kind: substance order → substance lot, mixture
+        order → mixture lot.
 
     Raises:
         OrderError if the order is already finalized or quantity is
@@ -114,9 +125,13 @@ def receive_order(
 
     rec_at = received_at or date.today()
 
-    # Create the inventory lot
+    # Create the inventory lot — mirror the order's kind (substance or
+    # mixture). The XOR constraint on InventoryItem will reject
+    # malformed orders defensively, but the Order's own XOR constraint
+    # should have caught them at creation time.
     lot = InventoryItem(
         substance_id=order.substance_id,
+        mixture_id=order.mixture_id,
         group_id=order.group_id,
         batch_code=batch_code or None,
         supplier=order.supplier,

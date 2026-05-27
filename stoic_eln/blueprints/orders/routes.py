@@ -1,9 +1,10 @@
-"""Stoic ELN — Orders routes (Settimana 6 patch 3).
+"""Stoic ELN — Orders routes.
 
 Routes:
   GET  /orders/                          → list with filters
   GET  /orders/new                       → empty form
   GET  /orders/new?substance_id=…        → form pre-populated for a substance
+  GET  /orders/new?mixture_id=…          → form pre-populated for a mixture
   POST /orders/new                       → create planned order
   GET  /orders/<id>                      → detail page
   GET  /orders/<id>/edit                 → edit form (only while open)
@@ -12,6 +13,10 @@ Routes:
   GET  /orders/<id>/receive              → receive form
   POST /orders/<id>/receive              → close + create lot
   POST /orders/<id>/cancel               → cancel
+
+An order targets either a Substance (a pure reagent) or a Mixture (a
+commercial preparation like HCl 12N). Both kinds share the same
+lifecycle and form fields; only the target picker differs.
 """
 
 from __future__ import annotations
@@ -28,12 +33,13 @@ from flask import (
 )
 from flask_babel import gettext as _
 from flask_login import current_user, login_required
-from sqlalchemy import or_, func
+from sqlalchemy import func, or_
 
 from stoic_eln.blueprints.orders import bp
 from stoic_eln.extensions import db
 from stoic_eln.models.group import Group
 from stoic_eln.models.inventory import InventoryItem  # noqa: F401  (relationship)
+from stoic_eln.models.mixture import Mixture
 from stoic_eln.models.order import (
     ALL_STATUSES,
     OPEN_STATUSES,
@@ -71,13 +77,25 @@ def _parse_date(name: str) -> date | None:
 @bp.route("/")
 @login_required
 def list_view():
-    """All orders — defaults to 'open' (planned + ordered)."""
+    """All orders — defaults to 'open' (planned + ordered).
+
+    Orders can target either Substance or Mixture. The query uses
+    outer joins so both kinds appear together, sorted by status then
+    expected delivery date.
+    """
     status = (request.args.get("status") or "open").lower()
     supplier_filter = request.args.get("supplier", "").strip()
     group_filter = request.args.get("group", "").strip()
     q = request.args.get("q", "").strip()
 
-    query = db.session.query(Order).join(Substance, Order.substance_id == Substance.id)
+    # Outer-join both Substance and Mixture so orders of either kind
+    # appear in the same result set. The XOR constraint on Order
+    # guarantees exactly one is set per row.
+    query = (
+        db.session.query(Order)
+        .outerjoin(Substance, Order.substance_id == Substance.id)
+        .outerjoin(Mixture, Order.mixture_id == Mixture.id)
+    )
 
     if status == "open":
         query = query.filter(Order.status.in_(OPEN_STATUSES))
@@ -95,6 +113,7 @@ def list_view():
             or_(
                 Substance.name.ilike(like),
                 Substance.cas_number.ilike(like),
+                Mixture.name.ilike(like),
                 Order.supplier.ilike(like),
                 Order.catalogue_number.ilike(like),
                 Order.internal_order_ref.ilike(like),
@@ -147,14 +166,38 @@ def list_view():
 @bp.route("/new", methods=["GET", "POST"])
 @login_required
 def new():
-    """Create a planned order. Pre-populates substance if ?substance_id=N."""
+    """Create a planned order.
+
+    Pre-populates the target if ``?substance_id=N`` or ``?mixture_id=N``
+    is in the query string. POST distinguishes between the two by
+    looking at which hidden field is filled in.
+    """
     pre_substance_id = request.args.get("substance_id", type=int)
+    pre_mixture_id = request.args.get("mixture_id", type=int)
 
     if request.method == "POST":
         substance_id = request.form.get("substance_id", type=int)
+        mixture_id = request.form.get("mixture_id", type=int)
+
+        # Exactly one of the two must be provided
+        if substance_id and mixture_id:
+            flash(
+                _("Un ordine può riguardare una sostanza OPPURE una miscela, non entrambe."),
+                "danger",
+            )
+            return redirect(url_for("orders.new"))
+        if not substance_id and not mixture_id:
+            flash(_("Seleziona una sostanza o una miscela da ordinare."), "danger")
+            return redirect(url_for("orders.new"))
+
         sub = db.session.get(Substance, substance_id) if substance_id else None
-        if sub is None:
+        mix = db.session.get(Mixture, mixture_id) if mixture_id else None
+
+        if substance_id and sub is None:
             flash(_("Sostanza non trovata."), "danger")
+            return redirect(url_for("orders.new"))
+        if mixture_id and mix is None:
+            flash(_("Miscela non trovata."), "danger")
             return redirect(url_for("orders.new"))
 
         # Quantity: at least one of g/mL must be > 0
@@ -162,12 +205,15 @@ def new():
         qty_mL = _parse_float("ordered_quantity_mL")
         if not (qty_g and qty_g > 0) and not (qty_mL and qty_mL > 0):
             flash(_("Inserisci una quantità (g o mL)."), "danger")
-            return redirect(url_for("orders.new", substance_id=sub.id))
+            if sub:
+                return redirect(url_for("orders.new", substance_id=sub.id))
+            return redirect(url_for("orders.new", mixture_id=mix.id))
 
         group = current_user_group(current_user)
 
         order = Order(
-            substance_id=sub.id,
+            substance_id=sub.id if sub else None,
+            mixture_id=mix.id if mix else None,
             group_id=group.id,
             supplier=(request.form.get("supplier") or "").strip() or None,
             catalogue_number=(request.form.get("catalogue_number") or "").strip() or None,
@@ -186,21 +232,27 @@ def new():
             action="create_order",
             entity_type="order",
             entity_id=order.id,
-            details={"substance_id": sub.id, "qty_g": qty_g, "qty_mL": qty_mL},
+            details={
+                "substance_id": sub.id if sub else None,
+                "mixture_id": mix.id if mix else None,
+                "qty_g": qty_g,
+                "qty_mL": qty_mL,
+            },
         )
-        flash(_("Ordine pianificato per %(name)s.", name=sub.name), "success")
+        target_name = sub.name if sub else mix.name
+        flash(_("Ordine pianificato per %(name)s.", name=target_name), "success")
         return redirect(url_for("orders.detail", order_id=order.id))
 
     # GET: render form. Pre-population from query string allows the
-    # shopping list page to send a substance with a suggested
-    # quantity/supplier/cost already filled in — the user can still
-    # edit anything before submitting.
+    # shopping list page (or the mixture/substance detail pages) to
+    # send a target with a suggested quantity/supplier/cost already
+    # filled in — the user can still edit anything before submitting.
     pre_substance = db.session.get(Substance, pre_substance_id) if pre_substance_id else None
+    pre_mixture = db.session.get(Mixture, pre_mixture_id) if pre_mixture_id else None
 
     pre = {}
-    if pre_substance is not None:
-        # Only pre-fill if a substance was given (otherwise we'd put
-        # values in a form with no substance, which would be confusing).
+    if pre_substance is not None or pre_mixture is not None:
+
         def _q_float(name):
             raw = (request.args.get(name) or "").strip()
             if not raw:
@@ -224,12 +276,20 @@ def new():
         .order_by(func.lower(Substance.name).asc())
         .all()
     )
+    mixtures = (
+        db.session.query(Mixture)
+        .filter(Mixture.is_active.is_(True))
+        .order_by(func.lower(Mixture.name).asc())
+        .all()
+    )
     return render_template(
         "orders/form.html",
         order=None,
         pre_substance=pre_substance,
+        pre_mixture=pre_mixture,
         pre=pre,
         substances=substances,
+        mixtures=mixtures,
     )
 
 
@@ -263,6 +323,9 @@ def edit(order_id: int):
         return redirect(url_for("orders.detail", order_id=order.id))
 
     if request.method == "POST":
+        # NOTE: substance_id / mixture_id are NOT editable. The target
+        # is locked at creation time. If the user wants to change it,
+        # they cancel this order and create a new one.
         order.supplier = (request.form.get("supplier") or "").strip() or None
         order.catalogue_number = (request.form.get("catalogue_number") or "").strip() or None
         order.ordered_quantity_g = _parse_float("ordered_quantity_g")
@@ -282,12 +345,20 @@ def edit(order_id: int):
         .order_by(func.lower(Substance.name).asc())
         .all()
     )
+    mixtures = (
+        db.session.query(Mixture)
+        .filter(Mixture.is_active.is_(True))
+        .order_by(func.lower(Mixture.name).asc())
+        .all()
+    )
     return render_template(
         "orders/form.html",
         order=order,
         pre_substance=order.substance,
+        pre_mixture=order.mixture,
         pre={},
         substances=substances,
+        mixtures=mixtures,
     )
 
 
@@ -336,12 +407,18 @@ def receive(order_id: int):
         actual_mL = _parse_float("received_quantity_mL")
 
         is_partial = False
-        if order.ordered_quantity_g and actual_g is not None:
-            if actual_g < order.ordered_quantity_g:
-                is_partial = True
-        if order.ordered_quantity_mL and actual_mL is not None:
-            if actual_mL < order.ordered_quantity_mL:
-                is_partial = True
+        if (
+            order.ordered_quantity_g
+            and actual_g is not None
+            and actual_g < order.ordered_quantity_g
+        ):
+            is_partial = True
+        if (
+            order.ordered_quantity_mL
+            and actual_mL is not None
+            and actual_mL < order.ordered_quantity_mL
+        ):
+            is_partial = True
         # User can also force partial via checkbox
         if request.form.get("is_partial") == "1":
             is_partial = True
@@ -432,7 +509,12 @@ def shopping_list():
 @bp.route("/shopping_list/create_orders", methods=["POST"])
 @login_required
 def shopping_list_create_orders():
-    """Create planned orders for the substances ticked in the shopping list."""
+    """Create planned orders for the substances ticked in the shopping list.
+
+    NOTE: the shopping list currently only suggests Substance reorders.
+    Mixture reorders are planned manually from each mixture's detail
+    page; auto-suggestion of mixture reorders is a future enhancement.
+    """
     from stoic_eln.services.shopping_list import build_shopping_list
 
     selected_ids = set(request.form.getlist("substance_id", type=int))

@@ -30,6 +30,10 @@
   </div>
   <div class="d-flex gap-2">
     {% if mixture.is_active %}
+    <a href="{{ url_for('orders.new', mixture_id=mixture.id) }}" class="btn btn-outline-primary"
+       title="{{ _('Pianifica un ordine di questa miscela commerciale (es. HCl 12N da Sigma)') }}">
+      <i data-lucide="shopping-cart"></i> {{ _("Pianifica ordine") }}
+    </a>
     <a href="{{ url_for('mixtures.prepare_form', mixture_id=mixture.id) }}" class="btn btn-success">
       <i data-lucide="beaker"></i> {{ _("Prepara nuovo lotto") }}
     </a>

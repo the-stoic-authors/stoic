@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{{ _("Ordine") }} #{{ order.id }} — {{ order.substance.name }}{% endblock %}
+{% block title %}{{ _("Ordine") }} #{{ order.id }} — {{ order.target_name }}{% endblock %}
 
 {% block content %}
 {% set status_label, status_color = order.status_label_color %}
@@ -7,8 +7,17 @@
 <div class="page-header d-flex justify-content-between align-items-start mb-3">
   <div>
     <h1 class="d-flex align-items-center gap-2">
-      <a href="{{ url_for('substances.detail', substance_id=order.substance.id) }}"
-         class="text-decoration-none">{{ order.substance.name }}</a>
+      {% if order.kind == 'mixture' %}
+        <a href="{{ url_for('mixtures.detail', mixture_id=order.mixture.id) }}"
+           class="text-decoration-none">{{ order.mixture.name }}</a>
+        <span class="badge text-bg-info">
+          <i data-lucide="beaker" style="width:12px;height:12px"></i>
+          {{ _("miscela") }}
+        </span>
+      {% else %}
+        <a href="{{ url_for('substances.detail', substance_id=order.substance.id) }}"
+           class="text-decoration-none">{{ order.substance.name }}</a>
+      {% endif %}
       <span class="badge text-bg-{{ status_color }}">{{ _(status_label) }}</span>
     </h1>
     <p class="text-muted mb-0">
@@ -39,15 +48,24 @@
       <div class="card-header"><strong>{{ _("Dettagli ordine") }}</strong></div>
       <div class="card-body">
         <dl class="row mb-0">
-          <dt class="col-sm-4">{{ _("Sostanza") }}</dt>
-          <dd class="col-sm-8">
-            <a href="{{ url_for('substances.detail', substance_id=order.substance.id) }}">
-              {{ order.substance.name }}
-            </a>
-            {% if order.substance.cas_number %}
-              <span class="text-muted ms-2">{{ order.substance.cas_number }}</span>
-            {% endif %}
-          </dd>
+          {% if order.kind == 'mixture' %}
+            <dt class="col-sm-4">{{ _("Miscela") }}</dt>
+            <dd class="col-sm-8">
+              <a href="{{ url_for('mixtures.detail', mixture_id=order.mixture.id) }}">
+                {{ order.mixture.name }}
+              </a>
+            </dd>
+          {% else %}
+            <dt class="col-sm-4">{{ _("Sostanza") }}</dt>
+            <dd class="col-sm-8">
+              <a href="{{ url_for('substances.detail', substance_id=order.substance.id) }}">
+                {{ order.substance.name }}
+              </a>
+              {% if order.substance.cas_number %}
+                <span class="text-muted ms-2">{{ order.substance.cas_number }}</span>
+              {% endif %}
+            </dd>
+          {% endif %}
           <dt class="col-sm-4">{{ _("Fornitore") }}</dt>
           <dd class="col-sm-8">
             {{ order.supplier or "—" }}

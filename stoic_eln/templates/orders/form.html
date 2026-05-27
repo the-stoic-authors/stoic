@@ -23,21 +23,87 @@
 
       <div class="row g-3">
 
-        {# Substance picker — only when creating, locked when editing #}
-        <div class="col-12">
-          <label class="form-label">{{ _("Sostanza") }}</label>
-          {% if order %}
-            {# Edit mode: substance can't be changed #}
-            <input type="text" class="form-control" disabled
-                   value="{{ pre_substance.name }}{% if pre_substance.cas_number %} — {{ pre_substance.cas_number }}{% endif %}">
-            <input type="hidden" name="substance_id" value="{{ pre_substance.id }}">
-          {% elif pre_substance %}
-            {# New, pre-populated #}
-            <input type="text" class="form-control" disabled
-                   value="{{ pre_substance.name }}{% if pre_substance.cas_number %} — {{ pre_substance.cas_number }}{% endif %}">
-            <input type="hidden" name="substance_id" value="{{ pre_substance.id }}">
+        {#
+          Target picker — Substance OR Mixture (XOR).
+          Three states:
+            1. Edit mode (order existing): show the locked target name + hidden id
+            2. New + pre-populated (from substance/mixture detail or shopping list):
+               show the locked target name + hidden id
+            3. New + empty: show kind toggle + dropdown for the picked kind
+        #}
+        {% if order %}
+          {# 1. Edit mode: target is locked, can't change #}
+          {% if order.kind == 'mixture' %}
+            <div class="col-12">
+              <label class="form-label">
+                {{ _("Miscela") }}
+                <span class="badge text-bg-info ms-1">
+                  <i data-lucide="beaker" style="width:11px;height:11px"></i>
+                  {{ _("miscela") }}
+                </span>
+              </label>
+              <input type="text" class="form-control" disabled
+                     value="{{ pre_mixture.display_label }}">
+              <input type="hidden" name="mixture_id" value="{{ pre_mixture.id }}">
+            </div>
           {% else %}
-            <select name="substance_id" class="form-select" required>
+            <div class="col-12">
+              <label class="form-label">{{ _("Sostanza") }}</label>
+              <input type="text" class="form-control" disabled
+                     value="{{ pre_substance.name }}{% if pre_substance.cas_number %} — {{ pre_substance.cas_number }}{% endif %}">
+              <input type="hidden" name="substance_id" value="{{ pre_substance.id }}">
+            </div>
+          {% endif %}
+        {% elif pre_mixture %}
+          {# 2a. New, pre-populated mixture #}
+          <div class="col-12">
+            <label class="form-label">
+              {{ _("Miscela") }}
+              <span class="badge text-bg-info ms-1">
+                <i data-lucide="beaker" style="width:11px;height:11px"></i>
+                {{ _("miscela") }}
+              </span>
+            </label>
+            <input type="text" class="form-control" disabled
+                   value="{{ pre_mixture.display_label }}">
+            <input type="hidden" name="mixture_id" value="{{ pre_mixture.id }}">
+          </div>
+        {% elif pre_substance %}
+          {# 2b. New, pre-populated substance #}
+          <div class="col-12">
+            <label class="form-label">{{ _("Sostanza") }}</label>
+            <input type="text" class="form-control" disabled
+                   value="{{ pre_substance.name }}{% if pre_substance.cas_number %} — {{ pre_substance.cas_number }}{% endif %}">
+            <input type="hidden" name="substance_id" value="{{ pre_substance.id }}">
+          </div>
+        {% else %}
+          {# 3. New + empty: choose kind, then pick #}
+          <div class="col-12">
+            <label class="form-label d-block">{{ _("Cosa stai ordinando?") }}</label>
+            <div class="btn-group" role="group" aria-label="Kind">
+              <input type="radio" class="btn-check" name="_kind" id="kind_substance"
+                     value="substance" checked
+                     onchange="document.getElementById('pick_substance').classList.remove('d-none'); document.getElementById('pick_mixture').classList.add('d-none'); document.getElementById('mixture_id').value = '';">
+              <label class="btn btn-outline-primary" for="kind_substance">
+                {{ _("Sostanza") }}
+              </label>
+
+              <input type="radio" class="btn-check" name="_kind" id="kind_mixture"
+                     value="mixture"
+                     onchange="document.getElementById('pick_mixture').classList.remove('d-none'); document.getElementById('pick_substance').classList.add('d-none'); document.getElementById('substance_id').value = '';">
+              <label class="btn btn-outline-info" for="kind_mixture">
+                <i data-lucide="beaker" style="width:14px;height:14px"></i>
+                {{ _("Miscela commerciale") }}
+              </label>
+            </div>
+            <p class="text-muted small mt-2 mb-0">
+              {{ _("Es. HCl 12N, NaOH 1M, PBS pH 7.4 — soluzioni commerciali pronte all'uso.") }}
+            </p>
+          </div>
+
+          <div class="col-12" id="pick_substance">
+            <label class="form-label">{{ _("Sostanza") }}</label>
+            <select name="substance_id" id="substance_id" class="form-select">
               <option value="">{{ _("Seleziona…") }}</option>
               {% for s in substances %}
               <option value="{{ s.id }}">
@@ -45,8 +111,24 @@
               </option>
               {% endfor %}
             </select>
-          {% endif %}
-        </div>
+          </div>
+
+          <div class="col-12 d-none" id="pick_mixture">
+            <label class="form-label">{{ _("Miscela") }}</label>
+            <select name="mixture_id" id="mixture_id" class="form-select">
+              <option value="">{{ _("Seleziona…") }}</option>
+              {% for m in mixtures %}
+              <option value="{{ m.id }}">{{ m.display_label }}</option>
+              {% endfor %}
+            </select>
+            {% if not mixtures %}
+            <p class="text-muted small mt-2 mb-0">
+              {{ _("Nessuna miscela nel catalogo. Creane una da") }}
+              <a href="{{ url_for('mixtures.list_view') }}">{{ _("Miscele") }}</a>.
+            </p>
+            {% endif %}
+          </div>
+        {% endif %}
 
         <div class="col-md-6">
           <label class="form-label">{{ _("Fornitore") }}</label>
@@ -108,4 +190,5 @@
     </form>
   </div>
 </div>
+<script>if (window.lucide) lucide.createIcons();</script>
 {% endblock %}
