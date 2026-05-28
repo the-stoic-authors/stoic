@@ -760,6 +760,7 @@ def recompute_prep_row(mixture_id: int):
     if lot_id is not None and comp.role == "solute":
         from stoic_eln.services.prep_service import (
             read_stock_for_solute,
+            read_stock_for_child_mixture,
             _normalize_concentration,
             _are_dilution_compatible,
             _normalize_to_mL,
@@ -771,7 +772,14 @@ def recompute_prep_row(mixture_id: int):
             and m.primary_concentration is not None
             and m.primary_concentration_unit
         ):
-            stock_info = read_stock_for_solute(chosen_lot, comp.substance_id)
+            # Dispatch on the component kind: child_mixture solute uses
+            # the child_mixture's primary concentration directly,
+            # while a substance solute reads from the lot's matching
+            # MixtureComponent or its parent's primary_concentration.
+            if comp.is_mixture_component:
+                stock_info = read_stock_for_child_mixture(chosen_lot, comp.child_mixture)
+            else:
+                stock_info = read_stock_for_solute(chosen_lot, comp.substance_id)
             if (
                 stock_info.concentration is not None
                 and stock_info.unit

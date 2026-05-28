@@ -13,7 +13,12 @@
 {% for r in suggestion.rows %}
 <tr class="prep-row" data-component-id="{{ r.component_id }}">
   <td>
-    <strong>{{ r.substance_name }}</strong>
+    <strong>{{ r.display_name }}</strong>
+    {% if r.is_mixture %}
+      <span class="badge text-bg-info ms-1" style="font-size: 0.6rem">
+        {{ _("miscela") }}
+      </span>
+    {% endif %}
     <div class="small text-muted">{{ r.role }}</div>
   </td>
   <td>

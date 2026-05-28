@@ -60,7 +60,12 @@
       <ul class="small mb-0">
         {% for c in mixture.components %}
         <li>
-          {{ c.substance.name }}
+          {{ c.display_name }}
+          {% if c.is_mixture_component %}
+            <span class="badge text-bg-info" style="font-size: 0.6rem">
+              {{ _("miscela") }}
+            </span>
+          {% endif %}
           {% if c.concentration is not none %}
             — <code>{{ "%g"|format(c.concentration) }} {{ c.concentration_unit or "" }}</code>
           {% endif %}

@@ -35,7 +35,7 @@ them in.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, UTC
+from datetime import UTC, date, datetime
 
 from stoic_eln.extensions import db
 from stoic_eln.models.inventory import InventoryItem
@@ -55,11 +55,21 @@ from stoic_eln.models.mixture_prep import (
 
 @dataclass
 class SuggestedConsumption:
-    """One row in the auto-suggest output: which lot, how much."""
+    """One row in the auto-suggest output: which lot, how much.
+
+    A component can target either a pure ``Substance`` or another
+    ``Mixture`` (the child_mixture pattern — e.g. preparing HCl 6N
+    by diluting HCl 12N). Exactly one of ``substance_id`` and
+    ``mixture_id`` is set, mirroring the XOR on
+    ``MixtureComponent`` itself. ``display_name`` is what to show
+    in the UI regardless of which side is set.
+    """
 
     component_id: int  # MixtureComponent.id from the recipe
-    substance_id: int  # for display
-    substance_name: str
+    # XOR pair: exactly one is set
+    substance_id: int | None
+    mixture_id: int | None
+    display_name: str  # the human label, regardless of kind
     role: str
     suggested_lot_id: int | None  # InventoryItem.id, or None if no lot
     suggested_quantity: float | None
@@ -71,6 +81,19 @@ class SuggestedConsumption:
     # or matching MixtureComponent is set). The UI surfaces this as
     # "stock conc: 12 N (HCl 12N)" so the operator can confirm.
     stock_info: StockInfo | None = None
+
+    @property
+    def substance_name(self) -> str:
+        """Backward-compat alias for templates that still read
+        ``r.substance_name``. New code should prefer ``display_name``,
+        which makes the substance-vs-mixture polymorphism explicit.
+        """
+        return self.display_name
+
+    @property
+    def is_mixture(self) -> bool:
+        """True if this row's component points at a child Mixture."""
+        return self.mixture_id is not None
 
 
 @dataclass
@@ -162,14 +185,84 @@ def _candidate_lots(substance_id: int, want_unit: str) -> list[InventoryItem]:
     else:
         rows = [r for r in rows if r.quantity_g and r.quantity_g > 0]
 
+    # Sort most-recent purchase first. Lots with purchased_at=None
+    # (never set by the operator) sink to the bottom — treated as
+    # "unknown purchase date". Using ``date.min`` as the fallback
+    # avoids the ``TypeError: can't compare datetime.datetime to
+    # datetime.date`` that would arise from mixing the two types
+    # (purchased_at is a Date column, created_at is a DateTime).
     rows.sort(
         key=lambda r: (
-            r.purchased_at or r.created_at,
+            r.purchased_at or date.min,
             r.id,
         ),
         reverse=True,
     )
     return rows
+
+
+def _candidate_lots_for_mixture(
+    mixture_id: int,
+    want_unit: str,
+) -> list[InventoryItem]:
+    """Active lots OF a specific mixture (not "containing" — being).
+
+    Used when a recipe component points at a ``child_mixture`` rather
+    than a pure substance — e.g. the solute of "HCl 6N" is HCl 12N,
+    and we need to draw from an existing physical lot of HCl 12N.
+
+    Unlike :func:`_candidate_lots`, this does NOT chase across the
+    hierarchy. By design (decision: cascade is 1-level) the system
+    consumes the directly-named precursor lot and stops there — the
+    parent mixture's own ancestry was already settled at the time
+    that lot was prepared.
+
+    Sorted most-recent first; only lots with positive remaining
+    quantity in the relevant unit category are returned.
+    """
+    rows = (
+        db.session.query(InventoryItem)
+        .filter(
+            InventoryItem.mixture_id == mixture_id,
+            InventoryItem.is_active.is_(True),
+        )
+        .all()
+    )
+
+    if _is_volumetric_unit(want_unit):
+        rows = [r for r in rows if r.quantity_mL and r.quantity_mL > 0]
+    else:
+        rows = [r for r in rows if r.quantity_g and r.quantity_g > 0]
+
+    # See _candidate_lots: same rationale for the sort key.
+    rows.sort(
+        key=lambda r: (
+            r.purchased_at or date.min,
+            r.id,
+        ),
+        reverse=True,
+    )
+    return rows
+
+
+def _candidates_for_component(
+    comp: MixtureComponent,
+    want_unit: str,
+) -> list[InventoryItem]:
+    """Dispatcher: route candidate lookup based on component kind.
+
+    A ``MixtureComponent`` has a strict XOR between ``substance_id``
+    and ``child_mixture_id`` — exactly one is set. This helper picks
+    the right backing query so the rest of ``suggest_consumptions``
+    can treat both cases uniformly.
+    """
+    if comp.is_mixture_component:
+        return _candidate_lots_for_mixture(comp.child_mixture_id, want_unit)
+    if comp.substance_id is not None:
+        return _candidate_lots(comp.substance_id, want_unit)
+    # Should never happen (XOR constraint guarantees one is set), but
+    # defensive: return empty list rather than raise from a query helper.
+    return []
 
 
 def _lot_summary(lot: InventoryItem, want_unit: str) -> LotSummary:
@@ -382,6 +475,46 @@ def read_stock_for_solute(
     )
 
 
+def read_stock_for_child_mixture(
+    lot: InventoryItem,
+    child_mixture: Mixture,
+) -> StockInfo:
+    """Read the stock concentration when the recipe's solute is
+    itself a child_mixture (not a pure substance).
+
+    Example: preparing HCl 6N where the solute component is the
+    child_mixture "HCl 12N". We need to know "12 N" to compute the
+    dilution. By design decision (see PATCH-NOTES), we read this
+    directly from ``child_mixture.primary_concentration`` — no
+    fallback chain through inner components. If the child_mixture
+    has no primary concentration set, that's a configuration error
+    in the catalog and the operator must fix it; we surface a
+    ``missing`` StockInfo so the auto-suggest gracefully degrades.
+
+    The ``lot`` parameter is the proposed precursor lot. It is
+    expected to be a lot of ``child_mixture`` (``lot.mixture_id ==
+    child_mixture.id``); we don't enforce it here because the
+    candidate selection upstream already guarantees this.
+    """
+    if child_mixture.primary_concentration is not None and child_mixture.primary_concentration_unit:
+        return StockInfo(
+            concentration=child_mixture.primary_concentration,
+            unit=child_mixture.primary_concentration_unit,
+            source="child_mixture_primary",
+            display_text=(
+                f"{child_mixture.primary_concentration:g} "
+                f"{child_mixture.primary_concentration_unit} "
+                f"({child_mixture.name})"
+            ),
+        )
+    return StockInfo(
+        concentration=None,
+        unit=None,
+        source="missing",
+        display_text=f"concentrazione sconosciuta ({child_mixture.name})",
+    )
+
+
 # ── Auto-suggest ───────────────────────────────────────────────────
 
 
@@ -428,10 +561,7 @@ def suggest_consumptions(
     # Pre-compute candidates per component so we don't re-query.
     candidates_per_comp: dict[int, list[InventoryItem]] = {}
     for comp in mixture.components:
-        candidates_per_comp[comp.id] = _candidate_lots(
-            comp.substance_id,
-            target_unit,
-        )
+        candidates_per_comp[comp.id] = _candidates_for_component(comp, target_unit)
 
     # Strategy detection.
     #
@@ -508,10 +638,18 @@ def suggest_consumptions(
         solute_comp = solutes[0]
         solute_lots = candidates_per_comp.get(solute_comp.id, [])
         if solute_lots:
-            stock_info = read_stock_for_solute(
-                solute_lots[0],
-                solute_comp.substance_id,
-            )
+            # The stock-reading path depends on whether the solute is
+            # a pure substance or a child_mixture in the recipe.
+            if solute_comp.is_mixture_component:
+                stock_info = read_stock_for_child_mixture(
+                    solute_lots[0],
+                    solute_comp.child_mixture,
+                )
+            else:
+                stock_info = read_stock_for_solute(
+                    solute_lots[0],
+                    solute_comp.substance_id,
+                )
             dilution_stock_info = stock_info
             # Three sub-cases for the stock value:
             #   a) Mixture lot with known concentration in a compatible
@@ -562,7 +700,7 @@ def suggest_consumptions(
                 if stock_value is None:
                     warnings.append(
                         f"Concentrazione stock di "
-                        f"{solute_comp.substance.name} non determinabile "
+                        f"{solute_comp.display_name} non determinabile "
                         "dal lotto suggerito; compila a mano."
                     )
                 else:
@@ -640,19 +778,20 @@ def suggest_consumptions(
             if need_in_native > have_in_native:
                 warnings.append(
                     f"Lotto {suggested_lot.batch_code or '#' + str(suggested_lot.id)} "
-                    f"di {comp.substance.name}: solo {have_in_native:g} "
+                    f"di {comp.display_name}: solo {have_in_native:g} "
                     f"{suggested_unit_out} disponibili, "
                     f"ne servirebbero {need_in_native:g}."
                 )
 
         if suggested_lot is None:
-            warnings.append(f"Nessun lotto attivo trovato per {comp.substance.name}.")
+            warnings.append(f"Nessun lotto attivo trovato per {comp.display_name}.")
 
         rows.append(
             SuggestedConsumption(
                 component_id=comp.id,
                 substance_id=comp.substance_id,
-                substance_name=comp.substance.name,
+                mixture_id=comp.child_mixture_id,
+                display_name=comp.display_name,
                 role=comp.role,
                 suggested_lot_id=suggested_lot.id if suggested_lot else None,
                 suggested_quantity=suggested_qty,
