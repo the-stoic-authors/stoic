@@ -8,7 +8,13 @@ from flask import render_template, request
 from flask_login import login_required
 
 from stoic_eln.blueprints.reports import bp
+from stoic_eln.extensions import db
+from stoic_eln.models import Substance
 from stoic_eln.services.spending_report import compute_spending
+from stoic_eln.services.substance_report import (
+    compute_substance_report,
+    render_cost_sparkline_svg,
+)
 
 
 def _parse_date(raw: str | None) -> date | None:
@@ -19,6 +25,31 @@ def _parse_date(raw: str | None) -> date | None:
         return date.fromisoformat(raw.strip())
     except (TypeError, ValueError):
         return None
+
+
+def _resolve_period(
+    preset: str | None,
+    raw_from: str | None,
+    raw_to: str | None,
+) -> tuple[date, date, str]:
+    """Resolve the reporting window from a preset or custom range.
+
+    Presets: '3m', '6m', '12m' (months back from today). 'custom'
+    uses the explicit from/to. Anything else defaults to 12 months.
+    Returns (date_from, date_to, normalized_preset).
+    """
+    from datetime import timedelta
+
+    today = date.today()
+    if preset == "custom":
+        d_from = _parse_date(raw_from) or (today - timedelta(days=365))
+        d_to = _parse_date(raw_to) or today
+        return d_from, d_to, "custom"
+
+    months = {"3m": 90, "6m": 180, "12m": 365}
+    if preset not in months:
+        preset = "12m"
+    return today - timedelta(days=months[preset]), today, preset
 
 
 @bp.route("/")
@@ -65,4 +96,59 @@ def spending():
         bucket=bucket,
         date_from=date_from,
         date_to=date_to,
+    )
+
+
+@bp.route("/substance")
+@bp.route("/substance/<int:substance_id>")
+@login_required
+def substance(substance_id: int | None = None):
+    """Per-substance report: consumption, stock coverage, cost trend.
+
+    Query params:
+        period: '3m' | '6m' | '12m' | 'custom' (default: 12m)
+        from / to: ISO dates, used when period=custom
+
+    If no substance_id is given, renders the page with a picker and
+    no report body (the global "Reports → Substance" entry point).
+    When a substance_id is supplied (e.g. from the substance detail
+    page), the report is computed and shown.
+    """
+    period = request.args.get("period", "12m")
+    date_from, date_to, period = _resolve_period(
+        period,
+        request.args.get("from"),
+        request.args.get("to"),
+    )
+
+    # All substances for the picker dropdown
+    from sqlalchemy import func as _func
+
+    substances = (
+        db.session.query(Substance)
+        .filter(Substance.is_active.is_(True))
+        .order_by(_func.lower(Substance.name).asc())
+        .all()
+    )
+
+    report = None
+    cost_svg = ""
+    if substance_id is not None:
+        report = compute_substance_report(
+            substance_id,
+            date_from=date_from,
+            date_to=date_to,
+        )
+        if report is not None:
+            cost_svg = render_cost_sparkline_svg(report.cost_trend.points)
+
+    return render_template(
+        "reports/substance.html",
+        report=report,
+        substances=substances,
+        selected_id=substance_id,
+        period=period,
+        date_from=date_from,
+        date_to=date_to,
+        cost_svg=cost_svg,
     )

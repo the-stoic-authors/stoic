@@ -20,6 +20,10 @@
     {% endif %}
   </div>
   <div class="d-flex gap-2">
+    <a href="{{ url_for('reports.substance', substance_id=substance.id) }}"
+       class="btn btn-outline-secondary">
+      <i data-lucide="bar-chart-3"></i> {{ _("Report") }}
+    </a>
     <a href="{{ url_for('substances.sds', substance_id=substance.id) }}"
        class="btn btn-outline-secondary" target="_blank">
       <i data-lucide="printer"></i> {{ _("SDS") }}

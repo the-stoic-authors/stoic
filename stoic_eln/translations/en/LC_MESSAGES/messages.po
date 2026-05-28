@@ -4946,3 +4946,155 @@ msgstr "Plan an order of this commercial mixture (e.g. HCl 12N from Sigma)"
 #: stoic_eln/templates/inventory/list.html
 msgid "Solventi"
 msgstr "Solvents"
+
+#: stoic_eln/templates/reports/substance.html
+msgid "Report sostanza"
+msgstr "Substance report"
+
+#: stoic_eln/templates/reports/substance.html
+msgid "Report per sostanza"
+msgstr "Per-substance report"
+
+#: stoic_eln/templates/reports/substance.html
+msgid "Periodo"
+msgstr "Period"
+
+#: stoic_eln/templates/reports/substance.html
+msgid "Ultimi 3 mesi"
+msgstr "Last 3 months"
+
+#: stoic_eln/templates/reports/substance.html
+msgid "Ultimi 6 mesi"
+msgstr "Last 6 months"
+
+#: stoic_eln/templates/reports/substance.html
+msgid "Ultimi 12 mesi"
+msgstr "Last 12 months"
+
+#: stoic_eln/templates/reports/substance.html
+msgid "Personalizzato"
+msgstr "Custom"
+
+#: stoic_eln/templates/reports/substance.html
+msgid "Mostra"
+msgstr "Show"
+
+#: stoic_eln/templates/reports/substance.html
+msgid "Dal"
+msgstr "From"
+
+#: stoic_eln/templates/reports/substance.html
+msgid "Al"
+msgstr "To"
+
+#: stoic_eln/templates/reports/substance.html
+msgid "Seleziona una sostanza per vedere consumo, copertura di stock e andamento prezzi."
+msgstr "Select a substance to view consumption, stock coverage and price trend."
+
+#: stoic_eln/templates/reports/substance.html
+msgid "Consumo"
+msgstr "Consumption"
+
+#: stoic_eln/templates/reports/substance.html
+msgid "Totale consumato (massa)"
+msgstr "Total consumed (mass)"
+
+#: stoic_eln/templates/reports/substance.html
+msgid "Totale consumato (volume)"
+msgstr "Total consumed (volume)"
+
+#: stoic_eln/templates/reports/substance.html
+msgid "Fonte"
+msgstr "Source"
+
+#: stoic_eln/templates/reports/substance.html
+msgid "Massa (g)"
+msgstr "Mass (g)"
+
+#: stoic_eln/templates/reports/substance.html
+msgid "Volume (mL)"
+msgstr "Volume (mL)"
+
+#: stoic_eln/templates/reports/substance.html
+msgid "Eventi"
+msgstr "Events"
+
+#: stoic_eln/templates/reports/substance.html
+msgid "Step di reazione"
+msgstr "Reaction steps"
+
+#: stoic_eln/templates/reports/substance.html
+msgid "Nessun consumo registrato nel periodo."
+msgstr "No consumption recorded in the period."
+
+#: stoic_eln/templates/reports/substance.html
+msgid "Copertura di stock"
+msgstr "Stock coverage"
+
+#: stoic_eln/templates/reports/substance.html
+msgid "Consumo medio giornaliero"
+msgstr "Average daily consumption"
+
+#: stoic_eln/templates/reports/substance.html
+msgid "g/giorno"
+msgstr "g/day"
+
+#: stoic_eln/templates/reports/substance.html
+msgid "mL/giorno"
+msgstr "mL/day"
+
+#: stoic_eln/templates/reports/substance.html
+msgid "Stock attuale"
+msgstr "Current stock"
+
+#: stoic_eln/templates/reports/substance.html
+msgid "Copertura stimata"
+msgstr "Estimated coverage"
+
+#: stoic_eln/templates/reports/substance.html
+msgid "giorni"
+msgstr "days"
+
+#: stoic_eln/templates/reports/substance.html
+msgid "Stima basata sul ritmo di consumo del periodo selezionato. È indicativa: i consumi reali variano."
+msgstr "Estimate based on the consumption rate of the selected period. It is indicative: actual consumption varies."
+
+#: stoic_eln/templates/reports/substance.html
+msgid "Dati insufficienti per stimare la copertura (nessun consumo nel periodo)."
+msgstr "Insufficient data to estimate coverage (no consumption in the period)."
+
+#: stoic_eln/templates/reports/substance.html
+msgid "Andamento prezzi"
+msgstr "Price trend"
+
+#: stoic_eln/templates/reports/substance.html
+msgid "Per fornitore"
+msgstr "By supplier"
+
+#: stoic_eln/templates/reports/substance.html
+msgid "Prezzo medio"
+msgstr "Avg price"
+
+#: stoic_eln/templates/reports/substance.html
+msgid "Min"
+msgstr "Min"
+
+#: stoic_eln/templates/reports/substance.html
+msgid "Max"
+msgstr "Max"
+
+#: stoic_eln/templates/reports/substance.html
+msgid "Lotti nel periodo"
+msgstr "Lots in the period"
+
+#: stoic_eln/templates/reports/substance.html
+msgid "Prezzo unitario"
+msgstr "Unit price"
+
+#: stoic_eln/templates/reports/substance.html
+msgid "Nessun lotto con prezzo nel periodo."
+msgstr "No priced lot in the period."
+
+#: stoic_eln/templates/reports/index.html
+msgid "Consumo, copertura di stock e andamento prezzi per una singola sostanza, su un periodo a scelta."
+msgstr "Consumption, stock coverage and price trend for a single substance, over a chosen period."

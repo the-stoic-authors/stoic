@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Report sostanza") }} — Stoic{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <nav aria-label="breadcrumb" class="small mb-2">
+    <ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item">
+        <a href="{{ url_for('reports.index') }}">{{ _("Report") }}</a>
+      </li>
+      <li class="breadcrumb-item active">{{ _("Sostanza") }}</li>
+    </ol>
+  </nav>
+
+  <h1 class="mb-4">{{ _("Report per sostanza") }}</h1>
+
+  {# ── Picker + period filter ──────────────────────────────── #}
+  <form method="get" class="card mb-4"
+        action="{{ url_for('reports.substance') }}"
+        onsubmit="if(this.substance_id.value){this.action='{{ url_for('reports.substance') }}/'+this.substance_id.value;}">
+    <div class="card-body">
+      <div class="row g-3 align-items-end">
+        <div class="col-md-5">
+          <label class="form-label small text-muted">{{ _("Sostanza") }}</label>
+          <select name="substance_id" class="form-select form-select-sm">
+            <option value="">{{ _("Seleziona…") }}</option>
+            {% for s in substances %}
+            <option value="{{ s.id }}" {% if s.id == selected_id %}selected{% endif %}>
+              {{ s.name }}{% if s.cas_number %} — {{ s.cas_number }}{% endif %}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small text-muted">{{ _("Periodo") }}</label>
+          <select name="period" class="form-select form-select-sm"
+                  onchange="document.getElementById('custom-range').style.display = this.value==='custom' ? 'flex' : 'none';">
+            <option value="3m"  {% if period == '3m' %}selected{% endif %}>{{ _("Ultimi 3 mesi") }}</option>
+            <option value="6m"  {% if period == '6m' %}selected{% endif %}>{{ _("Ultimi 6 mesi") }}</option>
+            <option value="12m" {% if period == '12m' %}selected{% endif %}>{{ _("Ultimi 12 mesi") }}</option>
+            <option value="custom" {% if period == 'custom' %}selected{% endif %}>{{ _("Personalizzato") }}</option>
+          </select>
+        </div>
+        <div class="col-md-4 text-end">
+          <button type="submit" class="btn btn-primary btn-sm">{{ _("Mostra") }}</button>
+        </div>
+      </div>
+      <div class="row g-3 align-items-end mt-1" id="custom-range"
+           style="display: {% if period == 'custom' %}flex{% else %}none{% endif %};">
+        <div class="col-md-3">
+          <label class="form-label small text-muted">{{ _("Dal") }}</label>
+          <input type="date" name="from"
+                 value="{{ date_from.isoformat() if date_from else '' }}"
+                 class="form-control form-control-sm">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small text-muted">{{ _("Al") }}</label>
+          <input type="date" name="to"
+                 value="{{ date_to.isoformat() if date_to else '' }}"
+                 class="form-control form-control-sm">
+        </div>
+      </div>
+    </div>
+  </form>
+
+  {% if report is none %}
+    {% if selected_id %}
+      <div class="alert alert-warning">{{ _("Sostanza non trovata.") }}</div>
+    {% else %}
+      <div class="alert alert-info">
+        {{ _("Seleziona una sostanza per vedere consumo, copertura di stock e andamento prezzi.") }}
+      </div>
+    {% endif %}
+  {% else %}
+    <div class="d-flex justify-content-between align-items-baseline mb-3">
+      <h2 class="h4 mb-0">{{ report.substance.name }}</h2>
+      <span class="text-muted small">
+        {{ report.date_from.isoformat() }} → {{ report.date_to.isoformat() }}
+      </span>
+    </div>
+
+    {# ── Vista 1: Consumo ──────────────────────────────────── #}
+    <div class="card mb-4">
+      <div class="card-header"><strong>{{ _("Consumo") }}</strong></div>
+      <div class="card-body">
+        {% if report.consumption.has_data %}
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <div class="text-muted small">{{ _("Totale consumato (massa)") }}</div>
+            <div class="fs-4 font-monospace">
+              {% if report.consumption.total_g > 0 %}{{ "%g"|format(report.consumption.total_g) }} g{% else %}—{% endif %}
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="text-muted small">{{ _("Totale consumato (volume)") }}</div>
+            <div class="fs-4 font-monospace">
+              {% if report.consumption.total_mL > 0 %}{{ "%g"|format(report.consumption.total_mL) }} mL{% else %}—{% endif %}
+            </div>
+          </div>
+        </div>
+        <table class="table table-sm mb-0">
+          <thead>
+            <tr>
+              <th>{{ _("Fonte") }}</th>
+              <th class="text-end">{{ _("Massa (g)") }}</th>
+              <th class="text-end">{{ _("Volume (mL)") }}</th>
+              <th class="text-end">{{ _("Eventi") }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% set source_labels = {'runs': _("Reazioni"), 'run_steps': _("Step di reazione"), 'preps': _("Preparazioni")} %}
+            {% for b in report.consumption.by_source %}
+            <tr>
+              <td>{{ source_labels.get(b.source, b.source) }}</td>
+              <td class="text-end font-monospace">{% if b.total_g > 0 %}{{ "%g"|format(b.total_g) }}{% else %}—{% endif %}</td>
+              <td class="text-end font-monospace">{% if b.total_mL > 0 %}{{ "%g"|format(b.total_mL) }}{% else %}—{% endif %}</td>
+              <td class="text-end">{{ b.event_count }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <p class="text-muted mb-0">{{ _("Nessun consumo registrato nel periodo.") }}</p>
+        {% endif %}
+      </div>
+    </div>
+
+    {# ── Vista 2: Copertura stock ──────────────────────────── #}
+    <div class="card mb-4">
+      <div class="card-header"><strong>{{ _("Copertura di stock") }}</strong></div>
+      <div class="card-body">
+        {% if report.coverage.enough_data %}
+        <div class="row">
+          <div class="col-md-4">
+            <div class="text-muted small">{{ _("Consumo medio giornaliero") }}</div>
+            <div class="fs-5 font-monospace">
+              {% if report.coverage.daily_g %}{{ "%.3g"|format(report.coverage.daily_g) }} {{ _("g/giorno") }}{% endif %}
+              {% if report.coverage.daily_mL %}{{ "%.3g"|format(report.coverage.daily_mL) }} {{ _("mL/giorno") }}{% endif %}
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="text-muted small">{{ _("Stock attuale") }}</div>
+            <div class="fs-5 font-monospace">
+              {% if report.coverage.stock_g > 0 %}{{ "%g"|format(report.coverage.stock_g) }} g{% endif %}
+              {% if report.coverage.stock_mL > 0 %}{{ "%g"|format(report.coverage.stock_mL) }} mL{% endif %}
+              {% if report.coverage.stock_g == 0 and report.coverage.stock_mL == 0 %}—{% endif %}
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="text-muted small">{{ _("Copertura stimata") }}</div>
+            <div class="fs-5 font-monospace">
+              {% if report.coverage.coverage_days_g %}~{{ "%.0f"|format(report.coverage.coverage_days_g) }} {{ _("giorni") }}{% endif %}
+              {% if report.coverage.coverage_days_mL %}~{{ "%.0f"|format(report.coverage.coverage_days_mL) }} {{ _("giorni") }}{% endif %}
+              {% if not report.coverage.coverage_days_g and not report.coverage.coverage_days_mL %}—{% endif %}
+            </div>
+          </div>
+        </div>
+        <p class="text-muted small mt-3 mb-0">
+          <i data-lucide="info" style="width:13px;height:13px"></i>
+          {{ _("Stima basata sul ritmo di consumo del periodo selezionato. È indicativa: i consumi reali variano.") }}
+        </p>
+        {% else %}
+        <p class="text-muted mb-0">
+          {{ _("Dati insufficienti per stimare la copertura (nessun consumo nel periodo).") }}
+        </p>
+        {% endif %}
+      </div>
+    </div>
+
+    {# ── Vista 3: Andamento prezzi ─────────────────────────── #}
+    <div class="card mb-4">
+      <div class="card-header"><strong>{{ _("Andamento prezzi") }}</strong></div>
+      <div class="card-body">
+        {% if report.cost_trend.has_data %}
+          {% if cost_svg %}
+          <div class="mb-3" style="max-width: 360px">{{ cost_svg|safe }}</div>
+          {% endif %}
+
+          <h6 class="text-muted small text-uppercase">{{ _("Per fornitore") }}</h6>
+          <table class="table table-sm mb-3">
+            <thead>
+              <tr>
+                <th>{{ _("Fornitore") }}</th>
+                <th class="text-end">{{ _("Lotti") }}</th>
+                <th class="text-end">{{ _("Prezzo medio") }}</th>
+                <th class="text-end">{{ _("Min") }}</th>
+                <th class="text-end">{{ _("Max") }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for c in report.cost_trend.by_supplier %}
+              <tr>
+                <td>{{ c.supplier }}</td>
+                <td class="text-end">{{ c.lot_count }}</td>
+                <td class="text-end font-monospace">{{ c.avg_price|currency(decimals=4) }}/{{ c.unit }}</td>
+                <td class="text-end font-monospace">{{ c.min_price|currency(decimals=4) }}</td>
+                <td class="text-end font-monospace">{{ c.max_price|currency(decimals=4) }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+
+          <h6 class="text-muted small text-uppercase">{{ _("Lotti nel periodo") }}</h6>
+          <table class="table table-sm mb-0">
+            <thead>
+              <tr>
+                <th>{{ _("Data") }}</th>
+                <th>{{ _("Lotto") }}</th>
+                <th>{{ _("Fornitore") }}</th>
+                <th class="text-end">{{ _("Prezzo unitario") }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in report.cost_trend.points %}
+              <tr>
+                <td>{{ p.purchased_at.isoformat() if p.purchased_at else "—" }}</td>
+                <td><code>{{ p.batch_code or "—" }}</code></td>
+                <td>{{ p.supplier or "—" }}</td>
+                <td class="text-end font-monospace">
+                  {% if p.unit_price is not none %}{{ p.unit_price|currency(decimals=4) }}/{{ p.unit }}{% else %}—{% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+        <p class="text-muted mb-0">{{ _("Nessun lotto con prezzo nel periodo.") }}</p>
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+</div>
+<script>if (window.lucide) lucide.createIcons();</script>
+{% endblock %}

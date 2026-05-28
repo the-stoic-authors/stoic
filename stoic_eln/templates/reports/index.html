@@ -19,6 +19,19 @@
         </div>
       </a>
     </div>
+    <div class="col-md-6">
+      <a href="{{ url_for('reports.substance') }}"
+         class="card text-decoration-none h-100">
+        <div class="card-body">
+          <h5 class="card-title">
+            <i data-lucide="flask-conical"></i> {{ _("Sostanza") }}
+          </h5>
+          <p class="card-text small text-muted mb-0">
+            {{ _("Consumo, copertura di stock e andamento prezzi per una singola sostanza, su un periodo a scelta.") }}
+          </p>
+        </div>
+      </a>
+    </div>
   </div>
 </div>
 {% endblock %}
