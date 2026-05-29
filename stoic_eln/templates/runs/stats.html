@@ -62,6 +62,7 @@
           <th class="text-end">{{ _("Run") }}</th>
           <th class="text-end">{{ currency_glyph() }} {{ _("medio per run") }}</th>
           <th class="text-end">{{ currency_glyph() }}/g {{ _("medio") }}</th>
+          <th class="text-end">{{ currency_glyph() }}/mol {{ _("medio") }}</th>
           <th class="text-end">{{ _("Resa media") }}</th>
           <th>{{ _("Ultimo run") }}</th>
           <th class="text-end">{{ currency_glyph() }}/g {{ _("ultimo") }}</th>
@@ -78,12 +79,27 @@
           <td class="text-end font-monospace">{{ s.n_runs }}</td>
           <td class="text-end font-monospace">
             {% if s.avg_cost_eur is not none %}{{ s.avg_cost_eur|currency }}{% else %}—{% endif %}
+            {% if s.stddev_cost_eur is not none and s.stddev_cost_eur > 0 %}
+              <div class="text-muted small">σ {{ s.stddev_cost_eur|currency }}</div>
+            {% endif %}
           </td>
           <td class="text-end font-monospace">
             {% if s.avg_cost_per_g is not none %}{{ s.avg_cost_per_g|currency }}{% else %}—{% endif %}
+            {% if s.stddev_cost_per_g is not none and s.stddev_cost_per_g > 0 %}
+              <div class="text-muted small">σ {{ s.stddev_cost_per_g|currency }}</div>
+            {% endif %}
+          </td>
+          <td class="text-end font-monospace">
+            {% if s.avg_cost_per_mol is not none %}{{ s.avg_cost_per_mol|currency }}{% else %}—{% endif %}
+            {% if s.stddev_cost_per_mol is not none and s.stddev_cost_per_mol > 0 %}
+              <div class="text-muted small">σ {{ s.stddev_cost_per_mol|currency }}</div>
+            {% endif %}
           </td>
           <td class="text-end font-monospace">
             {% if s.avg_yield_percent is not none %}{{ "%.1f"|format(s.avg_yield_percent) }}%{% else %}—{% endif %}
+            {% if s.stddev_yield_percent is not none and s.stddev_yield_percent > 0 %}
+              <div class="text-muted small">σ {{ "%.1f"|format(s.stddev_yield_percent) }}%</div>
+            {% endif %}
           </td>
           <td class="small">
             {% if s.last_run %}
@@ -110,8 +126,6 @@
           </td>
           <td class="text-end">
             {% if s.last_run %}
-            {# Link via the latest run's reaction_id; we don't have direct
-               access here, but we can route via the run detail. #}
             <a href="{{ url_for('runs.detail', run_id=s.last_run.run_id) }}"
                class="btn btn-sm btn-link p-0"
                title="{{ _('Apri ultimo run') }}">

@@ -21,6 +21,7 @@ not by the specific version. The ``Reaction`` model already exposes
 
 from __future__ import annotations
 
+import statistics
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import TYPE_CHECKING
@@ -45,6 +46,7 @@ class RunPoint:
     completed_at: datetime | None
     cost_eur: float  # cumulative
     cost_per_g: float | None  # cumulative €/g of product
+    cost_per_mol: float | None  # cumulative €/mol of product
     yield_percent: float | None
     yield_g: float | None
     operator_name: str | None
@@ -62,12 +64,21 @@ class TemplateStats:
     avg_cost_eur: float | None
     min_cost_eur: float | None
     max_cost_eur: float | None
+    stddev_cost_eur: float | None  # sample stddev, None if n < 2
 
     avg_cost_per_g: float | None
     min_cost_per_g: float | None
     max_cost_per_g: float | None
+    stddev_cost_per_g: float | None
+
+    avg_cost_per_mol: float | None  # cumulative €/mol of product
+    min_cost_per_mol: float | None
+    max_cost_per_mol: float | None
+    stddev_cost_per_mol: float | None
 
     avg_yield_percent: float | None
+    stddev_yield_percent: float | None
+
     last_run: RunPoint | None  # most recent
     points: list[RunPoint] = field(default_factory=list)  # chronological
 
@@ -92,6 +103,7 @@ def _build_run_point(run: Run) -> RunPoint:
         completed_at=run.completed_at,
         cost_eur=bd.total_eur,
         cost_per_g=metrics.per_g,
+        cost_per_mol=metrics.per_mol,
         yield_percent=run.yield_percent,
         yield_g=run.yield_g,
         operator_name=_operator_name(run),
@@ -134,8 +146,19 @@ def stats_for_template(template_code_base: str) -> TemplateStats:
     def _max(vals):
         return max(vals) if vals else None
 
+    def _stddev(vals):
+        """Sample standard deviation; None if fewer than 2 values.
+
+        Uses ``statistics.stdev`` (sample, ddof=1) which is the right
+        choice for finite samples (the runs we've actually executed,
+        not a population). A single run has no spread to measure, so
+        we return None rather than 0 to make the UI show '—'.
+        """
+        return statistics.stdev(vals) if len(vals) >= 2 else None
+
     costs = [p.cost_eur for p in points_with_cost]
     cpgs = [p.cost_per_g for p in points_with_cost if p.cost_per_g is not None]
+    cpms = [p.cost_per_mol for p in points_with_cost if p.cost_per_mol is not None]
     ys = [p.yield_percent for p in points if p.yield_percent is not None]
 
     return TemplateStats(
@@ -146,10 +169,17 @@ def stats_for_template(template_code_base: str) -> TemplateStats:
         avg_cost_eur=_avg(costs),
         min_cost_eur=_min(costs),
         max_cost_eur=_max(costs),
+        stddev_cost_eur=_stddev(costs),
         avg_cost_per_g=_avg(cpgs),
         min_cost_per_g=_min(cpgs),
         max_cost_per_g=_max(cpgs),
+        stddev_cost_per_g=_stddev(cpgs),
+        avg_cost_per_mol=_avg(cpms),
+        min_cost_per_mol=_min(cpms),
+        max_cost_per_mol=_max(cpms),
+        stddev_cost_per_mol=_stddev(cpms),
         avg_yield_percent=_avg(ys),
+        stddev_yield_percent=_stddev(ys),
         last_run=(points[-1] if points else None),
         points=points,
     )
@@ -185,7 +215,7 @@ def all_templates_stats() -> list[TemplateStats]:
 def render_sparkline_svg(
     points: list[RunPoint],
     *,
-    metric: str = "cost_per_g",  # 'cost_per_g' | 'cost_eur' | 'yield_percent'
+    metric: str = "cost_per_g",  # 'cost_per_g' | 'cost_per_mol' | 'cost_eur' | 'yield_percent'
     width: int = 320,
     height: int = 80,
     color: str = "#0d6efd",
@@ -200,6 +230,8 @@ def render_sparkline_svg(
     # Pull values
     if metric == "cost_per_g":
         values = [p.cost_per_g for p in points]
+    elif metric == "cost_per_mol":
+        values = [p.cost_per_mol for p in points]
     elif metric == "cost_eur":
         values = [p.cost_eur for p in points]
     elif metric == "yield_percent":

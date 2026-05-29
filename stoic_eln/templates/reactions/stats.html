@@ -36,7 +36,7 @@
 
 {# ─── Aggregate KPIs ─────────────────────────────────────────────── #}
 <div class="row g-3 mb-3">
-  <div class="col-md-3">
+  <div class="col-md-4">
     <div class="card h-100">
       <div class="card-body">
         <div class="text-muted small mb-1">{{ _("Run completati") }}</div>
@@ -51,7 +51,7 @@
       </div>
     </div>
   </div>
-  <div class="col-md-3">
+  <div class="col-md-4">
     <div class="card h-100">
       <div class="card-body">
         <div class="text-muted small mb-1">{{ _("Costo medio") }} ({{ currency_glyph() }}/g)</div>
@@ -62,11 +62,32 @@
           {% if stats.min_cost_per_g is not none and stats.max_cost_per_g is not none and stats.n_runs_with_cost > 1 %}
             {{ stats.min_cost_per_g|currency }} – {{ "%.2f"|format(stats.max_cost_per_g) }}
           {% endif %}
+          {% if stats.stddev_cost_per_g is not none %}
+            <span class="ms-1">σ {{ stats.stddev_cost_per_g|currency }}</span>
+          {% endif %}
         </div>
       </div>
     </div>
   </div>
-  <div class="col-md-3">
+  <div class="col-md-4">
+    <div class="card h-100">
+      <div class="card-body">
+        <div class="text-muted small mb-1">{{ _("Costo medio") }} ({{ currency_glyph() }}/mol)</div>
+        <div class="fs-3 font-monospace">
+          {% if stats.avg_cost_per_mol is not none %}{{ stats.avg_cost_per_mol|currency }}{% else %}—{% endif %}
+        </div>
+        <div class="text-muted small">
+          {% if stats.min_cost_per_mol is not none and stats.max_cost_per_mol is not none and stats.n_runs_with_cost > 1 %}
+            {{ stats.min_cost_per_mol|currency }} – {{ "%.2f"|format(stats.max_cost_per_mol) }}
+          {% endif %}
+          {% if stats.stddev_cost_per_mol is not none %}
+            <span class="ms-1">σ {{ stats.stddev_cost_per_mol|currency }}</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
     <div class="card h-100">
       <div class="card-body">
         <div class="text-muted small mb-1">{{ _("Costo medio per run") }}</div>
@@ -77,16 +98,24 @@
           {% if stats.min_cost_eur is not none and stats.max_cost_eur is not none and stats.n_runs_with_cost > 1 %}
             {{ stats.min_cost_eur|currency }} – {{ "%.2f"|format(stats.max_cost_eur) }}
           {% endif %}
+          {% if stats.stddev_cost_eur is not none %}
+            <span class="ms-1">σ {{ stats.stddev_cost_eur|currency }}</span>
+          {% endif %}
         </div>
       </div>
     </div>
   </div>
-  <div class="col-md-3">
+  <div class="col-md-4">
     <div class="card h-100">
       <div class="card-body">
         <div class="text-muted small mb-1">{{ _("Resa media") }}</div>
         <div class="fs-3 font-monospace">
           {% if stats.avg_yield_percent is not none %}{{ "%.1f"|format(stats.avg_yield_percent) }}%{% else %}—{% endif %}
+        </div>
+        <div class="text-muted small">
+          {% if stats.stddev_yield_percent is not none %}
+            σ {{ "%.1f"|format(stats.stddev_yield_percent) }}%
+          {% endif %}
         </div>
       </div>
     </div>
@@ -94,7 +123,7 @@
 </div>
 
 {# ─── Sparklines ────────────────────────────────────────────────── #}
-{% if sparkline_cost_per_g or sparkline_yield or sparkline_cost_eur %}
+{% if sparkline_cost_per_g or sparkline_cost_per_mol or sparkline_yield or sparkline_cost_eur %}
 <div class="card mb-3">
   <div class="card-header"><strong>{{ _("Trend nel tempo") }}</strong></div>
   <div class="card-body">
@@ -103,6 +132,12 @@
       <div class="col-md-6">
         <div class="text-muted small mb-2">{{ currency_glyph() }}/g {{ _("del prodotto (cumulativo)") }}</div>
         {{ sparkline_cost_per_g|safe }}
+      </div>
+      {% endif %}
+      {% if sparkline_cost_per_mol %}
+      <div class="col-md-6">
+        <div class="text-muted small mb-2">{{ currency_glyph() }}/mol {{ _("del prodotto (cumulativo)") }}</div>
+        {{ sparkline_cost_per_mol|safe }}
       </div>
       {% endif %}
       {% if sparkline_yield %}
@@ -141,6 +176,7 @@
           <th class="text-end">{{ _("Resa") }}</th>
           <th class="text-end">{{ _("Costo") }} ({{ currency_glyph() }})</th>
           <th class="text-end">{{ currency_glyph() }}/g</th>
+          <th class="text-end">{{ currency_glyph() }}/mol</th>
         </tr>
       </thead>
       <tbody>
@@ -168,6 +204,9 @@
           </td>
           <td class="text-end font-monospace">
             {% if p.cost_per_g is not none %}{{ p.cost_per_g|currency }}{% else %}—{% endif %}
+          </td>
+          <td class="text-end font-monospace">
+            {% if p.cost_per_mol is not none %}{{ p.cost_per_mol|currency }}{% else %}—{% endif %}
           </td>
         </tr>
         {% endfor %}

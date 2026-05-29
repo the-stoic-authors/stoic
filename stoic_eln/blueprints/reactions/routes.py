@@ -1438,6 +1438,13 @@ def stats(reaction_id: int):
         width=600,
         height=140,
     )
+    sparkline_cost_per_mol = render_sparkline_svg(
+        stats_data.points,
+        metric="cost_per_mol",
+        width=600,
+        height=140,
+        color="#6f42c1",
+    )
     sparkline_yield = render_sparkline_svg(
         stats_data.points,
         metric="yield_percent",
@@ -1458,6 +1465,7 @@ def stats(reaction_id: int):
         reaction=rxn,
         stats=stats_data,
         sparkline_cost_per_g=sparkline_cost_per_g,
+        sparkline_cost_per_mol=sparkline_cost_per_mol,
         sparkline_yield=sparkline_yield,
         sparkline_cost_eur=sparkline_cost_eur,
     )
