@@ -5110,3 +5110,15 @@ msgstr "Solvent without density: use millilitres only. Add a density to the subs
 #: stoic_eln/templates/inventory/form.html
 msgid "Densità nota: i due campi sono sincronizzati. Inserisci uno qualsiasi e l'altro si compila automaticamente."
 msgstr "Density known: the two fields are synchronised. Enter either one and the other will fill in automatically."
+
+#: stoic_eln/templates/reports/index.html
+msgid "Template di reazione"
+msgstr "Reaction templates"
+
+#: stoic_eln/templates/reports/index.html
+msgid "Confronto resa, costo e variabilità tra i template di reazione: medie, range, deviazione standard."
+msgstr "Compare yield, cost and variability across reaction templates: means, ranges, standard deviation."
+
+#: stoic_eln/templates/reports/index.html
+msgid "Spese"
+msgstr "Expenses"
