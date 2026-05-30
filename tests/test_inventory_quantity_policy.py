@@ -42,13 +42,9 @@ def _load_cleanup_main():
     from pathlib import Path
 
     script_path = (
-        Path(__file__).resolve().parent.parent
-        / "scripts"
-        / "cleanup_mL_on_solid_substances.py"
+        Path(__file__).resolve().parent.parent / "scripts" / "cleanup_mL_on_solid_substances.py"
     )
-    spec = importlib.util.spec_from_file_location(
-        "cleanup_mL_on_solid_substances", script_path
-    )
+    spec = importlib.util.spec_from_file_location("cleanup_mL_on_solid_substances", script_path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module.main
