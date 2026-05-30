@@ -77,26 +77,62 @@
           <hr class="my-4">
 
           <h5>{{ _("Quantità") }}</h5>
-          <p class="text-muted small">
-            {{ _("Compila la coppia coerente con lo stato fisico (g per solidi, mL per liquidi).") }}
-          </p>
-          <div class="row g-3">
+          {% set policy = unit_policy if unit_policy is defined else None %}
+          {% if policy and policy.is_solid_or_no_density %}
+            <p class="text-muted small">
+              {{ _("Sostanza dosata in massa (densità non nota). Solo i grammi sono modificabili.") }}
+            </p>
+          {% elif policy and policy.is_solvent_no_density %}
+            <div class="alert alert-info py-2 px-3 small">
+              {{ _("Solvente senza densità: usa solo i millilitri. Aggiungi la densità alla scheda della sostanza per abilitare anche i grammi.") }}
+              {% if substance %}
+                <a href="{{ url_for('substances.edit', substance_id=substance.id) }}"
+                   class="alert-link ms-1">
+                  {{ _("Modifica sostanza") }}
+                </a>
+              {% endif %}
+            </div>
+          {% elif policy and policy.is_dual_synced %}
+            <p class="text-muted small">
+              {{ _("Densità nota: i due campi sono sincronizzati. Inserisci uno qualsiasi e l'altro si compila automaticamente.") }}
+              <span class="ms-1 font-monospace">d = {{ "%g"|format(policy.density) }} g/mL</span>
+            </p>
+          {% else %}
+            <p class="text-muted small">
+              {{ _("Compila la coppia coerente con lo stato fisico (g per solidi, mL per liquidi).") }}
+            </p>
+          {% endif %}
+          <div class="row g-3"
+               {% if policy and policy.density %}data-density="{{ policy.density }}"{% endif %}
+               id="inv-qty-block">
             <div class="col-md-6">
               {{ form.initial_quantity_g.label(class="form-label") }}
-              {{ form.initial_quantity_g(class="form-control", step="0.001") }}
+              {{ form.initial_quantity_g(
+                  class="form-control inv-qty-g",
+                  step="0.001",
+                  disabled=(policy is not none and not policy.allow_g)) }}
             </div>
             <div class="col-md-6">
               {{ form.initial_quantity_mL.label(class="form-label") }}
-              {{ form.initial_quantity_mL(class="form-control", step="0.001") }}
+              {{ form.initial_quantity_mL(
+                  class="form-control inv-qty-mL",
+                  step="0.001",
+                  disabled=(policy is not none and not policy.allow_mL)) }}
             </div>
             <div class="col-md-6">
               {{ form.quantity_g.label(class="form-label") }}
-              {{ form.quantity_g(class="form-control", step="0.001") }}
+              {{ form.quantity_g(
+                  class="form-control inv-rem-g",
+                  step="0.001",
+                  disabled=(policy is not none and not policy.allow_g)) }}
               <div class="form-text">{{ _("Lascia vuoto per usare la quantità iniziale.") }}</div>
             </div>
             <div class="col-md-6">
               {{ form.quantity_mL.label(class="form-label") }}
-              {{ form.quantity_mL(class="form-control", step="0.001") }}
+              {{ form.quantity_mL(
+                  class="form-control inv-rem-mL",
+                  step="0.001",
+                  disabled=(policy is not none and not policy.allow_mL)) }}
             </div>
           </div>
 
@@ -183,4 +219,48 @@
     {% endif %}
   </div>
 </div>
+
+{# ── g/mL auto-sync via density ─────────────────────────────────────
+   When the substance has a known density, the two unit fields
+   represent the same physical amount and we keep them in lockstep.
+   The block carries data-density; we wire the initial and remaining
+   pairs to recompute on input. Empty input clears the partner too,
+   because under this policy you cannot have one without the other.
+#}
+{% if unit_policy is defined and unit_policy and unit_policy.is_dual_synced %}
+<script>
+(function() {
+  const block = document.getElementById('inv-qty-block');
+  if (!block) return;
+  const density = parseFloat(block.dataset.density);
+  if (!density || density <= 0) return;
+
+  function bindPair(gSel, mLSel) {
+    const gEl = document.querySelector(gSel);
+    const mLEl = document.querySelector(mLSel);
+    if (!gEl || !mLEl) return;
+
+    function fromG() {
+      const v = gEl.value.trim();
+      if (v === '') { mLEl.value = ''; return; }
+      const n = parseFloat(v);
+      if (!isFinite(n) || n < 0) return;
+      mLEl.value = (n / density).toFixed(3);
+    }
+    function fromMl() {
+      const v = mLEl.value.trim();
+      if (v === '') { gEl.value = ''; return; }
+      const n = parseFloat(v);
+      if (!isFinite(n) || n < 0) return;
+      gEl.value = (n * density).toFixed(3);
+    }
+    gEl.addEventListener('input', fromG);
+    mLEl.addEventListener('input', fromMl);
+  }
+
+  bindPair('.inv-qty-g',  '.inv-qty-mL');
+  bindPair('.inv-rem-g',  '.inv-rem-mL');
+})();
+</script>
+{% endif %}
 {% endblock %}

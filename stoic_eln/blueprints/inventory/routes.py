@@ -267,6 +267,13 @@ def create(substance_id: int | None = None):
     if sub is None and mix is None:
         abort(404)
 
+    # Compute the unit policy once. Used by the template to disable
+    # fields the substance doesn't allow, and (server-side) by the
+    # normalisation step below to enforce the same matrix.
+    from stoic_eln.services.inventory_quantity import policy_for_substance
+
+    unit_policy = policy_for_substance(sub)
+
     form = InventoryItemForm()
 
     # Pre-fill remaining quantity from initial when adding new
@@ -284,10 +291,39 @@ def create(substance_id: int | None = None):
                 form.expiry_date.data = suggested
 
     if form.validate_on_submit():
-        q_g = form.quantity_g.data
-        q_mL = form.quantity_mL.data
-        init_g = form.initial_quantity_g.data
-        init_mL = form.initial_quantity_mL.data
+        # Apply the unit policy (only for substance lots — mixture
+        # lots bypass the matrix).
+        if sub is not None:
+            from stoic_eln.services.inventory_quantity import (
+                normalize_inventory_quantities,
+            )
+
+            init_g, init_mL, q_g, q_mL, err = normalize_inventory_quantities(
+                initial_g=form.initial_quantity_g.data,
+                initial_mL=form.initial_quantity_mL.data,
+                remaining_g=form.quantity_g.data,
+                remaining_mL=form.quantity_mL.data,
+                substance=sub,
+            )
+            if err is not None:
+                flash(err, "danger")
+                return render_template(
+                    "inventory/form.html",
+                    form=form,
+                    substance=sub,
+                    mixture=mix,
+                    unit_policy=unit_policy,
+                    item=None,
+                )
+        else:
+            q_g = form.quantity_g.data
+            q_mL = form.quantity_mL.data
+            init_g = form.initial_quantity_g.data
+            init_mL = form.initial_quantity_mL.data
+
+        # Pre-fill remaining from initial when one is empty (legacy
+        # behaviour, retained because it's still useful for mixtures
+        # and as a safety net).
         if q_g is None and init_g is not None:
             q_g = init_g
         if q_mL is None and init_mL is not None:
@@ -334,6 +370,7 @@ def create(substance_id: int | None = None):
         form=form,
         substance=sub,
         mixture=mix,
+        unit_policy=unit_policy,
         item=None,
     )
 
@@ -348,15 +385,47 @@ def edit(item_id: int):
     sub = item.substance
     mix = item.mixture
 
+    from stoic_eln.services.inventory_quantity import policy_for_substance
+
+    unit_policy = policy_for_substance(sub)
+
     form = InventoryItemForm(obj=item)
     if form.validate_on_submit():
+        if sub is not None:
+            from stoic_eln.services.inventory_quantity import (
+                normalize_inventory_quantities,
+            )
+
+            init_g, init_mL, q_g, q_mL, err = normalize_inventory_quantities(
+                initial_g=form.initial_quantity_g.data,
+                initial_mL=form.initial_quantity_mL.data,
+                remaining_g=form.quantity_g.data,
+                remaining_mL=form.quantity_mL.data,
+                substance=sub,
+            )
+            if err is not None:
+                flash(err, "danger")
+                return render_template(
+                    "inventory/form.html",
+                    form=form,
+                    substance=sub,
+                    mixture=mix,
+                    unit_policy=unit_policy,
+                    item=item,
+                )
+        else:
+            q_g = form.quantity_g.data
+            q_mL = form.quantity_mL.data
+            init_g = form.initial_quantity_g.data
+            init_mL = form.initial_quantity_mL.data
+
         item.batch_code = form.batch_code.data or None
         item.supplier = form.supplier.data or None
         item.catalogue_number = form.catalogue_number.data or None
-        item.initial_quantity_g = form.initial_quantity_g.data
-        item.initial_quantity_mL = form.initial_quantity_mL.data
-        item.quantity_g = form.quantity_g.data
-        item.quantity_mL = form.quantity_mL.data
+        item.initial_quantity_g = init_g
+        item.initial_quantity_mL = init_mL
+        item.quantity_g = q_g
+        item.quantity_mL = q_mL
         item.total_cost_eur = form.total_cost_eur.data
         item.purchased_at = form.purchased_at.data
         item.expiry_date = form.expiry_date.data
@@ -385,6 +454,7 @@ def edit(item_id: int):
         form=form,
         substance=sub,
         mixture=mix,
+        unit_policy=unit_policy,
         item=item,
         attachments_for_entity=attachments_for_entity,
     )

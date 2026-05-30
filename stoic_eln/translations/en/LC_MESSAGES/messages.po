@@ -5098,3 +5098,15 @@ msgstr "No priced lot in the period."
 #: stoic_eln/templates/reports/index.html
 msgid "Consumo, copertura di stock e andamento prezzi per una singola sostanza, su un periodo a scelta."
 msgstr "Consumption, stock coverage and price trend for a single substance, over a chosen period."
+
+#: stoic_eln/templates/inventory/form.html
+msgid "Sostanza dosata in massa (densità non nota). Solo i grammi sono modificabili."
+msgstr "Substance dosed by mass (density unknown). Only grams are editable."
+
+#: stoic_eln/templates/inventory/form.html
+msgid "Solvente senza densità: usa solo i millilitri. Aggiungi la densità alla scheda della sostanza per abilitare anche i grammi."
+msgstr "Solvent without density: use millilitres only. Add a density to the substance to also enable grams."
+
+#: stoic_eln/templates/inventory/form.html
+msgid "Densità nota: i due campi sono sincronizzati. Inserisci uno qualsiasi e l'altro si compila automaticamente."
+msgstr "Density known: the two fields are synchronised. Enter either one and the other will fill in automatically."

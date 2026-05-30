@@ -302,7 +302,11 @@ def test_inventory_list_renders(client, app):
 
 def test_inventory_add_lot(client, app):
     with app.app_context():
-        sub = Substance(name="EtOH")
+        # EtOH must be marked as solvent (or carry a density) for mL
+        # to be a legal unit under the inventory quantity policy
+        # introduced in v0.10.0. Setting is_solvent=True mirrors how
+        # the operator catalogues ethanol in practice.
+        sub = Substance(name="EtOH", is_solvent=True)
         db.session.add(sub)
         db.session.commit()
         sid = sub.id
