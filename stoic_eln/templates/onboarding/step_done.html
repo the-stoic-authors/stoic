@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Conferma configurazione") }} — Stoic{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width: 720px;">
+  <div class="d-flex align-items-center mb-3">
+    <i data-lucide="check-circle-2" class="text-success me-2"></i>
+    <h1 class="h3 mb-0">{{ _("Riepilogo") }}</h1>
+  </div>
+
+  <p class="text-muted">
+    {{ _("Conferma per applicare le scelte. Potrai cambiarle in seguito dalle Impostazioni.") }}
+  </p>
+
+  <div class="card mb-4">
+    <div class="card-body">
+      <dl class="row mb-0">
+        <dt class="col-sm-5 text-muted">{{ _("Nome del laboratorio") }}</dt>
+        <dd class="col-sm-7"><code>{{ summary.lab_name }}</code></dd>
+
+        <dt class="col-sm-5 text-muted">{{ _("Valuta") }}</dt>
+        <dd class="col-sm-7"><code>{{ summary.currency }}</code></dd>
+
+        <dt class="col-sm-5 text-muted">{{ _("Formato codice run") }}</dt>
+        <dd class="col-sm-7"><code>{{ summary.run_format }}</code></dd>
+
+        <dt class="col-sm-5 text-muted">{{ _("Scope codice run") }}</dt>
+        <dd class="col-sm-7"><code>{{ summary.run_scope }}</code></dd>
+      </dl>
+    </div>
+  </div>
+
+  <p class="text-muted small">
+    <i data-lucide="info" style="width:14px;height:14px"></i>
+    {{ _("Confermando, il wizard non verrà più mostrato automaticamente. Puoi sempre rilanciarlo manualmente da") }}
+    <code>/onboarding</code>.
+  </p>
+
+  <form method="post" class="d-flex gap-2">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <a href="{{ url_for('onboarding.step_run_code') }}" class="btn btn-outline-secondary">
+      <i data-lucide="arrow-left" style="width:14px;height:14px"></i> {{ _("Indietro") }}
+    </a>
+    <button type="submit" class="btn btn-success">
+      <i data-lucide="check" style="width:14px;height:14px"></i> {{ _("Conferma e vai alla Dashboard") }}
+    </button>
+  </form>
+</div>
+<script>if (window.lucide) lucide.createIcons();</script>
+{% endblock %}

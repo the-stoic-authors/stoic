@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Configurazione iniziale") }} — Stoic{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width: 720px;">
+  <h1 class="mb-3">{{ _("Benvenuto in Stoic") }}</h1>
+  <p class="lead text-muted">
+    {{ _("Una configurazione iniziale di 3 passaggi imposta le scelte chiave del laboratorio: nome, valuta e codifica delle run. Sono impostazioni faticose da cambiare retroattivamente, quindi conviene definirle ora.") }}
+  </p>
+
+  {% if already_completed %}
+  <div class="alert alert-info mt-4">
+    <i data-lucide="info" style="width:16px;height:16px"></i>
+    {{ _("La configurazione iniziale era già stata completata. Procedendo, le scelte attuali verranno modificate.") }}
+  </div>
+  {% endif %}
+
+  <div class="card mt-4">
+    <div class="card-body">
+      <h6 class="text-uppercase text-muted small mb-3">{{ _("Cosa configurerai") }}</h6>
+      <ol class="mb-0">
+        <li class="mb-2">
+          <strong>{{ _("Nome del laboratorio") }}</strong>
+          <div class="text-muted small">{{ _("Compare in alto a sinistra nell'interfaccia e sui PDF generati.") }}</div>
+        </li>
+        <li class="mb-2">
+          <strong>{{ _("Valuta") }}</strong>
+          <div class="text-muted small">{{ _("Cambiarla in seguito non converte i costi storici: vanno reinseriti a mano.") }}</div>
+        </li>
+        <li class="mb-2">
+          <strong>{{ _("Codifica delle run") }}</strong>
+          <div class="text-muted small">{{ _("Il formato dei codici delle reazioni. Cambiarlo a metà rende i codici vecchi e nuovi incompatibili.") }}</div>
+        </li>
+      </ol>
+    </div>
+  </div>
+
+  <p class="text-muted small mt-3">
+    {{ _("Tutto il resto — utenti, backup, catalogo sostanze, codice prep, lingua dell'interfaccia — si configura senza problemi in qualsiasi momento dalle Impostazioni.") }}
+  </p>
+
+  <div class="d-flex gap-2 mt-4">
+    <a href="{{ url_for('onboarding.step_lab') }}" class="btn btn-primary">
+      {{ _("Inizia") }} <i data-lucide="arrow-right" style="width:14px;height:14px"></i>
+    </a>
+    <a href="{{ url_for('onboarding.skip') }}" class="btn btn-outline-secondary">
+      {{ _("Salta per ora") }}
+    </a>
+  </div>
+</div>
+<script>if (window.lucide) lucide.createIcons();</script>
+{% endblock %}

@@ -73,6 +73,7 @@ def create_app(
     _register_template_context(app)
     _register_error_handlers(app)
     _register_cli(app)
+    _register_onboarding_redirect(app)
 
     # Ensure schema is up to date (idempotent — creates only missing tables).
     # SQLAlchemy's create_all() looks at metadata.tables and creates anything
@@ -298,6 +299,7 @@ def _register_blueprints(app: Flask) -> None:
     from stoic_eln.blueprints.main import bp as main_bp
     from stoic_eln.blueprints.mixtures import bp as mixtures_bp
     from stoic_eln.blueprints.notes import bp as notes_bp
+    from stoic_eln.blueprints.onboarding import bp as onboarding_bp
     from stoic_eln.blueprints.orders import bp as orders_bp
     from stoic_eln.blueprints.preps import bp as preps_bp
     from stoic_eln.blueprints.reactions import bp as reactions_bp
@@ -320,6 +322,63 @@ def _register_blueprints(app: Flask) -> None:
     app.register_blueprint(settings_bp)
     app.register_blueprint(docs_bp)
     app.register_blueprint(reports_bp)
+    app.register_blueprint(onboarding_bp)
+
+
+def _register_onboarding_redirect(app: Flask) -> None:
+    """Redirect admins to the onboarding wizard at login until they
+    complete it.
+
+    The hook is global but narrow:
+      - Triggers only for authenticated admin users.
+      - Skips static, auth endpoints, the onboarding blueprint itself,
+        and tool endpoints that may run via HTMX during onboarding.
+      - Reads the completion flag from AppSetting; if reading raises
+        (e.g. very early boot, missing table), it stays silent and
+        does not redirect. The wizard must never break the app.
+
+    Non-admin users and unauthenticated requests pass through.
+    """
+    from flask import redirect, request, url_for
+    from flask_login import current_user
+
+    @app.before_request
+    def _maybe_redirect_to_onboarding():
+        # Only authenticated admins
+        try:
+            if not current_user.is_authenticated:
+                return None
+            if not getattr(current_user, "is_admin", False):
+                return None
+        except Exception:
+            return None
+
+        # Skip routes that shouldn't trigger the redirect:
+        #   - the onboarding blueprint itself
+        #   - auth (so logout still works)
+        #   - static files
+        #   - HTMX/XHR requests, which may be widgets on the dashboard
+        endpoint = request.endpoint or ""
+        if endpoint.startswith("onboarding."):
+            return None
+        if endpoint.startswith("auth."):
+            return None
+        if endpoint == "static":
+            return None
+        if request.headers.get("HX-Request"):
+            return None
+
+        # Check completion flag — silent on errors so onboarding
+        # never breaks the rest of the app.
+        try:
+            from stoic_eln.blueprints.onboarding.routes import is_completed
+
+            if is_completed():
+                return None
+        except Exception:
+            return None
+
+        return redirect(url_for("onboarding.index"))
 
 
 def _register_template_context(app: Flask) -> None:
@@ -371,9 +430,22 @@ def _register_template_context(app: Flask) -> None:
             else:
                 theme = app.config.get("DEFAULT_THEME", "system")
 
+        # Lab name: prefer the value set via the onboarding wizard
+        # or settings page (AppSetting "lab.name"), fall back to the
+        # config LAB_NAME, then to the default "Stoic". Reading from
+        # AppSetting is wrapped in a try/except because the table
+        # may not exist yet (e.g. during very early app boot or in
+        # tests with a clean schema).
+        try:
+            from stoic_eln.blueprints.onboarding.routes import get_lab_name
+
+            lab_name = get_lab_name(default=app.config.get("LAB_NAME", "Stoic"))
+        except Exception:
+            lab_name = app.config.get("LAB_NAME", "Stoic")
+
         return {
             "app_version": __version__,
-            "lab_name": app.config.get("LAB_NAME", "Stoic"),
+            "lab_name": lab_name,
             "current_theme": theme,
             "get_locale": get_locale,
             "substances_for_picker": _substances_for_picker,

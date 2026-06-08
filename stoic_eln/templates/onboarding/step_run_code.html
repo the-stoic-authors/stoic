@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Codifica delle run") }} — Stoic{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width: 720px;">
+  <div class="d-flex align-items-center mb-3">
+    <span class="badge text-bg-secondary me-2">3 / 3</span>
+    <h1 class="h3 mb-0">{{ _("Codifica delle run") }}</h1>
+  </div>
+
+  <p class="text-muted">
+    {{ _("Il formato del codice automatico assegnato a ogni nuova reazione. Scegli un preset; potrai sempre passare a un formato custom dalla pagina Impostazioni → Codifica run.") }}
+  </p>
+
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {% for p in presets %}
+    <div class="card mb-2">
+      <div class="card-body py-3">
+        <div class="form-check">
+          <input class="form-check-input"
+                 type="radio"
+                 name="preset"
+                 id="preset-{{ loop.index0 }}"
+                 value="{{ loop.index0 }}"
+                 {% if loop.first %}checked{% endif %}>
+          <label class="form-check-label w-100" for="preset-{{ loop.index0 }}">
+            <strong>{{ p.label }}</strong>
+            <div class="text-muted small">
+              {{ _("Esempio") }}: <code>{{ p.preview }}</code>
+              <span class="ms-2">{{ _("Scope") }}: <code>{{ p.scope }}</code></span>
+            </div>
+            <div class="text-muted small font-monospace">{{ p.format }}</div>
+          </label>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+
+    <p class="text-muted small mt-3">
+      <strong>{{ _("Glossario") }}:</strong>
+      <code>{op}</code> {{ _("codice operatore") }} ·
+      <code>{tem}</code> {{ _("template reazione") }} ·
+      <code>{year}</code> {{ _("anno (4 cifre)") }} ·
+      <code>{yy}</code> {{ _("anno (2 cifre)") }} ·
+      <code>{seq:0Nd}</code> {{ _("sequenza con N cifre") }}
+    </p>
+
+    <div class="d-flex gap-2 mt-4">
+      <a href="{{ url_for('onboarding.step_currency') }}" class="btn btn-outline-secondary">
+        <i data-lucide="arrow-left" style="width:14px;height:14px"></i> {{ _("Indietro") }}
+      </a>
+      <button type="submit" class="btn btn-primary">
+        {{ _("Avanti") }} <i data-lucide="arrow-right" style="width:14px;height:14px"></i>
+      </button>
+      <a href="{{ url_for('onboarding.skip') }}" class="btn btn-link text-muted">
+        {{ _("Salta tutto") }}
+      </a>
+    </div>
+  </form>
+</div>
+<script>if (window.lucide) lucide.createIcons();</script>
+{% endblock %}

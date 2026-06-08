@@ -112,6 +112,14 @@ def app(tmp_path_factory):
 
     with app.app_context():
         db.create_all()
+        # Mark the onboarding wizard as completed so the global
+        # before_request redirect doesn't intercept tests that
+        # login as admin and hit other pages. Tests that exercise
+        # the wizard itself (test_onboarding.py) clear this flag
+        # explicitly when they need to simulate a first run.
+        from stoic_eln.models.settings import AppSetting
+
+        AppSetting.set("onboarding.completed_at", "2026-01-01T00:00:00")
         yield app
         db.session.remove()
         db.drop_all()

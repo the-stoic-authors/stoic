@@ -5122,3 +5122,147 @@ msgstr "Compare yield, cost and variability across reaction templates: means, ra
 #: stoic_eln/templates/reports/index.html
 msgid "Spese"
 msgstr "Expenses"
+
+#: stoic_eln/templates/onboarding/welcome.html
+msgid "Configurazione iniziale"
+msgstr "Initial setup"
+
+#: stoic_eln/templates/onboarding/welcome.html
+msgid "Benvenuto in Stoic"
+msgstr "Welcome to Stoic"
+
+#: stoic_eln/templates/onboarding/welcome.html
+msgid "Una configurazione iniziale di 3 passaggi imposta le scelte chiave del laboratorio: nome, valuta e codifica delle run. Sono impostazioni faticose da cambiare retroattivamente, quindi conviene definirle ora."
+msgstr "A 3-step initial setup defines the key choices for the lab: name, currency and run-code format. These are painful to change retroactively, so it's worth pinning them down now."
+
+#: stoic_eln/templates/onboarding/welcome.html
+msgid "La configurazione iniziale era già stata completata. Procedendo, le scelte attuali verranno modificate."
+msgstr "Initial setup was already completed. If you proceed, the current settings will be overwritten."
+
+#: stoic_eln/templates/onboarding/welcome.html
+msgid "Cosa configurerai"
+msgstr "What you'll configure"
+
+#: stoic_eln/templates/onboarding/welcome.html
+msgid "Nome del laboratorio"
+msgstr "Lab name"
+
+#: stoic_eln/templates/onboarding/welcome.html
+msgid "Compare in alto a sinistra nell'interfaccia e sui PDF generati."
+msgstr "Shown at the top of the interface and on generated PDFs."
+
+#: stoic_eln/templates/onboarding/welcome.html
+msgid "Cambiarla in seguito non converte i costi storici: vanno reinseriti a mano."
+msgstr "Changing it later does not convert historical costs: they would need to be re-entered manually."
+
+#: stoic_eln/templates/onboarding/welcome.html
+msgid "Codifica delle run"
+msgstr "Run code format"
+
+#: stoic_eln/templates/onboarding/welcome.html
+msgid "Il formato dei codici delle reazioni. Cambiarlo a metà rende i codici vecchi e nuovi incompatibili."
+msgstr "The format used for reaction run codes. Changing it midway makes old and new codes incompatible."
+
+#: stoic_eln/templates/onboarding/welcome.html
+msgid "Tutto il resto — utenti, backup, catalogo sostanze, codice prep, lingua dell'interfaccia — si configura senza problemi in qualsiasi momento dalle Impostazioni."
+msgstr "Everything else — users, backup, substance catalog, prep code, interface language — can be configured at any time from Settings."
+
+#: stoic_eln/templates/onboarding/welcome.html
+msgid "Inizia"
+msgstr "Start"
+
+#: stoic_eln/templates/onboarding/welcome.html
+msgid "Salta per ora"
+msgstr "Skip for now"
+
+#: stoic_eln/templates/onboarding/step_lab.html
+msgid "Il nome che identifica il laboratorio nell'interfaccia e sui PDF di run, lotti e report."
+msgstr "The name that identifies the lab in the interface and on run, lot and report PDFs."
+
+#: stoic_eln/templates/onboarding/step_lab.html
+msgid "Puoi cambiarlo in seguito dalla pagina Impostazioni."
+msgstr "You can change it later from the Settings page."
+
+#: stoic_eln/templates/onboarding/step_lab.html
+msgid "Avanti"
+msgstr "Next"
+
+#: stoic_eln/templates/onboarding/step_lab.html
+msgid "Salta tutto"
+msgstr "Skip all"
+
+#: stoic_eln/templates/onboarding/step_currency.html
+msgid "La valuta in cui sono espressi i costi dei lotti e i totali nei report. Cambiarla in seguito non converte i valori già registrati."
+msgstr "The currency that lot costs and report totals are expressed in. Changing it later does not convert existing values."
+
+#: stoic_eln/templates/onboarding/step_currency.html
+msgid "Codice ISO 4217 (3 lettere)"
+msgstr "ISO 4217 code (3 letters)"
+
+#: stoic_eln/templates/onboarding/step_currency.html
+msgid "Per una valuta non in elenco, completa il wizard con il default e seleziona quella desiderata da Impostazioni → Valuta."
+msgstr "For a currency not in the list, complete the wizard with the default and then pick the one you want from Settings → Currency."
+
+#: stoic_eln/templates/onboarding/step_run_code.html
+msgid "Il formato del codice automatico assegnato a ogni nuova reazione. Scegli un preset; potrai sempre passare a un formato custom dalla pagina Impostazioni → Codifica run."
+msgstr "The format of the automatic code assigned to every new reaction. Pick a preset; you can always switch to a custom format from Settings → Run code."
+
+#: stoic_eln/templates/onboarding/step_run_code.html
+msgid "Esempio"
+msgstr "Example"
+
+#: stoic_eln/templates/onboarding/step_run_code.html
+msgid "Scope"
+msgstr "Scope"
+
+#: stoic_eln/templates/onboarding/step_run_code.html
+msgid "Glossario"
+msgstr "Glossary"
+
+#: stoic_eln/templates/onboarding/step_run_code.html
+msgid "codice operatore"
+msgstr "operator code"
+
+#: stoic_eln/templates/onboarding/step_run_code.html
+msgid "template reazione"
+msgstr "reaction template"
+
+#: stoic_eln/templates/onboarding/step_run_code.html
+msgid "anno (4 cifre)"
+msgstr "year (4 digits)"
+
+#: stoic_eln/templates/onboarding/step_run_code.html
+msgid "anno (2 cifre)"
+msgstr "year (2 digits)"
+
+#: stoic_eln/templates/onboarding/step_run_code.html
+msgid "sequenza con N cifre"
+msgstr "sequence with N digits"
+
+#: stoic_eln/templates/onboarding/step_done.html
+msgid "Conferma configurazione"
+msgstr "Confirm setup"
+
+#: stoic_eln/templates/onboarding/step_done.html
+msgid "Riepilogo"
+msgstr "Summary"
+
+#: stoic_eln/templates/onboarding/step_done.html
+msgid "Conferma per applicare le scelte. Potrai cambiarle in seguito dalle Impostazioni."
+msgstr "Confirm to apply your choices. You can change them later from Settings."
+
+#: stoic_eln/templates/onboarding/step_done.html
+msgid "Formato codice run"
+msgstr "Run code format"
+
+#: stoic_eln/templates/onboarding/step_done.html
+msgid "Scope codice run"
+msgstr "Run code scope"
+
+#: stoic_eln/templates/onboarding/step_done.html
+msgid "Confermando, il wizard non verrà più mostrato automaticamente. Puoi sempre rilanciarlo manualmente da"
+msgstr "Once confirmed, the wizard will no longer appear automatically. You can always restart it manually from"
+
+#: stoic_eln/templates/onboarding/step_done.html
+msgid "Conferma e vai alla Dashboard"
+msgstr "Confirm and go to Dashboard"

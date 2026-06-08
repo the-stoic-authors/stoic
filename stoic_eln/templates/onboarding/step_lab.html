@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Nome del laboratorio") }} — Stoic{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width: 600px;">
+  <div class="d-flex align-items-center mb-3">
+    <span class="badge text-bg-secondary me-2">1 / 3</span>
+    <h1 class="h3 mb-0">{{ _("Nome del laboratorio") }}</h1>
+  </div>
+
+  <p class="text-muted">
+    {{ _("Il nome che identifica il laboratorio nell'interfaccia e sui PDF di run, lotti e report.") }}
+  </p>
+
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="mb-3">
+      <label for="lab_name" class="form-label">{{ _("Nome") }}</label>
+      <input type="text"
+             class="form-control"
+             id="lab_name"
+             name="lab_name"
+             value="{{ current }}"
+             placeholder="{{ _('Es. Laboratorio Rossi, Lab Chimica Organica…') }}"
+             autofocus
+             required
+             maxlength="120">
+      <div class="form-text">
+        {{ _("Puoi cambiarlo in seguito dalla pagina Impostazioni.") }}
+      </div>
+    </div>
+
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-primary">
+        {{ _("Avanti") }} <i data-lucide="arrow-right" style="width:14px;height:14px"></i>
+      </button>
+      <a href="{{ url_for('onboarding.skip') }}" class="btn btn-outline-secondary">
+        {{ _("Salta tutto") }}
+      </a>
+    </div>
+  </form>
+</div>
+<script>if (window.lucide) lucide.createIcons();</script>
+{% endblock %}

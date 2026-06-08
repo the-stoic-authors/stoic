@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Valuta") }} — Stoic{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width: 600px;">
+  <div class="d-flex align-items-center mb-3">
+    <span class="badge text-bg-secondary me-2">2 / 3</span>
+    <h1 class="h3 mb-0">{{ _("Valuta") }}</h1>
+  </div>
+
+  <p class="text-muted">
+    {{ _("La valuta in cui sono espressi i costi dei lotti e i totali nei report. Cambiarla in seguito non converte i valori già registrati.") }}
+  </p>
+
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="mb-3">
+      <label for="currency" class="form-label">{{ _("Codice ISO 4217 (3 lettere)") }}</label>
+      <select name="currency" id="currency" class="form-select" required>
+        {% for c in common_codes %}
+        <option value="{{ c }}" {% if c == current %}selected{% endif %}>{{ c }}</option>
+        {% endfor %}
+      </select>
+      <div class="form-text">
+        {{ _("Per una valuta non in elenco, completa il wizard con il default e seleziona quella desiderata da Impostazioni → Valuta.") }}
+      </div>
+    </div>
+
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('onboarding.step_lab') }}" class="btn btn-outline-secondary">
+        <i data-lucide="arrow-left" style="width:14px;height:14px"></i> {{ _("Indietro") }}
+      </a>
+      <button type="submit" class="btn btn-primary">
+        {{ _("Avanti") }} <i data-lucide="arrow-right" style="width:14px;height:14px"></i>
+      </button>
+      <a href="{{ url_for('onboarding.skip') }}" class="btn btn-link text-muted">
+        {{ _("Salta tutto") }}
+      </a>
+    </div>
+  </form>
+</div>
+<script>if (window.lucide) lucide.createIcons();</script>
+{% endblock %}
