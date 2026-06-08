@@ -30,7 +30,6 @@ from pathlib import Path
 
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.pdfgen.canvas import Canvas
 
 # Font names that PDF modules import — keep these stable.
 FONT_REGULAR = "StoicSerif"
