@@ -24,6 +24,16 @@ from reportlab.platypus import (
     TableStyle,
 )
 
+from stoic_eln.services.pdf_fonts import (
+    FONT_BOLD,
+    FONT_REGULAR,
+    register as register_fonts,
+)
+
+# Register the Stoic PDF font family once when this module is imported.
+# Idempotent. See pdf_fonts.py for the rationale.
+register_fonts()
+
 
 def _esc(s: str | None) -> str:
     if s is None:
@@ -35,9 +45,9 @@ def _header_footer(canvas_obj: canvas.Canvas, doc, *, filters, total_count: int,
     canvas_obj.saveState()
     w, h = doc.pagesize
     # Header
-    canvas_obj.setFont("Times-Bold", 11)
+    canvas_obj.setFont(FONT_BOLD, 11)
     canvas_obj.drawString(15 * mm, h - 12 * mm, "Stoic — Audit log")
-    canvas_obj.setFont("Times-Roman", 8)
+    canvas_obj.setFont(FONT_REGULAR, 8)
     canvas_obj.setFillColor(colors.HexColor("#666"))
     bits = [f"Generato il {datetime.now().strftime('%Y-%m-%d %H:%M')}"]
     if filters.date_from or filters.date_to:
@@ -55,7 +65,7 @@ def _header_footer(canvas_obj: canvas.Canvas, doc, *, filters, total_count: int,
     canvas_obj.drawString(15 * mm, h - 16 * mm, "  ·  ".join(bits))
 
     # Footer
-    canvas_obj.setFont("Times-Roman", 8)
+    canvas_obj.setFont(FONT_REGULAR, 8)
     canvas_obj.drawCentredString(
         w / 2.0,
         10 * mm,
@@ -112,8 +122,8 @@ def render_audit_log_pdf(
     doc.addPageTemplates([PageTemplate(id="main", frames=[frame], onPage=_on_page)])
 
     base = getSampleStyleSheet()["BodyText"]
-    cell_style = ParagraphStyle("cell", parent=base, fontSize=7, fontName="Times-Roman", leading=9)
-    head_style = ParagraphStyle("head", parent=base, fontSize=8, fontName="Times-Bold", leading=10)
+    cell_style = ParagraphStyle("cell", parent=base, fontSize=7, fontName=FONT_REGULAR, leading=9)
+    head_style = ParagraphStyle("head", parent=base, fontSize=8, fontName=FONT_BOLD, leading=10)
 
     head = [
         Paragraph("Data e ora (UTC)", head_style),

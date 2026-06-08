@@ -149,14 +149,16 @@ def compute_run_cost(run: Run) -> RunCostBreakdown:
     for c in sorted(run.components, key=lambda x: x.position):
         if c.role in PRODUCED_ROLES:
             continue
-        sub = c.substance
         lot = c.inventory_item
         cost = _line_cost(c.actual_mass_g, c.actual_volume_mL, lot)
         is_internal = bool(lot and lot.source_run_id is not None)
         line = CostLine(
             source="main",
             step_title=None,
-            substance_name=sub.name if sub else "?",
+            # Use display_name so a mixture-backed component (e.g. HCl 12N
+            # used as a precursor for HCl 6N) shows its mixture label
+            # instead of "?" — see RunComponent.display_name.
+            substance_name=c.display_name,
             role=c.role,
             actual_quantity_display=_qty_display(c.actual_mass_g, c.actual_volume_mL),
             has_lot=lot is not None,
@@ -173,14 +175,15 @@ def compute_run_cost(run: Run) -> RunCostBreakdown:
         for sc in sorted(step.components, key=lambda x: x.position):
             if sc.role in PRODUCED_ROLES:
                 continue
-            sub = sc.substance
             lot = sc.inventory_item
             cost = _line_cost(sc.actual_mass_g, sc.actual_volume_mL, lot)
             is_internal = bool(lot and lot.source_run_id is not None)
             line = CostLine(
                 source="step",
                 step_title=step.title,
-                substance_name=sub.name if sub else "?",
+                # Use display_name to handle mixture-backed step components
+                # (e.g. workup with a buffer that's itself a mixture).
+                substance_name=sc.display_name,
                 role=sc.role,
                 actual_quantity_display=_qty_display(sc.actual_mass_g, sc.actual_volume_mL),
                 has_lot=lot is not None,

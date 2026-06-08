@@ -44,7 +44,7 @@
           <td class="small">
             {% if m.components %}
               {% for c in m.components[:3] %}
-                {{ c.substance.name }}{% if not loop.last %}, {% endif %}
+                {{ c.display_name }}{% if not loop.last %}, {% endif %}
               {% endfor %}
               {% if m.components|length > 3 %}<span class="text-muted">…+{{ m.components|length - 3 }}</span>{% endif %}
             {% else %}

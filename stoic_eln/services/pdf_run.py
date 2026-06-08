@@ -46,8 +46,20 @@ from reportlab.platypus import (
     TableStyle,
 )
 
+from stoic_eln.services.pdf_fonts import (
+    FONT_BOLD,
+    FONT_ITALIC,
+    FONT_REGULAR,
+    register as register_fonts,
+)
 from stoic_eln.services.scheme_image import render_reaction_png
 from stoic_eln.services.units import best_fit_mass, best_fit_volume
+
+# Register the Stoic PDF font family once when this module is imported.
+# Idempotent — re-registering is a no-op. Done here rather than at app
+# startup so that PDF generation works in any context (Flask request,
+# CLI command, test, ad-hoc script) without requiring an init step.
+register_fonts()
 
 if TYPE_CHECKING:
     from stoic_eln.models.run import Run
@@ -70,7 +82,7 @@ def _academic_styles() -> dict:
     title = ParagraphStyle(
         "AcademicTitle",
         parent=base["Title"],
-        fontName="Times-Bold",
+        fontName=FONT_BOLD,
         fontSize=18,
         leading=22,
         alignment=0,  # left
@@ -79,7 +91,7 @@ def _academic_styles() -> dict:
     subtitle = ParagraphStyle(
         "AcademicSubtitle",
         parent=base["Normal"],
-        fontName="Times-Italic",
+        fontName=FONT_ITALIC,
         fontSize=11,
         leading=14,
         textColor=colors.HexColor("#444"),
@@ -88,7 +100,7 @@ def _academic_styles() -> dict:
     abstract = ParagraphStyle(
         "AcademicAbstract",
         parent=base["Normal"],
-        fontName="Times-Roman",
+        fontName=FONT_REGULAR,
         fontSize=10,
         leading=13,
         leftIndent=8,
@@ -103,7 +115,7 @@ def _academic_styles() -> dict:
     section = ParagraphStyle(
         "AcademicSection",
         parent=base["Heading2"],
-        fontName="Times-Bold",
+        fontName=FONT_BOLD,
         fontSize=12,
         leading=15,
         spaceBefore=14,
@@ -113,7 +125,7 @@ def _academic_styles() -> dict:
     subsection = ParagraphStyle(
         "AcademicSubsection",
         parent=base["Heading3"],
-        fontName="Times-Bold",
+        fontName=FONT_BOLD,
         fontSize=10.5,
         leading=13,
         spaceBefore=8,
@@ -122,7 +134,7 @@ def _academic_styles() -> dict:
     body = ParagraphStyle(
         "AcademicBody",
         parent=base["Normal"],
-        fontName="Times-Roman",
+        fontName=FONT_REGULAR,
         fontSize=10,
         leading=13,
         alignment=4,  # justified
@@ -137,7 +149,7 @@ def _academic_styles() -> dict:
     table_cell = ParagraphStyle(
         "TableCell",
         parent=base["Normal"],
-        fontName="Times-Roman",
+        fontName=FONT_REGULAR,
         fontSize=9,
         leading=11,
     )
@@ -151,7 +163,7 @@ def _academic_styles() -> dict:
         "AcademicNote",
         parent=body_small,
         textColor=colors.HexColor("#555"),
-        fontName="Times-Italic",
+        fontName=FONT_ITALIC,
     )
     return dict(
         title=title,
@@ -218,14 +230,14 @@ def _on_page(canvas, doc, *, run, total_pages_callback=None):
         _MARGIN_LEFT, _PAGE_H - _MARGIN_TOP + 8, _PAGE_W - _MARGIN_RIGHT, _PAGE_H - _MARGIN_TOP + 8
     )
     # Header left: Stoic wordmark — small caps, modest weight
-    canvas.setFont("Times-Bold", 10)
+    canvas.setFont(FONT_BOLD, 10)
     canvas.setFillColor(colors.HexColor("#0a9ca7"))  # the brand teal accent
     canvas.drawString(_MARGIN_LEFT, _PAGE_H - _MARGIN_TOP + 14, "Stoic")
     canvas.setFillColor(colors.HexColor("#222"))
-    canvas.setFont("Times-Roman", 10)
+    canvas.setFont(FONT_REGULAR, 10)
     canvas.drawString(_MARGIN_LEFT + 28, _PAGE_H - _MARGIN_TOP + 14, "ELN")
     # Header right: report kind
-    canvas.setFont("Times-Italic", 9)
+    canvas.setFont(FONT_ITALIC, 9)
     canvas.setFillColor(colors.HexColor("#666"))
     canvas.drawRightString(_PAGE_W - _MARGIN_RIGHT, _PAGE_H - _MARGIN_TOP + 14, "Run report")
 
@@ -237,7 +249,7 @@ def _on_page(canvas, doc, *, run, total_pages_callback=None):
     canvas.setFillColor(colors.HexColor("#444"))
     canvas.drawString(_MARGIN_LEFT, _MARGIN_BOTTOM - 18, run.code or "—")
     # Footer right: page X
-    canvas.setFont("Times-Roman", 8)
+    canvas.setFont(FONT_REGULAR, 8)
     canvas.drawRightString(
         _PAGE_W - _MARGIN_RIGHT,
         _MARGIN_BOTTOM - 18,
@@ -314,7 +326,10 @@ def _build_components_table(run: Run, styles: dict, *, full: bool) -> list:
     cell = styles["table_cell"]
     for c in sorted(run.components, key=lambda x: x.position):
         sub = c.substance
-        name = sub.name if sub else "?"
+        # display_name handles both substance-backed and mixture-backed
+        # run components (returns the mixture's display_label when
+        # appropriate).
+        name = c.display_name
         if sub and sub.cas_number:
             name = f"{name} <font size='7' color='#666'>({sub.cas_number})</font>"
         role = _component_role_label_it(c.role)
@@ -350,7 +365,7 @@ def _build_components_table(run: Run, styles: dict, *, full: bool) -> list:
     t.setStyle(
         TableStyle(
             [
-                ("FONTNAME", (0, 0), (-1, 0), "Times-Bold"),
+                ("FONTNAME", (0, 0), (-1, 0), FONT_BOLD),
                 ("FONTSIZE", (0, 0), (-1, 0), 9),
                 ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#e9e9e2")),
                 ("LINEBELOW", (0, 0), (-1, 0), 0.5, colors.HexColor("#888")),
@@ -512,8 +527,10 @@ def _build_steps(run: Run, styles: dict, *, section_no: int) -> list:
             head = ["Sostanza", "Ruolo", "Quantità"]
             rows = [head]
             for sc in sorted(step.components, key=lambda x: x.position):
-                sub = sc.substance
-                name = sub.name if sub else "?"
+                # Use display_name so mixture-backed step components
+                # (e.g. workup with HCl 12N) show the mixture label
+                # rather than "?". Same fix as in run_cost.py.
+                name = sc.display_name
                 role = _component_role_label_it(sc.role)
                 amount = _fmt_amount(sc.actual_mass_g, sc.actual_volume_mL)
                 rows.append(
@@ -535,7 +552,7 @@ def _build_steps(run: Run, styles: dict, *, section_no: int) -> list:
             t.setStyle(
                 TableStyle(
                     [
-                        ("FONTNAME", (0, 0), (-1, 0), "Times-Bold"),
+                        ("FONTNAME", (0, 0), (-1, 0), FONT_BOLD),
                         ("FONTSIZE", (0, 0), (-1, 0), 9),
                         ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#f0f0e9")),
                         ("LINEBELOW", (0, 0), (-1, 0), 0.4, colors.HexColor("#888")),
@@ -660,7 +677,7 @@ def _build_cost(run: Run, styles: dict, *, section_no: int) -> list:
     t.setStyle(
         TableStyle(
             [
-                ("FONTNAME", (0, 0), (-1, 0), "Times-Bold"),
+                ("FONTNAME", (0, 0), (-1, 0), FONT_BOLD),
                 ("FONTSIZE", (0, 0), (-1, 0), 9),
                 ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#e9e9e2")),
                 ("LINEBELOW", (0, 0), (-1, 0), 0.5, colors.HexColor("#888")),
