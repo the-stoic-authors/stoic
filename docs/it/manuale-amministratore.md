@@ -323,6 +323,12 @@ Quello descritto sopra. `flask run` su localhost:5000.
 
 ### Produzione su Linux + systemd
 
+Stoic include un entrypoint production-ready (`wsgi.py`) e una
+configurazione gunicorn calibrata (`gunicorn.conf.py`). Gestiscono
+correttamente un dettaglio sottile: lo scheduler interno dei backup
+gira nel processo gunicorn **master**, non in ogni worker — così il
+backup notturno scatta una volta sola anche con `--workers 4`.
+
 Crea `/etc/systemd/system/stoic.service`:
 
 ```ini
@@ -334,12 +340,8 @@ After=network.target
 Type=simple
 User=stoic
 WorkingDirectory=/opt/stoic-eln
-EnvironmentFile=/etc/stoic/secret.env
-ExecStart=/opt/stoic-eln/.venv/bin/gunicorn \
-    --bind 0.0.0.0:5000 \
-    --workers 2 \
-    --timeout 120 \
-    "stoic_eln:create_app()"
+EnvironmentFile=/etc/stoic/stoic.env
+ExecStart=/opt/stoic-eln/.venv/bin/gunicorn -c /opt/stoic-eln/gunicorn.conf.py wsgi:app
 Restart=on-failure
 RestartSec=5
 
@@ -347,16 +349,36 @@ RestartSec=5
 WantedBy=multi-user.target
 ```
 
-Il file `/etc/stoic/secret.env`:
+Il file `/etc/stoic/stoic.env`:
 
 ```
+# Obbligatoria in produzione
+SECRET_KEY=generare-con-python-secrets-token_hex-32
+
+# Opzionale: solo se i backup cifrati sono abilitati
 STOIC_BACKUP_PASSPHRASE=la-tua-passphrase-segreta
+
+# Tuning gunicorn opzionale (default mostrati)
+STOIC_BIND=127.0.0.1:5001
+STOIC_WORKERS=2
+STOIC_TIMEOUT=120
 ```
 
-Permessi: `chmod 600 /etc/stoic/secret.env`, `chown root:stoic
-/etc/stoic/secret.env` (leggibile solo da root e dal gruppo stoic).
-Oppure usa `systemd-creds` + TPM per cifratura at-rest del
+Permessi: `chmod 600 /etc/stoic/stoic.env`, `chown root:stoic
+/etc/stoic/stoic.env` (leggibile solo da root e dal gruppo stoic).
+Oppure usa `systemd-creds` + TPM per cifratura at-rest dei
 secret.
+
+**Esposizione in LAN**: il default `STOIC_BIND=127.0.0.1:5001`
+significa che Stoic è raggiungibile solo dal server stesso. Per
+renderlo disponibile sulla rete del laboratorio, due opzioni:
+
+  - **Raccomandato**: metti Caddy (o nginx) davanti, in ascolto
+    su 443/80 e proxy verso `127.0.0.1:5001`. È l'unico modo per
+    avere HTTPS, ed è quello che fa lo script `install-linux.sh`.
+  - **Veloce e sporco**: cambia `STOIC_BIND` a `0.0.0.0:5001`.
+    Stoic sarà raggiungibile in HTTP sulla LAN. Evitalo su reti
+    condivise o non fidate.
 
 Abilita e avvia:
 
@@ -368,9 +390,9 @@ systemctl status stoic
 
 ### Produzione su Raspberry Pi
 
-Stessa configurazione systemd, ma con `--workers 1` (Pi ha meno
-RAM) e magari `--bind 127.0.0.1:5000` + reverse proxy nginx
-davanti se vuoi HTTPS.
+Stessa configurazione systemd, ma con `STOIC_WORKERS=1` (Pi ha
+meno RAM) in `/etc/stoic/stoic.env`. La raccomandazione del
+reverse proxy resta: metti Caddy davanti per HTTPS.
 
 Per il modo `prompt` su Pi (passphrase mai sul disco):
 

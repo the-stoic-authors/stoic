@@ -42,6 +42,7 @@ CONFIG_MAP: dict[str, type[Config]] = {
 def create_app(
     config_class: type[Config] | None = None,
     instance_path: str | None = None,
+    start_scheduler: bool = True,
 ) -> Flask:
     """Create and configure a Flask application instance.
 
@@ -51,6 +52,14 @@ def create_app(
             for tests that need an isolated location for files like
             ``backup.key`` and ``auth_source``. When None (production),
             Flask computes it from the package location.
+        start_scheduler: Whether to start the in-process background
+            scheduler (nightly backup, etc.). Default True so that
+            ``flask run`` and one-shot scripts continue to schedule
+            their own backups. Set to False from ``wsgi.py`` so that
+            in a multi-worker gunicorn setup only ONE process runs
+            the scheduler (the master, via gunicorn's when_ready hook).
+            Tests bypass scheduling regardless of this flag via the
+            ``TESTING`` check inside ``init_scheduler``.
     """
     app = Flask(
         __name__,
@@ -86,9 +95,15 @@ def create_app(
     # Start the background scheduler (nightly backup job). Skipped
     # under TESTING and when BACKUP_SCHEDULER_DISABLED is set, so
     # the test suite stays deterministic. (Settimana 6 patch 14.0)
-    from stoic_eln.services.scheduler import init_scheduler
+    #
+    # In a multi-worker gunicorn deployment, ``wsgi.py`` passes
+    # ``start_scheduler=False`` so the workers DON'T each spawn
+    # their own scheduler — the master process runs exactly one
+    # instance via the ``when_ready`` hook in ``gunicorn.conf.py``.
+    if start_scheduler:
+        from stoic_eln.services.scheduler import init_scheduler
 
-    init_scheduler(app)
+        init_scheduler(app)
 
     return app
 

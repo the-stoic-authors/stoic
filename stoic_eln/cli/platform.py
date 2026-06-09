@@ -453,11 +453,21 @@ class LinuxSystemdPlatform(GenericPlatform):
         from stoic_eln.cli.output import die, info, ok
 
         venv_python = REPO_ROOT / ".venv" / "bin" / "python"
+        venv_gunicorn = REPO_ROOT / ".venv" / "bin" / "gunicorn"
         if not venv_python.exists():
             die(f"Virtual environment not found at {venv_python}. Run 'stoic install' first.")
+        if not venv_gunicorn.exists():
+            die(
+                f"gunicorn not found at {venv_gunicorn}. "
+                "Reinstall Stoic with 'pip install -e .' to pull production deps."
+            )
 
         SYSTEMD_UNIT_DIR.mkdir(parents=True, exist_ok=True)
 
+        # Bind to 127.0.0.1 by default — operator opts into LAN by
+        # editing the Environment line (or putting a reverse proxy
+        # like Caddy in front of Stoic, which is what the docs
+        # recommend).
         unit = f"""\
 [Unit]
 Description=Stoic ELN (electronic lab notebook)
@@ -467,7 +477,8 @@ After=network.target
 Type=simple
 WorkingDirectory={REPO_ROOT}
 Environment="FLASK_APP=stoic_eln"
-ExecStart={venv_python} -m flask --app stoic_eln run --host 127.0.0.1 --port {port}
+Environment="STOIC_BIND=127.0.0.1:{port}"
+ExecStart={venv_gunicorn} -c {REPO_ROOT}/gunicorn.conf.py wsgi:app
 Restart=on-failure
 RestartSec=5
 StandardOutput=append:{LOG_FILE}
@@ -486,7 +497,13 @@ WantedBy=default.target
         ok(
             "Stoic registered as systemd user service. To make it "
             "start without you logging in, run:\n"
-            "  sudo loginctl enable-linger $USER"
+            "  sudo loginctl enable-linger $USER\n"
+            "\n"
+            "Stoic is bound to 127.0.0.1 only. To expose on the LAN, "
+            "either:\n"
+            "  - run Caddy/nginx as a reverse proxy in front (recommended)\n"
+            f"  - or change STOIC_BIND in {SYSTEMD_UNIT_PATH} to "
+            "0.0.0.0:{port}"
         )
 
     def uninstall_daemon(self) -> None:

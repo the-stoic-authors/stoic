@@ -75,6 +75,10 @@ dependencies = [
     # (Settimana 6 patch 14.6). Used only at request time on
     # the `/docs/...` routes; no template-time markdown rendering.
     "markdown>=3.5,<4.0",
+    # Gunicorn: production WSGI server. Stoic's `wsgi.py` is the
+    # entrypoint; in single-machine dev mode `flask run` still
+    # works without ever touching gunicorn.
+    "gunicorn>=21.2,<24.0",
 ]
 
 [project.optional-dependencies]
