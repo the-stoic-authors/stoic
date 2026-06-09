@@ -5266,3 +5266,16 @@ msgstr "Once confirmed, the wizard will no longer appear automatically. You can 
 #: stoic_eln/templates/onboarding/step_done.html
 msgid "Conferma e vai alla Dashboard"
 msgstr "Confirm and go to Dashboard"
+
+
+#: stoic_eln/templates/base.html
+msgid "Esci"
+msgstr "Exit"
+
+#: stoic_eln/templates/runs/detail.html
+msgid "Modalità banco"
+msgstr "Bench mode"
+
+#: stoic_eln/templates/runs/detail.html
+msgid "Modalità banco — schermo intero per esecuzione al laboratorio"
+msgstr "Bench mode — fullscreen view for execution at the lab bench"

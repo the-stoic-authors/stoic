@@ -1,0 +1,231 @@
+/* Stoic ELN — Bench mode
+ *
+ * Tablet/phone-friendly run execution layout. Activated by adding the
+ * `bench-mode` class to <body>. Designed as a non-destructive overlay
+ * on top of the regular run detail page — no template restructuring,
+ * just selectors that hide chrome and enlarge interactive elements
+ * when the class is present.
+ *
+ * Triggered from the bench-toggle button inside the run detail
+ * header, persisted in sessionStorage per-run so reload keeps the
+ * mode active until the operator exits explicitly.
+ *
+ * Design budget:
+ *  - Tap targets ≥ 44×44pt per iOS HIG, applied especially to
+ *    interactive elements (inputs, lot pickers, "step done" buttons).
+ *  - Body font 17px (vs 14px default), inputs 20px — legible at
+ *    arm's length at the bench. Inputs ≥ 16px also prevents iOS
+ *    auto-zoom on focus.
+ *  - Layout collapsed to single column even on wide screens so the
+ *    rhythm doesn't change between iPhone and iPad in landscape.
+ *  - Sidebar and the regular header are hidden — kiosk feel. A
+ *    minimal top bar (.bench-topbar) is injected by the toggle
+ *    script with the run code and an "Exit" button.
+ */
+
+/* ─── Hide regular chrome ────────────────────────────────────── */
+
+body.bench-mode {
+  font-size: 17px;
+  line-height: 1.45;
+}
+
+body.bench-mode .app-sidebar,
+body.bench-mode .app-header,
+body.bench-mode .breadcrumb,
+body.bench-mode footer,
+body.bench-mode .app-sidebar-footer {
+  display: none !important;
+}
+
+body.bench-mode .app-main,
+body.bench-mode main {
+  margin-left: 0 !important;
+  padding-top: 56px !important;
+}
+
+body.bench-mode .container,
+body.bench-mode .container-fluid {
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+/* ─── Bench topbar (injected by JS on activation) ────────────── */
+
+.bench-topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 56px;
+  background: var(--stoic-card-bg, #1e2128);
+  border-bottom: 1px solid var(--stoic-card-border, #2c3038);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  z-index: 1030;
+}
+
+.bench-topbar-title {
+  font-weight: 600;
+  font-size: 18px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  margin-right: 12px;
+}
+
+.bench-topbar-exit {
+  min-width: 88px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.bench-topbar-exit:hover,
+.bench-topbar-exit:focus {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* ─── Cards & spacing ─────────────────────────────────────────── */
+
+body.bench-mode .card {
+  margin-bottom: 20px;
+}
+
+body.bench-mode .card-header {
+  font-size: 16px;
+  padding: 14px 18px;
+}
+
+body.bench-mode .card-body {
+  padding: 18px;
+}
+
+/* ─── Inputs ─────────────────────────────────────────────────── */
+
+body.bench-mode .form-control,
+body.bench-mode .form-select {
+  /* iOS auto-zooms on focus if input font-size < 16px; we use 17px
+     to suppress that across the board. */
+  font-size: 17px;
+  min-height: 48px;
+  padding: 10px 14px;
+}
+
+body.bench-mode input[type="number"],
+body.bench-mode input[inputmode="decimal"] {
+  /* Numeric fields are the bench's prime tap target. Wider, more
+     obvious, monospace digits for at-a-glance reading. */
+  font-variant-numeric: tabular-nums;
+  font-size: 20px;
+  font-weight: 500;
+  text-align: right;
+  padding-right: 16px;
+}
+
+body.bench-mode label.form-label,
+body.bench-mode label {
+  font-size: 15px;
+  margin-bottom: 6px;
+}
+
+/* ─── Buttons ────────────────────────────────────────────────── */
+
+body.bench-mode .btn {
+  min-height: 48px;
+  padding: 10px 18px;
+  font-size: 16px;
+}
+
+body.bench-mode .btn-lg {
+  min-height: 56px;
+  padding: 14px 24px;
+  font-size: 18px;
+}
+
+body.bench-mode .btn-sm {
+  min-height: 40px;
+  padding: 8px 14px;
+  font-size: 14px;
+}
+
+/* ─── Tables & step rows ─────────────────────────────────────── */
+
+body.bench-mode table {
+  font-size: 16px;
+}
+
+body.bench-mode td,
+body.bench-mode th {
+  padding: 12px 10px !important;
+  vertical-align: middle;
+}
+
+body.bench-mode .step-component-row td input,
+body.bench-mode .step-component-row td select {
+  min-height: 48px;
+}
+
+/* ─── Step cards ─────────────────────────────────────────────── */
+
+body.bench-mode .step-card .card-header {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+body.bench-mode .step-card .checklist-item {
+  padding: 12px 4px;
+  border-bottom: 1px dashed var(--stoic-card-border, #2c3038);
+}
+
+body.bench-mode .step-card .checklist-item:last-child {
+  border-bottom: none;
+}
+
+body.bench-mode .step-card .checklist-item input[type="checkbox"] {
+  width: 22px;
+  height: 22px;
+  margin-right: 12px;
+  cursor: pointer;
+}
+
+/* ─── Single-column on any width ─────────────────────────────── */
+
+body.bench-mode .row > [class*="col-"] {
+  /* Tablets in landscape are wide enough for side-by-side, but at
+     the bench the linear flow reads better. */
+  flex: 0 0 100%;
+  max-width: 100%;
+}
+
+/* ─── Reduce motion ─────────────────────────────────────────── */
+
+body.bench-mode * {
+  animation-duration: 0.01ms !important;
+  transition-duration: 80ms !important;
+}
+
+/* ─── Bench-toggle button (visible on non-bench page) ────────── */
+
+.bench-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}

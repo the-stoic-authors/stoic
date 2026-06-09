@@ -36,10 +36,19 @@
 {% elif is_running %}
 <div class="alert alert-primary d-flex align-items-center gap-2">
   <i data-lucide="flask-conical"></i>
-  <div>
+  <div class="flex-grow-1">
     <strong>{{ _("Run in esecuzione.") }}</strong>
     {{ _("Inventario aggiornato. Spunta le voci della check list e completa al termine.") }}
   </div>
+  <button type="button"
+          class="btn btn-outline-primary bench-toggle-btn"
+          data-bench-toggle
+          data-run-id="{{ run.id }}"
+          data-run-code="{{ run.code }}"
+          title="{{ _('Modalità banco — schermo intero per esecuzione al laboratorio') }}">
+    <i data-lucide="maximize-2" style="width:16px;height:16px"></i>
+    <span>{{ _("Modalità banco") }}</span>
+  </button>
 </div>
 {% else %}
 <div class="alert alert-success d-flex align-items-center gap-2">
@@ -84,7 +93,7 @@
           <form method="post" action="{{ url_for('runs.update_scale', run_id=run.id) }}"
                 class="d-flex gap-1 align-items-center">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <input type="number" step="0.001" min="0" name="scale_amount"
+            <input type="number" inputmode="decimal" step="0.001" min="0" name="scale_amount"
                    class="form-control form-control-sm" style="max-width: 7rem"
                    value="{{ '%g'|format(scale_value) if scale_value is not none else '' }}"
                    placeholder="{{ _('es. 5') }}">
@@ -426,7 +435,7 @@
                     class="d-flex gap-1 align-items-center justify-content-end run-actual-form">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="hidden" name="unit" value="{{ actual_unit }}">
-                <input type="number" step="0.001" min="0" name="actual"
+                <input type="number" inputmode="decimal" step="0.001" min="0" name="actual"
                        class="form-control form-control-sm text-end" style="width: 7rem"
                        value="{{ actual_value.formatted if actual_value else '' }}"
                        placeholder="{{ target_display.formatted if target_display else '' }}"
@@ -529,7 +538,7 @@
 {% set kind_color = {'workup': 'info', 'extraction': 'success',
                      'purification': 'warning', 'analysis': 'secondary',
                      'other': 'light'}.get(step.kind, 'light') %}
-<div class="card mb-3">
+<div class="card mb-3 step-card">
   <div class="card-header d-flex align-items-center gap-2">
     <span class="badge text-bg-{{ kind_color }}">{{ kind_label }}</span>
     <strong>{{ step.title }}</strong>
@@ -556,7 +565,7 @@
           {% set sub_sc = sc.substance %}
           {% set mix_sc = sc.mixture %}
           {% set q = compute_run_step_component(sc, run) %}
-          <tr>
+          <tr class="step-component-row">
             <td>
               {% if mix_sc %}
                 <a href="{{ url_for('mixtures.detail', mixture_id=mix_sc.id) }}"
@@ -645,7 +654,7 @@
                      hx-trigger="change delay:400ms from:find input, change delay:0ms from:find select"
                      hx-include="this"
                      hx-swap="none">
-                  <input type="number" step="any" min="0" name="actual"
+                  <input type="number" inputmode="decimal" step="any" min="0" name="actual"
                          class="form-control form-control-sm font-monospace text-end"
                          style="max-width: 5.5rem"
                          value="{{ '%g'|format(cur_val) if cur_val != '' else '' }}"
@@ -849,7 +858,7 @@
   document.body.addEventListener('htmx:afterRequest', function (evt) {
     const form = evt.target.closest('.run-actual-form, [hx-post*="/component/"][hx-post$="/lot"]');
     if (!form) return;
-    const ctl = form.querySelector('input[type="number"], select');
+    const ctl = form.querySelector('input[type="number" inputmode="decimal"], select');
     if (!ctl) return;
     ctl.classList.add('htmx-just-saved');
     setTimeout(() => ctl.classList.remove('htmx-just-saved'), 600);

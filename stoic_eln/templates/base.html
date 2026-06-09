@@ -36,6 +36,7 @@
 
   <!-- App CSS -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/bench.css') }}">
 
   {% block head_extra %}{% endblock %}
 
@@ -335,6 +336,12 @@
   <script src="{{ url_for('static', filename='js/stoichiometry.js') }}"></script>
   <script src="{{ url_for('static', filename='js/sticky_table.js') }}"></script>
   <script src="{{ url_for('static', filename='js/ghs_theme.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/bench.js') }}"></script>
+  {# Bench mode exposes its exit-button label via this global so the
+     script (which doesn't have access to Jinja's gettext) can render
+     a localised string. The stub below is a Babel extraction anchor
+     ensuring the string makes it into the .po file. #}
+  <script>window.STOIC_BENCH_EXIT_LABEL = "{{ _('Esci') }}";</script>
   <!-- Custom Lucide icon registry (reactions-history,
        preparations-history): kept on disk but no longer loaded.
        Sidebar now uses standard `history` and `folder-clock`

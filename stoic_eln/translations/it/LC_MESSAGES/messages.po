@@ -5110,3 +5110,15 @@ msgstr "Documento generato automaticamente. Verificare sempre la SDS ufficiale d
 #~ msgid "impostazioni aggiornate"
 #~ msgstr "impostazioni aggiornate"
 
+
+#: stoic_eln/templates/base.html
+msgid "Esci"
+msgstr "Esci"
+
+#: stoic_eln/templates/runs/detail.html
+msgid "Modalità banco"
+msgstr "Modalità banco"
+
+#: stoic_eln/templates/runs/detail.html
+msgid "Modalità banco — schermo intero per esecuzione al laboratorio"
+msgstr "Modalità banco — schermo intero per esecuzione al laboratorio"
