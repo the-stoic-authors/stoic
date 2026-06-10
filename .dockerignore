@@ -1,0 +1,81 @@
+# Stoic ELN — .dockerignore
+#
+# Anything listed here is excluded from the Docker build context
+# sent to `docker build`. Smaller context = faster builds and
+# smaller intermediate layers. Mirror entries also keep secrets
+# (.env) and dev artefacts (instance/) out of the image even if
+# someone accidentally COPY's them.
+
+# ─── Python ─────────────────────────────────────────────────────
+__pycache__
+*.py[cod]
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+*.egg
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.tox/
+
+# ─── Virtual environments ──────────────────────────────────────
+.venv/
+venv/
+ENV/
+env/
+
+# ─── Local state (must never enter the image) ──────────────────
+.env
+.env.*
+!.env.example
+instance/
+data/
+backups/
+uploads/
+var/
+
+# Database artefacts — defensive even though instance/ is already
+# excluded
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+
+# ─── Git / IDE ─────────────────────────────────────────────────
+.git/
+.gitignore
+.github/
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ─── OS ────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+._*
+
+# ─── Patch tarballs and dev scratch ────────────────────────────
+*.tar.gz
+patch*-stage/
+/tmp-stage/
+
+# ─── Babel compiled artefacts (rebuilt inside the image) ───────
+*.mo
+messages.pot
+
+# ─── Docs that aren't needed at runtime ────────────────────────
+# Keep markdown for the in-app docs viewer, but skip development
+# patch notes.
+PATCH-NOTES*.md
+CHANGELOG.draft.md
+
+# ─── Tests (not shipped to production) ─────────────────────────
+# Keep tests/ available during the build (for sanity tests in CI),
+# but the runtime image doesn't need them. We handle this by
+# selectively COPY'ing in the Dockerfile rather than excluding
+# here — leave tests/ available in the build context.

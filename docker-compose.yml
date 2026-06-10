@@ -1,0 +1,108 @@
+# Stoic ELN — docker-compose.yml
+#
+# Two-service stack:
+#
+#   stoic   — gunicorn + scheduler, internal-only (no port exposed
+#             to the host). Caddy reaches it via the docker network.
+#   caddy   — reverse proxy, terminates TLS, serves on the host's
+#             :80 and :443. The only service that hits the network.
+#
+# Quick start:
+#
+#   1. cp .env.example .env
+#   2. edit .env: at minimum set SECRET_KEY (use `openssl rand -hex 32`)
+#      and decide STOIC_DOMAIN (e.g. stoic.local for LAN HTTPS).
+#   3. docker compose up -d
+#   4. open https://stoic.local
+#
+# Persistent data lives in named Docker volumes:
+#
+#   stoic-instance     SQLite database + encryption keys + passphrase store
+#   stoic-attachments  Files uploaded by users (run notes, photos, etc.)
+#   stoic-backups      Nightly encrypted backups produced by the scheduler
+#   caddy-data         Caddy's TLS certificates + ACME state
+#   caddy-config       Caddy's runtime config
+#
+# To run a one-off command inside the Stoic container (migrations,
+# manual backup, etc.):
+#
+#   docker compose exec stoic flask --app stoic_eln <command>
+
+services:
+  stoic:
+    image: ${STOIC_IMAGE:-ghcr.io/the-stoic-authors/stoic:latest}
+    # Build locally if the image isn't pulled (useful in development;
+    # operators pulling pre-built images can ignore this).
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      # gunicorn binds inside the container on all interfaces (the
+      # docker network namespace makes this safe — nothing outside
+      # caddy can reach it). The host-facing exposure is handled by
+      # caddy publishing :80/:443.
+      STOIC_BIND: "0.0.0.0:5001"
+      STOIC_WORKERS: "${STOIC_WORKERS:-2}"
+      STOIC_TIMEOUT: "${STOIC_TIMEOUT:-120}"
+      # DATABASE_URL points inside the named volume so the DB
+      # survives container restarts.
+      DATABASE_URL: "sqlite:////app/instance/stoic_eln.db"
+      ATTACHMENTS_DIR: "/app/data/attachments"
+      FLASK_ENV: "production"
+    volumes:
+      - stoic-instance:/app/instance
+      - stoic-attachments:/app/data/attachments
+      - stoic-backups:/app/var/backups
+    # NO ports: published. The container is only reachable via the
+    # internal docker-compose network. Caddy proxies to it by
+    # service name.
+    networks:
+      - stoic-net
+    healthcheck:
+      # Same probe as the image's HEALTHCHECK directive, repeated
+      # here so docker-compose sees it.
+      test:
+        - "CMD"
+        - "python"
+        - "-c"
+        - "import urllib.request,sys; r=urllib.request.urlopen('http://127.0.0.1:5001/auth/login', timeout=3); sys.exit(0 if r.status==200 else 1)"
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      # The only ports exposed to the host. 80 is needed for the
+      # Let's Encrypt HTTP-01 challenge on first cert issue and
+      # for HTTP→HTTPS redirects; 443 serves the real traffic.
+      - "80:80"
+      - "443:443"
+    env_file: .env
+    environment:
+      STOIC_DOMAIN: "${STOIC_DOMAIN:-stoic.local}"
+      STOIC_TLS_EMAIL: "${STOIC_TLS_EMAIL:-}"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      stoic:
+        condition: service_healthy
+    networks:
+      - stoic-net
+
+networks:
+  stoic-net:
+    driver: bridge
+
+volumes:
+  stoic-instance:
+  stoic-attachments:
+  stoic-backups:
+  caddy-data:
+  caddy-config:

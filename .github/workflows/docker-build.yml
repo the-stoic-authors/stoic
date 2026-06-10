@@ -1,0 +1,97 @@
+name: Docker Build
+
+# Verify that the Docker image actually builds and the compose
+# stack starts successfully. This catches Dockerfile syntax issues,
+# missing system dependencies, and broken Caddyfile/compose
+# manifests early, well before anyone tries to deploy.
+#
+# We deliberately do NOT push the resulting image to ghcr.io yet —
+# that's a separate workflow (Patch E) gated on release tags.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "Dockerfile"
+      - ".dockerignore"
+      - "docker-compose.yml"
+      - "Caddyfile"
+      - ".env.example"
+      - "wsgi.py"
+      - "gunicorn.conf.py"
+      - "pyproject.toml"
+      - "stoic_eln/**"
+      - ".github/workflows/docker-build.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "Dockerfile"
+      - ".dockerignore"
+      - "docker-compose.yml"
+      - "Caddyfile"
+      - ".env.example"
+      - "wsgi.py"
+      - "gunicorn.conf.py"
+      - "pyproject.toml"
+      - "stoic_eln/**"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build and smoke-test image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64
+          push: false
+          load: true
+          tags: stoic-eln:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Smoke-test image startup
+        # Boot the container with a tmp SECRET_KEY and confirm
+        # the login page returns 200 within 20 seconds. This
+        # validates: gunicorn starts, scheduler init in master,
+        # DB migrations run, static asset serving works.
+        run: |
+          SECRET_KEY=$(openssl rand -hex 32)
+          docker run -d --name stoic-test \
+            -e SECRET_KEY="$SECRET_KEY" \
+            -e FLASK_ENV=production \
+            -p 5001:5001 \
+            stoic-eln:ci
+          # Poll for readiness — up to 20 attempts × 1 second
+          for i in $(seq 1 20); do
+            if curl -fsS http://127.0.0.1:5001/auth/login > /dev/null; then
+              echo "Stoic is up after ${i}s"
+              docker logs stoic-test
+              docker stop stoic-test
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Stoic failed to come up in 20 seconds"
+          docker logs stoic-test
+          exit 1
+
+      - name: Validate compose file
+        # `docker compose config` parses + validates the YAML and
+        # resolves env vars. Doesn't pull images or start anything.
+        run: |
+          cp .env.example .env
+          # Provide a SECRET_KEY so the config validation passes
+          echo "SECRET_KEY=$(openssl rand -hex 32)" >> .env
+          docker compose config > /dev/null

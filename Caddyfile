@@ -1,0 +1,102 @@
+# Stoic ELN — Caddyfile
+#
+# Caddy terminates TLS in front of gunicorn. Three ways to drive
+# the certificate handling, selected via the STOIC_DOMAIN env var
+# at compose-up time (or via the .env file):
+#
+#   STOIC_DOMAIN=lab.example.com
+#     A real, publicly-resolvable domain pointing at this server.
+#     Caddy fetches a Let's Encrypt certificate automatically on
+#     first request and renews it before expiry. Requires ports
+#     80 and 443 reachable from the public internet.
+#
+#   STOIC_DOMAIN=stoic.local     (or any *.local / *.lan)
+#     Caddy uses its internal CA to issue a self-signed certificate.
+#     Browsers will warn on first visit; install Caddy's root CA
+#     once (instructions in install-docker.md) and the warning
+#     disappears across the LAN.
+#
+#   STOIC_DOMAIN=localhost
+#     Caddy serves HTTP only on port 80. Useful for development
+#     and CI smoke tests; not for production deployment.
+#
+# The trailing braces are real Caddyfile syntax — no Jinja, no
+# variable interpolation. Caddy resolves {$STOIC_DOMAIN} at
+# startup from the container environment.
+
+{
+	# Global options
+	# Email used for Let's Encrypt ACME registration (only matters
+	# when STOIC_DOMAIN is a real domain). If not set, ACME still
+	# works but you don't get expiry notices.
+	email {$STOIC_TLS_EMAIL:admin@example.com}
+}
+
+{$STOIC_DOMAIN} {
+	# Caddy automatically picks the right TLS strategy based on
+	# the hostname:
+	#   - real public domain  → Let's Encrypt
+	#   - *.local / *.lan     → internal CA (self-signed)
+	#   - localhost           → HTTP-only
+	# No directive needed — the default is "do the right thing".
+
+	# Compression for HTML/JSON/CSS — saves bandwidth on the LAN
+	# and dramatically improves first paint over slow links.
+	encode gzip zstd
+
+	# Security headers. These are inexpensive and harmless for an
+	# app that's only ever accessed via Caddy.
+	header {
+		# Tell browsers to stick to HTTPS once they've connected
+		# (no-op when STOIC_DOMAIN is localhost since HSTS over
+		# HTTP is ignored by browsers anyway).
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		# Don't let other sites embed Stoic in a frame.
+		X-Frame-Options "DENY"
+		# MIME type sniffing protection.
+		X-Content-Type-Options "nosniff"
+		# Referrer-Policy: keep referers within the origin.
+		Referrer-Policy "same-origin"
+		# Hide Caddy version from response headers.
+		-Server
+	}
+
+	# Static assets are served directly from the Stoic image's
+	# /opt/venv/lib/.../stoic_eln/static/ path, exposed via the
+	# stoic-static named volume. This skips the gunicorn round
+	# trip — Caddy is faster at file serving than Flask anyway.
+	#
+	# We keep this commented out by default because most users
+	# will be fine letting Flask serve statics for low traffic;
+	# uncomment when load matters.
+	#
+	# handle_path /static/* {
+	#     root * /srv/stoic-static
+	#     file_server
+	# }
+
+	# Everything else: proxy to gunicorn over the internal
+	# docker-compose network. The "stoic" hostname is the service
+	# name in compose.yml; Docker's embedded DNS resolves it.
+	reverse_proxy stoic:5001 {
+		# Pass the original host so Stoic generates correct
+		# absolute URLs (PWA manifest, redirects, etc.).
+		header_up Host {host}
+		header_up X-Real-IP {remote_host}
+		header_up X-Forwarded-For {remote_host}
+		header_up X-Forwarded-Proto {scheme}
+
+		# Match gunicorn's STOIC_TIMEOUT default (120s) — PDF
+		# generation can occasionally exceed Caddy's 30s default.
+		transport http {
+			read_timeout 130s
+			write_timeout 130s
+		}
+	}
+
+	# Log to stdout — docker compose captures this automatically.
+	log {
+		output stdout
+		format console
+	}
+}
