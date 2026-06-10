@@ -118,6 +118,19 @@ build-backend = "setuptools.build_meta"
 include = ["stoic_eln*"]
 exclude = ["tests*"]
 
+[tool.setuptools.package-data]
+# Without this, `pip install .` (non-editable) ships only .py files:
+# templates, static assets, and translations would be missing from
+# site-packages and every page render would raise TemplateNotFound.
+# Editable installs (-e) mask the problem because they read from the
+# source tree — which is why this bug only surfaced in the Docker
+# image build.
+stoic_eln = [
+    "templates/**/*",
+    "static/**/*",
+    "translations/**/*",
+]
+
 [tool.ruff]
 line-length = 100
 target-version = "py311"

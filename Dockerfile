@@ -42,19 +42,23 @@ COPY pyproject.toml ./
 
 # Install into a venv we can copy verbatim to the runtime stage.
 RUN python -m venv /opt/venv && \
-    /opt/venv/bin/pip install --no-cache-dir --upgrade pip wheel setuptools
+    /opt/venv/bin/pip install --no-cache-dir --upgrade pip wheel setuptools && \
+    /opt/venv/bin/pip install --no-cache-dir Babel
 
-# Bring the rest of the source in and install Stoic itself.
+# Bring the rest of the source in.
 COPY . /build/
 
-# Install the project (editable not needed in the image — we want
-# a real install so files end up under site-packages).
-RUN /opt/venv/bin/pip install --no-cache-dir .
+# Compile .po → .mo BEFORE installing the package: the .mo files
+# are gitignored (and dockerignored), so they must be (re)built
+# here — and they must exist in the source tree at install time so
+# that the package-data globs in pyproject.toml pick them up and
+# ship them into site-packages.
+RUN /opt/venv/bin/pybabel compile -d /build/stoic_eln/translations
 
-# Compile .po → .mo so the translations work at runtime. The .mo
-# files are gitignored, so they always need to be (re)built here.
-RUN /opt/venv/bin/pybabel compile -d /build/stoic_eln/translations || \
-    echo "pybabel compile produced warnings (probably nothing to compile)"
+# Install Stoic itself. Thanks to [tool.setuptools.package-data],
+# templates/, static/, and translations/ (including the fresh .mo)
+# land in site-packages alongside the code.
+RUN /opt/venv/bin/pip install --no-cache-dir .
 
 # ── stage 2: runtime ────────────────────────────────────────────
 
@@ -85,12 +89,12 @@ WORKDIR /app
 COPY --from=builder /opt/venv /opt/venv
 
 # Bring the source files needed at run time. Most of Stoic lives
-# inside the venv via pip install, but wsgi.py and gunicorn.conf.py
-# sit at the repo root and are referenced by the gunicorn command
-# line, so they have to be present in /app too.
+# inside the venv via pip install (templates, static, and compiled
+# translations included via package-data), but wsgi.py and
+# gunicorn.conf.py sit at the repo root and are referenced by the
+# gunicorn command line, so they have to be present in /app too.
 COPY --from=builder /build/wsgi.py /app/wsgi.py
 COPY --from=builder /build/gunicorn.conf.py /app/gunicorn.conf.py
-COPY --from=builder /build/stoic_eln/translations /opt/venv/lib/python3.12/site-packages/stoic_eln/translations
 
 # Volume mount points. We pre-create them so the entrypoint can
 # stat them even before docker-compose mounts named volumes.
