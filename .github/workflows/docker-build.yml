@@ -75,8 +75,12 @@ jobs:
             stoic-eln:ci
           # Poll for readiness — up to 20 attempts × 1 second
           for i in $(seq 1 20); do
-            if curl -fsS http://127.0.0.1:5001/auth/login > /dev/null; then
+            if curl -fsS http://127.0.0.1:5001/healthz > /dev/null; then
               echo "Stoic is up after ${i}s"
+              # Template render + static asset checks (would catch
+              # the package-data bug class again)
+              curl -fsS http://127.0.0.1:5001/auth/login > /dev/null
+              curl -fsS http://127.0.0.1:5001/static/css/bench.css > /dev/null
               docker logs stoic-test
               docker stop stoic-test
               exit 0

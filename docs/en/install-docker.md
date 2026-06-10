@@ -128,6 +128,30 @@ docker compose exec caddy cat /data/caddy/pki/authorities/local/root.crt
 
 Each client only needs this once.
 
+### iOS / iPadOS (required for PWA install at the bench)
+
+iOS is stricter than desktop browsers: to install Stoic as a PWA
+("Add to Home Screen") with a self-signed certificate, you must
+install AND trust Caddy's root CA on the device:
+
+1. Get the root CA from the server:
+   ```bash
+   docker compose exec caddy cat /data/caddy/pki/authorities/local/root.crt > caddy-root.crt
+   ```
+2. Transfer `caddy-root.crt` to the iPad (AirDrop is easiest, or
+   email it to yourself).
+3. Open the file on the iPad → iOS asks to install a
+   configuration profile → Settings → General → VPN & Device
+   Management → install the profile.
+4. **Crucial extra step**: Settings → General → About →
+   Certificate Trust Settings → enable full trust for the Caddy
+   root certificate.
+5. Reload Stoic in Safari — the padlock is now clean and "Add to
+   Home Screen" produces a fully working PWA.
+
+If you skip step 4, Safari keeps warning and the PWA install will
+not behave correctly.
+
 ### Option B: accept the warning per browser
 
 For one-off access, click "Advanced" → "Proceed to stoic.local"

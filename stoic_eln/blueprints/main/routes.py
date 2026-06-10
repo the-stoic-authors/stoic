@@ -124,3 +124,16 @@ def manifest():
     response = jsonify(manifest_data)
     response.mimetype = "application/manifest+json"
     return response
+
+
+@bp.route("/healthz")
+def healthz():
+    """Lightweight liveness probe for Docker/compose/orchestrators.
+
+    Deliberately minimal: no template rendering, no DB query, no
+    auth. It answers "is the WSGI worker alive and serving?" — the
+    only question a HEALTHCHECK needs. Anything heavier (DB
+    reachability, disk space) belongs in a separate readiness
+    probe if we ever need one.
+    """
+    return {"status": "ok"}, 200

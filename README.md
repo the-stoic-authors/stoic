@@ -38,10 +38,39 @@ It's built for chemistry labs that want:
   Avery and thermal labels with GHS pictograms and QR codes.
 - **Multilingual** — full Italian and English UI.
 
-Stoic is in **active development** (v0.9.0 → v1.0.0 in progress).
+Stoic is in **active development** (v0.9.x → v1.0.0 in progress).
 Use in production at your own risk; keep backups.
 
-## Quick start (macOS / Linux)
+## Architecture
+
+Stoic is designed as a **self-hosted lab server**: one machine in
+the lab (a Raspberry Pi, a recycled desktop, a NAS) runs Stoic, and
+everyone connects from their own device — laptop, tablet at the
+bench (Stoic installs as a PWA with full-screen "bench mode"),
+phone. All data stays on hardware you own.
+
+A single-machine mode (Stoic and browser on the same computer)
+also works and is what you get with the development setup below.
+
+## Quick start — lab server (recommended)
+
+One command on a fresh Ubuntu/Debian box:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/the-stoic-authors/stoic/main/scripts/installers/install-linux.sh | bash
+```
+
+The script installs Docker if needed, downloads the compose stack
+(Stoic + Caddy with automatic HTTPS), generates a `SECRET_KEY`,
+asks which domain to serve on, and starts everything. Open
+`https://stoic.local` (or your domain) and the onboarding wizard
+takes it from there.
+
+Prefer to drive Docker yourself, or running on a NAS / macOS /
+Windows? See the full guide: [docs/en/install-docker.md](docs/en/install-docker.md)
+([italiano](docs/it/install-docker.md)).
+
+## Quick start — development (macOS / Linux)
 
 ```bash
 # Clone or download

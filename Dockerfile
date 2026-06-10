@@ -117,12 +117,11 @@ USER stoic
 
 EXPOSE 5001
 
-# Health check: Stoic's login page is always reachable (no auth
-# required to GET it) and returns 200 when the app is alive.
-# Caddy + compose may add their own checks layered on top.
+# Health check: /healthz is a dedicated liveness endpoint — no
+# template render, no DB query. Cheap enough to poll every 30s.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
     CMD python -c "import urllib.request,sys; \
-        r = urllib.request.urlopen('http://127.0.0.1:5001/auth/login', timeout=3); \
+        r = urllib.request.urlopen('http://127.0.0.1:5001/healthz', timeout=3); \
         sys.exit(0 if r.status == 200 else 1)" || exit 1
 
 # tini as PID 1 handles signal forwarding to gunicorn. Without it

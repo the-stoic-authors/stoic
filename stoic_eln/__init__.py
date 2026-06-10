@@ -24,6 +24,7 @@ import os
 from pathlib import Path
 
 from flask import Flask
+from werkzeug.middleware.proxy_fix import ProxyFix
 from sqlalchemy import func
 
 from stoic_eln.config import Config, DevelopmentConfig, ProductionConfig, TestingConfig
@@ -75,6 +76,20 @@ def create_app(
 
     app.config.from_object(config_class)
     config_class.init_app(app)
+
+    # Trust X-Forwarded-* headers from ONE reverse proxy hop (Caddy,
+    # nginx). Without this, behind a proxy Flask sees every request
+    # as plain HTTP from the proxy's IP: request.is_secure is False,
+    # url_for(_external=True) generates http:// URLs (breaking the
+    # PWA manifest and absolute redirects), and request.remote_addr
+    # logs the proxy container instead of the client.
+    #
+    # With no proxy in front the headers are absent and ProxyFix is
+    # a no-op, so this is safe for `flask run` development too.
+    # x_for/x_proto/x_host = 1 means "trust exactly one hop" —
+    # a client can't spoof these headers past a correctly configured
+    # proxy that overwrites them.
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 
     _configure_logging(app)
     _register_extensions(app)
