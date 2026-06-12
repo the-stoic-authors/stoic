@@ -5279,3 +5279,62 @@ msgstr "Bench mode"
 #: stoic_eln/templates/runs/detail.html
 msgid "Modalità banco — schermo intero per esecuzione al laboratorio"
 msgstr "Bench mode — fullscreen view for execution at the lab bench"
+
+# ─── Procedure library (P1) ──────────────────────────────────────
+
+msgid "Esiste già una procedura chiamata '%(n)s'. Spunta 'sovrascrivi' per sostituirla."
+msgstr "A procedure named '%(n)s' already exists. Tick 'overwrite' to replace it."
+
+msgid "Procedura '%(n)s' salvata nella libreria."
+msgstr "Procedure '%(n)s' saved to the library."
+
+msgid "Procedura '%(n)s' inserita nel protocollo."
+msgstr "Procedure '%(n)s' inserted into the protocol."
+
+msgid "Il nome non può essere vuoto."
+msgstr "The name cannot be empty."
+
+msgid "Esiste già una procedura chiamata '%(n)s'."
+msgstr "A procedure named '%(n)s' already exists."
+
+msgid "Procedura rinominata."
+msgstr "Procedure renamed."
+
+msgid "Procedura '%(n)s' eliminata dalla libreria."
+msgstr "Procedure '%(n)s' deleted from the library."
+
+msgid "Procedure"
+msgstr "Procedures"
+
+msgid "%(n)d procedure nella libreria del laboratorio"
+msgstr "%(n)d procedures in the lab library"
+
+msgid "aggiornata"
+msgstr "updated"
+
+msgid "Rinomina"
+msgstr "Rename"
+
+msgid "Eliminare la procedura dalla libreria? I protocolli che la usano non vengono toccati."
+msgstr "Delete this procedure from the library? Protocols using it are not affected."
+
+msgid "La libreria è vuota."
+msgstr "The library is empty."
+
+msgid "Per aggiungere una procedura, apri un protocollo e usa 'Salva nella libreria' su uno step."
+msgstr "To add a procedure, open a protocol and use 'Save to library' on a step."
+
+msgid "Salva nella libreria procedure"
+msgstr "Save to procedure library"
+
+msgid "Salva nella libreria come"
+msgstr "Save to library as"
+
+msgid "sovrascrivi se esiste"
+msgstr "overwrite if it exists"
+
+msgid "…oppure inserisci dalla libreria procedure"
+msgstr "…or insert from the procedure library"
+
+msgid "Inserisci"
+msgstr "Insert"

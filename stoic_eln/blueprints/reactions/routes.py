@@ -131,6 +131,15 @@ def detail(reaction_id: int):
 
     attachments_for_entity = list_attachments("reaction", rxn.id)
 
+    # Procedure library (for the "insert from library" picker in the
+    # add-step modal). Loaded only in draft state, where steps are
+    # editable — saves a query everywhere else.
+    step_templates = []
+    if rxn.status == "draft":
+        from stoic_eln.models.step_template import StepTemplate
+
+        step_templates = StepTemplate.query.order_by(StepTemplate.name.asc()).all()
+
     return render_template(
         "reactions/detail.html",
         reaction=rxn,
@@ -139,6 +148,7 @@ def detail(reaction_id: int):
         sparkline_svg=sparkline_svg,
         notes_for_entity=notes_for_entity,
         attachments_for_entity=attachments_for_entity,
+        step_templates=step_templates,
     )
 
 

@@ -119,6 +119,12 @@
           <i data-lucide="folder-clock"></i>
           <span>{{ _("Storico preparazioni") }}</span>
         </a>
+        <a class="nav-item {% if request.endpoint and request.endpoint.startswith('procedures.') %}active{% endif %}"
+           href="{{ url_for('procedures.index') }}"
+           title="{{ _('Procedure') }}">
+          <i data-lucide="library"></i>
+          <span>{{ _("Procedure") }}</span>
+        </a>
 
         <div class="nav-section-label">{{ _("Gestione") }}</div>
         <a class="nav-item {% if request.endpoint and request.endpoint.startswith('inventory.') %}active{% endif %}"

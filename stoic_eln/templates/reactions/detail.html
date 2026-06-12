@@ -624,6 +624,27 @@
           <button type="submit" class="btn btn-primary">{{ _("Crea passo") }}</button>
         </div>
       </form>
+      {% if step_templates %}
+      <div class="modal-body border-top pt-3">
+        <form method="post" id="insert-procedure-form">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <label class="form-label">{{ _("…oppure inserisci dalla libreria procedure") }}</label>
+          <div class="d-flex gap-2">
+            <select class="form-select" id="procedure-select">
+              {% for tpl in step_templates %}
+              <option value="{{ url_for('procedures.insert_into_reaction', template_id=tpl.id, reaction_id=reaction.id) }}">
+                {{ tpl.name }}
+              </option>
+              {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-outline-primary"
+                    onclick="document.getElementById('insert-procedure-form').action = document.getElementById('procedure-select').value;">
+              {{ _("Inserisci") }}
+            </button>
+          </div>
+        </form>
+      </div>
+      {% endif %}
     </div>
   </div>
 </div>

@@ -42,6 +42,13 @@
     </div>
     {% if is_draft %}
     <div class="d-flex gap-1">
+      <button class="btn btn-sm btn-link text-muted p-0 px-1"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#save-tpl-{{ step.id }}"
+              title="{{ _('Salva nella libreria procedure') }}">
+        <i data-lucide="library"></i>
+      </button>
       <form method="post"
             action="{{ url_for('reactions.move_step', step_id=step.id, direction='up') }}"
             class="d-inline">
@@ -70,6 +77,26 @@
     </div>
     {% endif %}
   </div>
+
+  {% if is_draft %}
+  <div class="collapse" id="save-tpl-{{ step.id }}">
+    <div class="card-body border-bottom bg-body-tertiary py-2">
+      <form method="post" action="{{ url_for('procedures.save_from_step', step_id=step.id) }}"
+            class="d-flex flex-wrap gap-2 align-items-center">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label class="small text-muted mb-0">{{ _("Salva nella libreria come") }}</label>
+        <input type="text" name="name" class="form-control form-control-sm" style="max-width: 280px;"
+               value="{{ step.title }}" maxlength="200">
+        <div class="form-check form-check-inline mb-0">
+          <input class="form-check-input" type="checkbox" name="overwrite" value="1"
+                 id="ow-{{ step.id }}">
+          <label class="form-check-label small" for="ow-{{ step.id }}">{{ _("sovrascrivi se esiste") }}</label>
+        </div>
+        <button class="btn btn-sm btn-primary">{{ _("Salva") }}</button>
+      </form>
+    </div>
+  </div>
+  {% endif %}
 
   <div class="card-body">
 

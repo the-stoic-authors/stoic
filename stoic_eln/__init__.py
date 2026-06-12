@@ -332,6 +332,7 @@ def _register_blueprints(app: Flask) -> None:
     from stoic_eln.blueprints.onboarding import bp as onboarding_bp
     from stoic_eln.blueprints.orders import bp as orders_bp
     from stoic_eln.blueprints.preps import bp as preps_bp
+    from stoic_eln.blueprints.procedures import bp as procedures_bp
     from stoic_eln.blueprints.reactions import bp as reactions_bp
     from stoic_eln.blueprints.reports import bp as reports_bp
     from stoic_eln.blueprints.runs import bp as runs_bp
@@ -343,6 +344,7 @@ def _register_blueprints(app: Flask) -> None:
     app.register_blueprint(substances_bp)
     app.register_blueprint(mixtures_bp)
     app.register_blueprint(preps_bp)
+    app.register_blueprint(procedures_bp)
     app.register_blueprint(inventory_bp)
     app.register_blueprint(orders_bp)
     app.register_blueprint(reactions_bp)

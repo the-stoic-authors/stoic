@@ -13,6 +13,11 @@ from stoic_eln.models.order import Order
 from stoic_eln.models.reaction import Reaction
 from stoic_eln.models.reaction_component import ReactionComponent
 from stoic_eln.models.reaction_step import ReactionStep
+from stoic_eln.models.step_template import (
+    StepTemplate,
+    StepTemplateChecklistItem,
+    StepTemplateComponent,
+)
 from stoic_eln.models.reaction_step_component import ReactionStepComponent
 from stoic_eln.models.run import Run
 from stoic_eln.models.run_component import RunComponent
