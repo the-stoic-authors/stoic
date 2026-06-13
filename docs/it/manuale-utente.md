@@ -211,6 +211,49 @@ come qualunque altro lotto, e stampare etichette dal lotto creato.
 
 ---
 
+## Libreria procedure
+
+Le procedure ripetitive (workup acquoso, filtrazione su celite,
+flash chromatography…) si salvano una volta e si riusano ovunque.
+
+**Salvare**: in un protocollo in bozza, ogni passo ha l'icona
+libreria 📚 nell'intestazione. Cliccala, dai un nome, salva.
+Componenti e checklist entrano nella libreria del laboratorio.
+
+**Riusare**: nel modal "Nuovo passo" di qualunque protocollo in
+bozza compare "…oppure inserisci dalla libreria procedure".
+Scegli e inserisci: la procedura viene COPIATA nel protocollo.
+
+**Modificare**: la libreria si modifica passando per un
+protocollo: inserisci la procedura, sistemala, ri-salvala con lo
+stesso nome spuntando "sovrascrivi". I protocolli che usavano la
+versione precedente NON cambiano — ogni protocollo conserva la
+copia con cui è stato costruito, come i Run congelano i template.
+
+La pagina **Procedure** nel menu mostra la libreria completa, con
+rinomina ed eliminazione (eliminare dalla libreria non tocca mai
+i protocolli).
+
+## Voci libere nei passi
+
+Oltre a sostanze e miscele, un passo può contenere **voci fuori
+inventario**: il diametro della colonna, la celite, il ghiaccio.
+Nel form "Aggiungi componente" scegli "Voce libera", dai nome e
+unità di misura libera (mm, g, CV, quello che serve).
+
+Quantità disponibili per le voci libere:
+
+  - **valore fisso** — un numero nella tua unità ("Celite, 5 g")
+  - **quanto basta** — nessun valore nel template, registri al Run
+  - **Ø colonna (h letto, cm)** — il diametro viene CALCOLATO:
+    il valore che inserisci è l'altezza del letto di silice in cm
+    (15 è lo standard flash); Stoic trova il componente con ruolo
+    "fase stazionaria" nello stesso passo, ne prende la massa alla
+    scala del Run e calcola il diametro dalla geometria del
+    cilindro (densità silice 0.5 g/mL). Nel Run appare come
+    "suggerito: 23 mm" — arrotonda alla colonna che possiedi.
+    Raddoppiare la scala allarga il diametro di √2, com'è giusto.
+
 ## Allegati
 
 Ogni run, reazione template, sostanza, lotto, miscela e

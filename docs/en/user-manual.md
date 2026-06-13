@@ -215,6 +215,49 @@ other batch, and print labels from the created batch.
 
 ---
 
+## Procedure library
+
+Repetitive procedures (aqueous workup, celite filtration, flash
+chromatography…) are saved once and reused everywhere.
+
+**Saving**: in a draft protocol, every step has a library icon 📚
+in its header. Click it, give it a name, save. Components and
+checklist go into the lab-wide library.
+
+**Reusing**: the "New step" modal of any draft protocol shows
+"…or insert from the procedure library". Pick and insert: the
+procedure is COPIED into the protocol.
+
+**Editing**: the library is edited through a protocol: insert the
+procedure, adjust it, re-save under the same name ticking
+"overwrite". Protocols that used the previous version do NOT
+change — each protocol keeps the copy it was built with, the same
+way Runs freeze their templates.
+
+The **Procedures** page in the menu shows the whole library, with
+rename and delete (deleting from the library never touches
+protocols).
+
+## Free entries in steps
+
+Besides substances and mixtures, a step can hold **non-inventory
+entries**: the column diameter, celite, ice. In the "Add
+component" form pick "Free entry", give it a name and a free
+unit (mm, g, CV, whatever fits).
+
+Quantity modes for free entries:
+
+  - **fixed value** — a number in your unit ("Celite, 5 g")
+  - **ad lib.** — no value in the template, recorded at Run time
+  - **column Ø (bed h, cm)** — the diameter is COMPUTED: the
+    value you enter is the silica bed height in cm (15 is the
+    flash standard); Stoic finds the component with the
+    "stationary phase" role in the same step, takes its mass at
+    the Run scale and derives the diameter from cylinder geometry
+    (silica bulk density 0.5 g/mL). The Run shows it as
+    "suggested: 23 mm" — round to the column you own. Doubling
+    the scale widens the diameter by √2, as it should.
+
 ## Attachments
 
 Every run, reaction template, substance, batch, mixture, and
