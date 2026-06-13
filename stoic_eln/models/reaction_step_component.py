@@ -69,6 +69,8 @@ RATIO_KINDS: tuple[str, ...] = (
     "percent_vv",
     "absolute_mL",
     "absolute_g",
+    "column_diameter_mm",
+    "fixed_value",
     "free",
 )
 
@@ -79,6 +81,8 @@ RATIO_KIND_LABELS_IT = {
     "percent_vv": "% v/v",
     "absolute_mL": "mL fissi",
     "absolute_g": "g fissi",
+    "column_diameter_mm": "Ø colonna (h letto, cm)",
+    "fixed_value": "valore fisso",
     "free": "quanto basta",
 }
 
@@ -89,6 +93,8 @@ RATIO_KIND_LABELS_EN = {
     "percent_vv": "% v/v",
     "absolute_mL": "fixed mL",
     "absolute_g": "fixed g",
+    "column_diameter_mm": "column Ø (bed h, cm)",
+    "fixed_value": "fixed value",
     "free": "ad lib.",
 }
 
@@ -120,6 +126,12 @@ class ReactionStepComponent(db.Model):
         index=True,
     )
 
+    # Free entry (P2): a non-inventory line like "Column diameter" or
+    # "Celite pad". Mutually exclusive with substance/mixture. free_unit
+    # is an uninterpreted label ("mm", "cm", "CV", ...).
+    free_name: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    free_unit: Mapped[str | None] = mapped_column(String(20), nullable=True)
+
     position: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     role: Mapped[str] = mapped_column(String(40), nullable=False, default="solvent")
     """One of COMPONENT_ROLES (re-using the reaction component roles)."""
@@ -137,7 +149,8 @@ class ReactionStepComponent(db.Model):
     __table_args__ = (
         CheckConstraint(
             "(CASE WHEN substance_id IS NULL THEN 0 ELSE 1 END) + "
-            "(CASE WHEN mixture_id IS NULL THEN 0 ELSE 1 END) = 1",
+            "(CASE WHEN mixture_id IS NULL THEN 0 ELSE 1 END) + "
+            "(CASE WHEN free_name IS NULL THEN 0 ELSE 1 END) = 1",
             name="ck_reaction_step_component_substance_xor_mixture",
         ),
     )

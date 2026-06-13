@@ -110,6 +110,9 @@ class StepTemplateComponent(db.Model):
         Integer, ForeignKey("mixture.id"), nullable=True, index=True
     )
 
+    free_name: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    free_unit: Mapped[str | None] = mapped_column(String(20), nullable=True)
+
     position: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     role: Mapped[str] = mapped_column(String(40), nullable=False, default="solvent")
     ratio_kind: Mapped[str] = mapped_column(String(20), nullable=False, default="eq")
@@ -120,7 +123,8 @@ class StepTemplateComponent(db.Model):
     __table_args__ = (
         CheckConstraint(
             "(CASE WHEN substance_id IS NULL THEN 0 ELSE 1 END) + "
-            "(CASE WHEN mixture_id IS NULL THEN 0 ELSE 1 END) = 1",
+            "(CASE WHEN mixture_id IS NULL THEN 0 ELSE 1 END) + "
+            "(CASE WHEN free_name IS NULL THEN 0 ELSE 1 END) = 1",
             name="ck_step_template_component_substance_xor_mixture",
         ),
     )

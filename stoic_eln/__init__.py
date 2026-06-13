@@ -553,6 +553,23 @@ def _step_quantity(sc, step, reaction):
     if sc.ratio_kind == "free":
         return {"g": None, "mL": None, "mmol": None}
 
+    # Free entries (P2): non-inventory lines with a free unit label.
+    if getattr(sc, "free_name", None):
+        if sc.ratio_kind == "fixed_value":
+            return {"g": None, "mL": None, "mmol": None, "free": sc.ratio_value}
+        if sc.ratio_kind == "column_diameter_mm":
+            # Geometry from the stationary phase in the SAME step:
+            # find it, get its computed mass, derive the diameter.
+            from stoic_eln.services.step_calc import compute_column_diameter_mm
+
+            silica = next((c for c in step.components if c.role == "stationary_phase"), None)
+            if silica is None:
+                return {"g": None, "mL": None, "mmol": None, "free": None}
+            silica_qty = _step_quantity(silica, step, reaction)
+            d = compute_column_diameter_mm(silica_qty.get("g"), sc.ratio_value)
+            return {"g": None, "mL": None, "mmol": None, "free": d}
+        return {"g": None, "mL": None, "mmol": None, "free": None}
+
     # Resolve reference
     if step.reference_component_id and step.reference_component is not None:
         ref = step.reference_component

@@ -21,6 +21,9 @@ class StepQuantity:
     g: float | None = None
     mL: float | None = None
     mmol: float | None = None
+    #: Value in a component's own free unit (P2 free entries):
+    #: fixed values and computed column diameters land here.
+    free: float | None = None
 
 
 def reference_quantities(
@@ -148,6 +151,24 @@ def compute_run_step_component(rsc, run, *, fallback_ref_mmol=None) -> StepQuant
     run: the parent Run (with scale_mmol set)
     Returns a StepQuantity with absolute g/mL/mmol.
     """
+    # Free entries (P2): fixed_value carries its own number; the
+    # column diameter is derived from the stationary phase in the
+    # same step. Both bypass the reference machinery below. The
+    # caller renders StepQuantity.free with rsc.free_unit.
+    if getattr(rsc, "free_name", None):
+        if rsc.ratio_kind == "fixed_value":
+            return StepQuantity(free=rsc.ratio_value)
+        if rsc.ratio_kind == "column_diameter_mm":
+            silica = next(
+                (c for c in rsc.step.components if c.role == "stationary_phase" and c.id != rsc.id),
+                None,
+            )
+            if silica is None:
+                return StepQuantity()
+            silica_q = compute_run_step_component(silica, run, fallback_ref_mmol=fallback_ref_mmol)
+            return StepQuantity(free=compute_column_diameter_mm(silica_q.g, rsc.ratio_value))
+        return StepQuantity()
+
     if run.scale_mmol is None or rsc.ratio_value is None:
         return StepQuantity()
 
@@ -178,3 +199,38 @@ def compute_run_step_component(rsc, run, *, fallback_ref_mmol=None) -> StepQuant
         sub_mw=sub_mw,
         sub_density=sub_density,
     )
+
+
+# ── Column diameter (P2) ────────────────────────────────────────────
+
+#: Bulk (tapped) density of dry flash-grade silica gel, g/mL.
+#: 0.5 is the textbook figure for 40-63 µm irregular silica; vendors
+#: quote 0.4-0.6 depending on grade. Used to convert silica mass to
+#: bed volume when suggesting a column diameter.
+SILICA_BULK_DENSITY_G_PER_ML = 0.5
+
+
+def compute_column_diameter_mm(
+    silica_g: float | None,
+    bed_height_cm: float | None,
+) -> float | None:
+    """Suggest a column inner diameter for a given silica load.
+
+    Geometry, nothing more: the bed is a cylinder of volume
+    V = silica_g / bulk_density, and the operator wants it
+    ``bed_height_cm`` tall, so
+
+        d_cm = 2 * sqrt(V_mL / (pi * h_cm))      (1 mL = 1 cm³)
+
+    Returned in mm because that's how chemists name columns
+    ("a 30 mm column"). The caller rounds/picks the nearest column
+    they actually own — we deliberately do NOT snap to a standard
+    series here, because available glassware varies by lab.
+    """
+    if not silica_g or not bed_height_cm or silica_g <= 0 or bed_height_cm <= 0:
+        return None
+    import math
+
+    volume_ml = silica_g / SILICA_BULK_DENSITY_G_PER_ML
+    d_cm = 2.0 * math.sqrt(volume_ml / (math.pi * bed_height_cm))
+    return d_cm * 10.0

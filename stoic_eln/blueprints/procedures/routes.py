@@ -101,6 +101,8 @@ def save_from_step(step_id: int):
             StepTemplateComponent(
                 substance_id=c.substance_id,
                 mixture_id=c.mixture_id,
+                free_name=c.free_name,
+                free_unit=c.free_unit,
                 position=c.position,
                 role=c.role,
                 ratio_kind=c.ratio_kind,
@@ -156,6 +158,8 @@ def insert_into_reaction(template_id: int, reaction_id: int):
                 step_id=step.id,
                 substance_id=c.substance_id,
                 mixture_id=c.mixture_id,
+                free_name=c.free_name,
+                free_unit=c.free_unit,
                 position=c.position,
                 role=c.role,
                 ratio_kind=c.ratio_kind,

@@ -573,6 +573,15 @@
                   {{ mix_sc.display_label }}
                 </a>
                 <span class="badge text-bg-light ms-1" style="font-size:0.65rem">{{ _("miscela") }}</span>
+              {% elif sc.free_name %}
+                <span class="fw-semibold">{{ sc.free_name }}</span>
+                <span class="badge text-bg-light ms-1" style="font-size:0.65rem">{{ _("voce libera") }}</span>
+                {% if q.free is not none %}
+                  <div class="small text-muted">
+                    {{ _("suggerito") }}: <span class="font-monospace">{{ '%.0f'|format(q.free) }}</span>
+                    {{ sc.free_unit or '' }}
+                  </div>
+                {% endif %}
               {% else %}
                 <span class="fw-semibold">{{ sub_sc.name if sub_sc else '—' }}</span>
                 {% if sub_sc %}

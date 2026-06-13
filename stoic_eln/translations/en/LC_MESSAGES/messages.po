@@ -5338,3 +5338,35 @@ msgstr "…or insert from the procedure library"
 
 msgid "Inserisci"
 msgstr "Insert"
+
+# ─── Free step components (P2) ───────────────────────────────────
+
+msgid "Seleziona esattamente una tra Sostanza, Miscela e Voce libera."
+msgstr "Select exactly one of Substance, Mixture, or Free entry."
+
+msgid "voce libera"
+msgstr "free entry"
+
+msgid "Voce libera"
+msgstr "Free entry"
+
+msgid "Nome voce"
+msgstr "Entry name"
+
+msgid "es. Colonna Ø, Celite, ghiaccio"
+msgstr "e.g. Column Ø, Celite, ice"
+
+msgid "Voce fuori inventario. Con 'Ø colonna' il valore è l'altezza del letto in cm e il diametro viene calcolato dalla fase stazionaria dello step."
+msgstr "Non-inventory entry. With 'column Ø' the value is the bed height in cm and the diameter is computed from the step's stationary phase."
+
+msgid "Ø colonna (h letto, cm)"
+msgstr "column Ø (bed h, cm)"
+
+msgid "valore fisso"
+msgstr "fixed value"
+
+msgid "Fase stazionaria"
+msgstr "Stationary phase"
+
+msgid "suggerito"
+msgstr "suggested"

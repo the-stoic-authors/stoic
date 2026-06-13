@@ -193,6 +193,9 @@
                   {% if sc.substance.cas_number %}
                     <div class="small text-muted"><code>{{ sc.substance.cas_number }}</code></div>
                   {% endif %}
+                  {% elif sc.free_name %}
+                  <span class="fw-semibold">{{ sc.free_name }}</span>
+                  <span class="badge text-bg-light ms-1" style="font-size:0.65rem">{{ _("voce libera") }}</span>
                   {% else %}
                   <em class="text-muted">{{ _("(componente rimosso)") }}</em>
                   {% endif %}
@@ -229,6 +232,8 @@
                         ('percent_vv', '% v/v'),
                         ('absolute_mL', _('mL fissi')),
                         ('absolute_g', _('g fissi')),
+                        ('column_diameter_mm', _('Ø colonna (h letto, cm)')),
+                        ('fixed_value', _('valore fisso')),
                         ('free', _('quanto basta'))
                     ] %}
                     <option value="{{ k }}" {% if sc.ratio_kind == k %}selected{% endif %}>{{ lbl }}</option>
@@ -315,7 +320,7 @@
               <input type="radio" class="btn-check"
                      name="step_kind_{{ step.id }}" id="step-kind-sub-{{ step.id }}"
                      value="substance" checked
-                     onchange="document.getElementById('step-sub-wrap-{{ step.id }}').style.display='';document.getElementById('step-mix-wrap-{{ step.id }}').style.display='none';">
+                     onchange="document.getElementById('step-sub-wrap-{{ step.id }}').style.display='';document.getElementById('step-mix-wrap-{{ step.id }}').style.display='none';document.getElementById('step-free-wrap-{{ step.id }}').style.display='none';">
               <label class="btn btn-outline-primary" for="step-kind-sub-{{ step.id }}">
                 <i data-lucide="flask-conical" style="width:14px;height:14px"></i>
                 {{ _("Sostanza pura") }}
@@ -323,10 +328,18 @@
               <input type="radio" class="btn-check"
                      name="step_kind_{{ step.id }}" id="step-kind-mix-{{ step.id }}"
                      value="mixture"
-                     onchange="document.getElementById('step-sub-wrap-{{ step.id }}').style.display='none';document.getElementById('step-mix-wrap-{{ step.id }}').style.display='';">
+                     onchange="document.getElementById('step-sub-wrap-{{ step.id }}').style.display='none';document.getElementById('step-mix-wrap-{{ step.id }}').style.display='';document.getElementById('step-free-wrap-{{ step.id }}').style.display='none';">
               <label class="btn btn-outline-primary" for="step-kind-mix-{{ step.id }}">
                 <i data-lucide="beaker" style="width:14px;height:14px"></i>
                 {{ _("Miscela") }}
+              </label>
+              <input type="radio" class="btn-check"
+                     name="step_kind_{{ step.id }}" id="step-kind-free-{{ step.id }}"
+                     value="free_entry"
+                     onchange="document.getElementById('step-sub-wrap-{{ step.id }}').style.display='none';document.getElementById('step-mix-wrap-{{ step.id }}').style.display='none';document.getElementById('step-free-wrap-{{ step.id }}').style.display='';">
+              <label class="btn btn-outline-primary" for="step-kind-free-{{ step.id }}">
+                <i data-lucide="pencil-ruler" style="width:14px;height:14px"></i>
+                {{ _("Voce libera") }}
               </label>
             </div>
             <small class="text-muted">
@@ -354,6 +367,23 @@
               {% endfor %}
             </select>
           </div>
+          <div class="mb-3" id="step-free-wrap-{{ step.id }}" style="display:none">
+            <div class="row g-2">
+              <div class="col-8">
+                <label class="form-label">{{ _("Nome voce") }}</label>
+                <input type="text" name="free_name" class="form-control" maxlength="120"
+                       placeholder="{{ _('es. Colonna Ø, Celite, ghiaccio') }}">
+              </div>
+              <div class="col-4">
+                <label class="form-label">{{ _("Unità") }}</label>
+                <input type="text" name="free_unit" class="form-control" maxlength="20"
+                       placeholder="mm, g, CV…">
+              </div>
+            </div>
+            <small class="text-muted">
+              {{ _("Voce fuori inventario. Con 'Ø colonna' il valore è l'altezza del letto in cm e il diametro viene calcolato dalla fase stazionaria dello step.") }}
+            </small>
+          </div>
           <div class="row g-3">
             <div class="col-md-6">
               <label class="form-label">{{ _("Ruolo") }}</label>
@@ -364,6 +394,7 @@
                 <option value="base">{{ _("Base") }}</option>
                 <option value="oxidant">{{ _("Ossidante") }}</option>
                 <option value="reductant">{{ _("Riducente") }}</option>
+                <option value="stationary_phase">{{ _("Fase stazionaria") }}</option>
                 <option value="additive">{{ _("Additivo") }}</option>
                 <option value="internal_standard">{{ _("Standard interno") }}</option>
               </select>
@@ -388,6 +419,8 @@
                 <option value="percent_vv">% v/v</option>
                 <option value="absolute_mL">mL fissi</option>
                 <option value="absolute_g">g fissi</option>
+                <option value="column_diameter_mm">{{ _("Ø colonna (h letto, cm)") }}</option>
+                <option value="fixed_value">{{ _("valore fisso") }}</option>
                 <option value="free">{{ _("quanto basta") }}</option>
               </select>
             </div>

@@ -77,6 +77,9 @@ class RunStepComponent(db.Model):
         Integer, ForeignKey("inventory_item.id"), nullable=True
     )
 
+    free_name: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    free_unit: Mapped[str | None] = mapped_column(String(20), nullable=True)
+
     role: Mapped[str] = mapped_column(String(32), nullable=False)
     ratio_value: Mapped[float | None] = mapped_column(Float, nullable=True)
     ratio_kind: Mapped[str | None] = mapped_column(String(16), nullable=True)

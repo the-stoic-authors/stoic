@@ -50,6 +50,9 @@ __all__ = [
     "RunComponent",
     "RunStep",
     "RunStepComponent",
+    "StepTemplate",
+    "StepTemplateChecklistItem",
+    "StepTemplateComponent",
     "Substance",
     "User",
 ]

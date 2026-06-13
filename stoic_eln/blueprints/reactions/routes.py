@@ -1180,8 +1180,9 @@ def add_step_component(step_id: int):
     if step is None:
         abort(404)
 
-    # XOR: substance_id OR mixture_id, never both. Mirrors
-    # reactions.add_component (patch 13.5).
+    # XOR a 3 vie: substance, mixture, OR free entry (P2). Mirrors
+    # reactions.add_component (patch 13.5) plus the non-inventory
+    # line case ("Column Ø", "Celite pad", ...).
     try:
         substance_id = int(request.form.get("substance_id", "0"))
     except (TypeError, ValueError):
@@ -1190,10 +1191,13 @@ def add_step_component(step_id: int):
         mixture_id = int(request.form.get("mixture_id", "0"))
     except (TypeError, ValueError):
         mixture_id = 0
+    free_name = (request.form.get("free_name") or "").strip()
+    free_unit = (request.form.get("free_unit") or "").strip() or None
 
-    if (substance_id and mixture_id) or (not substance_id and not mixture_id):
+    picked = sum(1 for x in (substance_id, mixture_id, free_name) if x)
+    if picked != 1:
         flash(
-            _("Seleziona esattamente una tra Sostanza e Miscela."),
+            _("Seleziona esattamente una tra Sostanza, Miscela e Voce libera."),
             "danger",
         )
         return redirect(url_for("reactions.detail", reaction_id=step.reaction_id))
@@ -1205,13 +1209,14 @@ def add_step_component(step_id: int):
         if sub is None:
             flash(_("Sostanza non trovata."), "danger")
             return redirect(url_for("reactions.detail", reaction_id=step.reaction_id))
-    else:
+    elif mixture_id:
         from stoic_eln.models.mixture import Mixture
 
         mix = db.session.get(Mixture, mixture_id)
         if mix is None:
             flash(_("Miscela non trovata."), "danger")
             return redirect(url_for("reactions.detail", reaction_id=step.reaction_id))
+    # else: free entry (P2) — no inventory lookup needed.
 
     role = (request.form.get("role") or "solvent").strip()
     if role not in COMPONENT_ROLES:
@@ -1244,6 +1249,8 @@ def add_step_component(step_id: int):
         step_id=step.id,
         substance_id=sub.id if sub else None,
         mixture_id=mix.id if mix else None,
+        free_name=free_name[:120] if free_name else None,
+        free_unit=free_unit[:20] if free_unit else None,
         position=next_pos,
         role=role,
         ratio_kind=ratio_kind,
