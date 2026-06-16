@@ -27,9 +27,11 @@
 {
 	# Global options
 	# Email used for Let's Encrypt ACME registration (only matters
-	# when STOIC_DOMAIN is a real domain). If not set, ACME still
-	# works but you don't get expiry notices.
-	email {$STOIC_TLS_EMAIL:admin@example.com}
+	# when STOIC_DOMAIN is a real public domain). If STOIC_TLS_EMAIL
+	# is empty Caddy still fetches the certificate — you just won't
+	# get expiry notification emails. For *.local / *.lan (internal
+	# CA) this directive has no effect at all.
+	email {$STOIC_TLS_EMAIL}
 }
 
 {$STOIC_DOMAIN} {

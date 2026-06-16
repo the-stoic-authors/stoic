@@ -103,7 +103,7 @@ fi
 
 # ── 4. Start ────────────────────────────────────────────────────
 
-info "Starting Stoic (this pulls/builds the image on first run — a few minutes)…"
+info "Starting Stoic (pulling the image on first run — a few minutes)…"
 docker compose up -d
 
 # ── 5. Done ─────────────────────────────────────────────────────

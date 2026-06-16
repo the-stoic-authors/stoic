@@ -31,11 +31,6 @@
 services:
   stoic:
     image: ${STOIC_IMAGE:-ghcr.io/the-stoic-authors/stoic:latest}
-    # Build locally if the image isn't pulled (useful in development;
-    # operators pulling pre-built images can ignore this).
-    build:
-      context: .
-      dockerfile: Dockerfile
     restart: unless-stopped
     env_file: .env
     environment:

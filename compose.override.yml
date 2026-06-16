@@ -1,0 +1,28 @@
+# Stoic ELN — docker-compose override for local development
+#
+# This file is picked up automatically by `docker compose` when
+# you run from a directory that contains both docker-compose.yml
+# and this file. It is NOT used by the production installer (which
+# works from ~/stoic/ and only has docker-compose.yml).
+#
+# What it adds over the production compose:
+#
+#   - Builds the image from the local source tree instead of
+#     pulling ghcr.io/the-stoic-authors/stoic:latest. Useful when
+#     you're hacking on the code and want to test inside Docker
+#     without publishing first.
+#
+# Usage (from the repo root):
+#
+#   docker compose up --build -d     # rebuild + start
+#   docker compose build             # build only
+#
+# To use the production image even in dev (e.g. to test the pull
+# path), temporarily rename or remove this file, or override
+# STOIC_IMAGE in your .env.
+
+services:
+  stoic:
+    build:
+      context: .
+      dockerfile: Dockerfile
