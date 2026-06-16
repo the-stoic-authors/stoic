@@ -5,8 +5,10 @@ name: Docker Build
 # missing system dependencies, and broken Caddyfile/compose
 # manifests early, well before anyone tries to deploy.
 #
-# We deliberately do NOT push the resulting image to ghcr.io yet —
-# that's a separate workflow (Patch E) gated on release tags.
+# On push to main the image is also published to ghcr.io as :latest
+# so the Linux installer can `docker compose pull` without needing
+# the source tree. Release tags (v1.x.x) get their own pinned tag
+# via the same job.
 
 on:
   push:
@@ -37,6 +39,7 @@ on:
 
 permissions:
   contents: read
+  packages: write
 
 jobs:
   build:
@@ -99,3 +102,45 @@ jobs:
           # Provide a SECRET_KEY so the config validation passes
           echo "SECRET_KEY=$(openssl rand -hex 32)" >> .env
           docker compose config > /dev/null
+
+  publish:
+    name: Publish image to ghcr.io
+    runs-on: ubuntu-latest
+    # Only on direct pushes to main — not on pull requests.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: build
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to ghcr.io
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata for tags
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/the-stoic-authors/stoic
+          tags: |
+            type=raw,value=latest
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
