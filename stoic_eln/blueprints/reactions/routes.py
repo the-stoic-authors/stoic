@@ -1351,8 +1351,6 @@ def delete_step_component(scid: int):
     return redirect(url_for("reactions.detail", reaction_id=rid))
 
 
-
-
 # ─── Step parameters (P3 — manual add/delete) ───────────────────────────────
 
 
@@ -1419,6 +1417,7 @@ def delete_step_parameter(param_id: int):
             is_draft=True,
         )
     return redirect(url_for("reactions.detail", reaction_id=rid))
+
 
 # ─── Run execution placeholder (Settimana 4) ────────────────────────────────
 
