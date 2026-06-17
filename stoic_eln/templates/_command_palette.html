@@ -1,0 +1,199 @@
+{# ───────────────────────────────────────────────────────────────────────────
+   Global search command palette (Cmd/Ctrl-K).
+   Self-contained: markup + styles + behaviour. Included once from base.html
+   inside the authenticated layout only.
+   ─────────────────────────────────────────────────────────────────────────── #}
+
+<div class="stoic-palette-backdrop" id="stoic-palette" hidden>
+  <div class="stoic-palette" role="dialog" aria-modal="true"
+       aria-label="{{ _('Ricerca globale') }}">
+    <div class="stoic-palette-input">
+      <i data-lucide="search"></i>
+      <input type="text" id="stoic-palette-q" autocomplete="off" spellcheck="false"
+             placeholder="{{ _('Cerca sostanze, reazioni, run, lotti…') }}"
+             aria-label="{{ _('Cerca') }}">
+      <kbd>ESC</kbd>
+    </div>
+    <div class="stoic-palette-results" id="stoic-palette-results">
+      <p class="stoic-palette-hint">{{ _("Digita almeno 2 caratteri per cercare.") }}</p>
+    </div>
+  </div>
+</div>
+
+<style>
+  .stoic-search-trigger {
+    display: inline-flex; align-items: center; gap: .4rem;
+    background: rgba(255,255,255,.10);
+    border: 1px solid rgba(255,255,255,.22);
+    color: var(--stoic-header-fg); border-radius: 8px;
+    padding: .3rem .6rem; font-size: .85rem; cursor: pointer;
+    transition: background .12s ease, border-color .12s ease;
+  }
+  .stoic-search-trigger:hover {
+    background: rgba(255,255,255,.18);
+    border-color: rgba(255,255,255,.35);
+  }
+  .stoic-search-trigger kbd {
+    font-size: .7rem; padding: .05rem .3rem;
+    border: 1px solid rgba(255,255,255,.35); border-radius: 4px;
+    background: transparent; color: var(--stoic-header-fg); opacity: .8;
+  }
+
+  .stoic-palette-backdrop {
+    position: fixed; inset: 0; z-index: 1080;
+    background: rgba(0,0,0,.45);
+    display: flex; align-items: flex-start; justify-content: center;
+    padding-top: 12vh;
+  }
+  .stoic-palette-backdrop[hidden] { display: none; }
+
+  .stoic-palette {
+    width: min(640px, 92vw);
+    background: var(--stoic-card-bg, #1e1e1e);
+    color: var(--bs-body-color, #eee);
+    border: 1px solid var(--stoic-card-border, rgba(255,255,255,.15));
+    border-radius: 14px; overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,.5);
+  }
+  .stoic-palette-input {
+    display: flex; align-items: center; gap: .6rem;
+    padding: .85rem 1rem;
+    border-bottom: 1px solid var(--stoic-card-border, rgba(255,255,255,.12));
+  }
+  .stoic-palette-input input {
+    flex: 1; background: transparent; border: 0; outline: 0;
+    color: inherit; font-size: 1.05rem;
+  }
+  .stoic-palette-input kbd {
+    font-size: .7rem; padding: .1rem .35rem; opacity: .6;
+    border: 1px solid rgba(128,128,128,.4); border-radius: 4px;
+  }
+  .stoic-palette-input i { opacity: .6; width: 18px; height: 18px; }
+
+  .stoic-palette-results { max-height: 56vh; overflow-y: auto; padding: .4rem; }
+  .stoic-palette-hint, .stoic-palette-empty {
+    padding: 1.2rem 1rem; text-align: center; opacity: .55; font-size: .9rem; margin: 0;
+  }
+
+  .stoic-palette-group-label {
+    font-size: .72rem; text-transform: uppercase; letter-spacing: .04em;
+    opacity: .5; padding: .5rem .75rem .25rem;
+  }
+  .stoic-palette-item {
+    display: flex; flex-direction: column; gap: .1rem;
+    padding: .5rem .75rem; border-radius: 8px; cursor: pointer;
+    text-decoration: none; color: inherit;
+  }
+  .stoic-palette-item:hover, .stoic-palette-item.active {
+    background: var(--stoic-sidebar-active-bg, rgba(120,150,255,.18));
+    color: var(--stoic-sidebar-active-fg, inherit);
+  }
+  .stoic-palette-item .title { font-size: .95rem; }
+  .stoic-palette-item .subtitle { font-size: .8rem; opacity: .6; }
+</style>
+
+<script>
+(function () {
+  const SEARCH_URL = "{{ url_for('search.query') }}";
+  const backdrop = document.getElementById('stoic-palette');
+  const input = document.getElementById('stoic-palette-q');
+  const results = document.getElementById('stoic-palette-results');
+  const trigger = document.getElementById('stoic-search-trigger');
+  if (!backdrop || !input || !results) return;
+
+  let debounce = null;
+  let activeIndex = -1;
+  let items = [];
+
+  const HINT = `<p class="stoic-palette-hint">{{ _("Digita almeno 2 caratteri per cercare.") }}</p>`;
+  const EMPTY = `<p class="stoic-palette-empty">{{ _("Nessun risultato.") }}</p>`;
+
+  function open() {
+    backdrop.hidden = false;
+    input.value = '';
+    results.innerHTML = HINT;
+    activeIndex = -1; items = [];
+    setTimeout(() => input.focus(), 0);
+    if (window.lucide && window.lucide.createIcons) lucide.createIcons();
+  }
+  function close() { backdrop.hidden = true; }
+
+  function render(data) {
+    const hits = (data && data.results) || [];
+    if (!hits.length) { results.innerHTML = EMPTY; items = []; activeIndex = -1; return; }
+
+    // Group by type, preserving first-seen order.
+    const order = [];
+    const groups = {};
+    for (const h of hits) {
+      if (!groups[h.type]) { groups[h.type] = { label: h.type_label, rows: [] }; order.push(h.type); }
+      groups[h.type].rows.push(h);
+    }
+
+    let html = '';
+    for (const t of order) {
+      html += `<div class="stoic-palette-group-label">${groups[t].label}</div>`;
+      for (const h of groups[t].rows) {
+        const sub = h.subtitle ? `<span class="subtitle">${escapeHtml(h.subtitle)}</span>` : '';
+        html += `<a class="stoic-palette-item" href="${h.url}">`
+              + `<span class="title">${escapeHtml(h.title)}</span>${sub}</a>`;
+      }
+    }
+    results.innerHTML = html;
+    items = Array.from(results.querySelectorAll('.stoic-palette-item'));
+    activeIndex = items.length ? 0 : -1;
+    highlight();
+  }
+
+  function escapeHtml(s) {
+    const d = document.createElement('div'); d.textContent = s; return d.innerHTML;
+  }
+
+  function highlight() {
+    items.forEach((el, i) => el.classList.toggle('active', i === activeIndex));
+    if (activeIndex >= 0 && items[activeIndex]) {
+      items[activeIndex].scrollIntoView({ block: 'nearest' });
+    }
+  }
+
+  function doSearch(q) {
+    if (q.trim().length < 2) { results.innerHTML = HINT; items = []; activeIndex = -1; return; }
+    fetch(SEARCH_URL + '?q=' + encodeURIComponent(q), {
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+      .then(r => r.json())
+      .then(render)
+      .catch(() => { results.innerHTML = EMPTY; });
+  }
+
+  input.addEventListener('input', () => {
+    clearTimeout(debounce);
+    debounce = setTimeout(() => doSearch(input.value), 160);
+  });
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (items.length) { activeIndex = (activeIndex + 1) % items.length; highlight(); }
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (items.length) { activeIndex = (activeIndex - 1 + items.length) % items.length; highlight(); }
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (activeIndex >= 0 && items[activeIndex]) { window.location.href = items[activeIndex].href; }
+    }
+  });
+
+  // Global shortcuts: Cmd/Ctrl-K to open, ESC to close, click backdrop to close.
+  document.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) {
+      e.preventDefault();
+      backdrop.hidden ? open() : close();
+    } else if (e.key === 'Escape' && !backdrop.hidden) {
+      close();
+    }
+  });
+  if (trigger) trigger.addEventListener('click', open);
+  backdrop.addEventListener('click', (e) => { if (e.target === backdrop) close(); });
+})();
+</script>

@@ -7033,3 +7033,26 @@ msgstr "Label"
 msgid "es. Pressione, T testa, T bagno"
 msgstr "e.g. Pressure, Head temp, Bath temp"
 
+
+# ── Global search / command palette (Cmd-K) ─────────────────────────────────
+msgid "Cerca…"
+msgstr "Search…"
+
+msgid "Ricerca globale"
+msgstr "Global search"
+
+msgid "Reazione"
+msgstr "Reaction"
+
+msgid "Preparazione"
+msgstr "Preparation"
+
+msgid "Nessun risultato."
+msgstr "No results."
+
+msgid "Cerca sostanze, reazioni, run, lotti…"
+msgstr "Search substances, reactions, runs, lots…"
+
+msgid "Digita almeno 2 caratteri per cercare."
+msgstr "Type at least 2 characters to search."
+

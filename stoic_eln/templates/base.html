@@ -194,6 +194,14 @@
         <div class="app-header-title">{{ lab_name }}</div>
 
         <div class="app-header-actions">
+          <!-- Global search trigger (Cmd/Ctrl-K) -->
+          <button type="button" class="stoic-search-trigger" id="stoic-search-trigger"
+                  title="{{ _('Cerca') }} (⌘K)">
+            <i data-lucide="search"></i>
+            <span class="d-none d-lg-inline">{{ _("Cerca…") }}</span>
+            <kbd class="d-none d-lg-inline">⌘K</kbd>
+          </button>
+
           <!-- Theme switcher -->
           <div class="dropdown">
             <button class="btn btn-link text-light dropdown-toggle" type="button"
@@ -290,6 +298,8 @@
       </main>
     </div>
   </div>
+
+  {% include "_command_palette.html" %}
 
   {% else %}
   <!-- Anonymous layout (login) -->
