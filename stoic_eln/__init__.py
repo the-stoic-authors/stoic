@@ -30,7 +30,7 @@ from sqlalchemy import func
 from stoic_eln.config import Config, DevelopmentConfig, ProductionConfig, TestingConfig
 from stoic_eln.extensions import babel, csrf, db, login_manager, migrate
 
-__version__ = "0.9.0"
+__version__ = "0.9.1"
 
 CONFIG_MAP: dict[str, type[Config]] = {
     "debug": DevelopmentConfig,
@@ -304,11 +304,22 @@ def _select_locale() -> str:
       3. Browser Accept-Language header
       4. Default locale from config
     """
-    from flask import current_app, request
+    from flask import current_app, has_request_context, request
     from flask_login import current_user
 
-    if current_user.is_authenticated and current_user.locale:
-        return current_user.locale
+    default = current_app.config.get("DEFAULT_LOCALE", "it")
+
+    # Outside a request (PDF/background generation, scheduled jobs) there is
+    # no user or headers to read — fall back to the default locale instead
+    # of dereferencing an unbound current_user.
+    if not has_request_context():
+        return default
+
+    try:
+        if current_user.is_authenticated and current_user.locale:
+            return current_user.locale
+    except Exception:
+        pass
 
     cookie_locale = request.cookies.get("locale")
     if cookie_locale in ("it", "en"):
@@ -318,7 +329,7 @@ def _select_locale() -> str:
     if best:
         return best
 
-    return current_app.config.get("DEFAULT_LOCALE", "it")
+    return default
 
 
 def _register_blueprints(app: Flask) -> None:
