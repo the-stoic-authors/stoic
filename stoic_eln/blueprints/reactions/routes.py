@@ -1351,6 +1351,75 @@ def delete_step_component(scid: int):
     return redirect(url_for("reactions.detail", reaction_id=rid))
 
 
+
+
+# ─── Step parameters (P3 — manual add/delete) ───────────────────────────────
+
+
+@bp.route("/step/<int:step_id>/parameters/add", methods=["POST"])
+@login_required
+@supervisor_required
+def add_step_parameter(step_id: int):
+    """Add a StepParameter (label + unit) to a reaction step."""
+    from stoic_eln.models.reaction_step import ReactionStep
+    from stoic_eln.models.step_parameter import StepParameter
+
+    step = db.session.get(ReactionStep, step_id)
+    if step is None:
+        abort(404)
+
+    label = (request.form.get("label") or "").strip()[:120]
+    unit = (request.form.get("unit") or "").strip()[:20] or None
+
+    if label:
+        next_pos = max((p.position for p in step.parameters), default=-1) + 1
+        param = StepParameter(step_id=step.id, position=next_pos, label=label, unit=unit)
+        db.session.add(param)
+        db.session.commit()
+        log_event(
+            action="add_step_parameter",
+            entity_type="reaction_step",
+            entity_id=step.id,
+            details={"label": label, "unit": unit},
+        )
+
+    if request.headers.get("HX-Request"):
+        db.session.refresh(step)
+        return render_template(
+            "reactions/_step_card.html",
+            step=step,
+            reaction=step.reaction,
+            is_draft=True,
+        )
+    return redirect(url_for("reactions.detail", reaction_id=step.reaction_id))
+
+
+@bp.route("/step/parameters/<int:param_id>/delete", methods=["POST"])
+@login_required
+@supervisor_required
+def delete_step_parameter(param_id: int):
+    """Delete a StepParameter from a reaction step."""
+    from stoic_eln.models.step_parameter import StepParameter
+
+    param = db.session.get(StepParameter, param_id)
+    if param is None:
+        abort(404)
+
+    step = param.step
+    rid = step.reaction_id
+    db.session.delete(param)
+    db.session.commit()
+
+    if request.headers.get("HX-Request"):
+        db.session.refresh(step)
+        return render_template(
+            "reactions/_step_card.html",
+            step=step,
+            reaction=step.reaction,
+            is_draft=True,
+        )
+    return redirect(url_for("reactions.detail", reaction_id=rid))
+
 # ─── Run execution placeholder (Settimana 4) ────────────────────────────────
 
 

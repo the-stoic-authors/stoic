@@ -7022,3 +7022,14 @@ msgstr ""
 "passphrase is injected via env var before launch. Security-equivalent to the"
 " 'file' mode in most desktop use cases."
 
+
+# ── Step parameters UI (P3 manual add) ──────────────────────────────────────
+msgid "Parametri"
+msgstr "Parameters"
+
+msgid "Etichetta"
+msgstr "Label"
+
+msgid "es. Pressione, T testa, T bagno"
+msgstr "e.g. Pressure, Head temp, Bath temp"
+
