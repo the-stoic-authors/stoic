@@ -10,6 +10,7 @@ from flask_login import login_required
 from stoic_eln.blueprints.reports import bp
 from stoic_eln.extensions import db
 from stoic_eln.models import Substance
+from stoic_eln.services.production_cost_report import compute_production_cost_report
 from stoic_eln.services.spending_report import compute_spending
 from stoic_eln.services.substance_report import (
     compute_substance_report,
@@ -94,6 +95,32 @@ def spending():
         "reports/spending.html",
         report=report,
         bucket=bucket,
+        date_from=date_from,
+        date_to=date_to,
+    )
+
+
+@bp.route("/production")
+@login_required
+def production():
+    """Production-cost report: what it cost to make each in-house batch,
+    aggregated per substance. Cumulative and direct bases side by side.
+
+    Query params:
+        period: '3m' | '6m' | '12m' | 'custom' (default: 12m)
+        from / to: ISO dates, used when period=custom
+    """
+    period = request.args.get("period", "12m")
+    date_from, date_to, period = _resolve_period(
+        period,
+        request.args.get("from"),
+        request.args.get("to"),
+    )
+    report = compute_production_cost_report(date_from=date_from, date_to=date_to)
+    return render_template(
+        "reports/production.html",
+        report=report,
+        period=period,
         date_from=date_from,
         date_to=date_to,
     )

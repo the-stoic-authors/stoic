@@ -1057,3 +1057,63 @@ def test_consumption_imputed_cost_kg_to_g_normalisation(app):
         db.session.commit()
         # 500 g * 0.05 €/g = 25 €
         assert cons.imputed_cost_eur == 25.0
+
+
+def _price_stocks(ctx, hcl_eur, water_eur):
+    """Set prices on the stock lots from the dilution fixture."""
+    hcl = db.session.get(InventoryItem, ctx["stock_hcl_id"])
+    water = db.session.get(InventoryItem, ctx["stock_water_id"])
+    hcl.total_cost_eur = hcl_eur  # 5000 mL lot
+    water.total_cost_eur = water_eur  # 20000 mL lot
+    db.session.commit()
+
+
+def _dilution_input(ctx):
+    return PrepInput(
+        mixture_id=ctx["m_6n_id"],
+        target_quantity=4.0,
+        target_quantity_unit="L",
+        consumptions=[
+            ConsumptionInput(
+                inventory_item_id=ctx["stock_hcl_id"], quantity_consumed=2.0, quantity_unit="L"
+            ),
+            ConsumptionInput(
+                inventory_item_id=ctx["stock_water_id"], quantity_consumed=2.0, quantity_unit="L"
+            ),
+        ],
+        output_batch_code=None,
+        output_location=None,
+        output_expiry_date=None,
+        output_notes=None,
+        prepared_by_id=None,
+    )
+
+
+def test_prepared_mixture_lot_inherits_precursor_cost(app):
+    """Output lot cost = sum of priced precursors consumed.
+
+    HCl 12N: 100 €/5000 mL = 0.02 €/mL × 2000 mL = 40 €
+    Water:    10 €/20000 mL = 0.0005 €/mL × 2000 mL = 1 €  →  41 €
+    """
+    with app.app_context():
+        ctx = _setup_hcl_dilution_lab()
+        _price_stocks(ctx, hcl_eur=100.0, water_eur=10.0)
+        prep = execute_preparation(_dilution_input(ctx))
+        assert prep.output_lot.total_cost_eur == pytest.approx(41.0)
+
+
+def test_prepared_mixture_cost_is_partial_when_a_precursor_is_unpriced(app):
+    """An unpriced precursor is skipped; the priced ones still count."""
+    with app.app_context():
+        ctx = _setup_hcl_dilution_lab()
+        _price_stocks(ctx, hcl_eur=100.0, water_eur=None)
+        prep = execute_preparation(_dilution_input(ctx))
+        assert prep.output_lot.total_cost_eur == pytest.approx(40.0)
+
+
+def test_prepared_mixture_cost_none_when_no_precursor_priced(app):
+    with app.app_context():
+        ctx = _setup_hcl_dilution_lab()
+        _price_stocks(ctx, hcl_eur=None, water_eur=None)
+        prep = execute_preparation(_dilution_input(ctx))
+        assert prep.output_lot.total_cost_eur is None

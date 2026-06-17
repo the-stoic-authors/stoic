@@ -138,6 +138,8 @@ def clone_for_editing(source: Reaction, *, created_by_id: int | None = None) -> 
                     step_id=new_step.id,
                     substance_id=sc.substance_id,
                     mixture_id=sc.mixture_id,
+                    free_name=sc.free_name,
+                    free_unit=sc.free_unit,
                     position=sc.position,
                     role=sc.role,
                     ratio_kind=sc.ratio_kind,
@@ -376,9 +378,14 @@ def duplicate_for_new(source: Reaction, *, created_by_id: int | None = None) -> 
                 ReactionStepComponent(
                     step_id=new_s.id,
                     substance_id=sc.substance_id,
+                    mixture_id=sc.mixture_id,
+                    free_name=sc.free_name,
+                    free_unit=sc.free_unit,
                     role=sc.role,
                     ratio_value=sc.ratio_value,
                     ratio_kind=sc.ratio_kind,
+                    concentration_M=sc.concentration_M,
+                    notes=sc.notes,
                     position=sc.position,
                 )
             )

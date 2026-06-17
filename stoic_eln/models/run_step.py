@@ -36,8 +36,23 @@ class RunStep(db.Model):
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     position: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
 
+    # Snapshot of the step's reference component (P2b). The template
+    # ReactionStep.reference_component (limiting reagent or an explicit
+    # pick — e.g. the product, for a flash purification) is resolved to
+    # the corresponding RunComponent at launch and frozen here. NULL →
+    # fall back to the run's limiting reagent. Kept as its own snapshot
+    # so run quantities don't drift when the template is later edited.
+    reference_run_component_id: Mapped[int | None] = mapped_column(
+        Integer,
+        ForeignKey("run_component.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+
     # Relationships
     run: Mapped[Run] = relationship("Run", back_populates="steps")
+    reference_run_component = relationship(
+        "RunComponent", foreign_keys=[reference_run_component_id]
+    )
     components: Mapped[list[RunStepComponent]] = relationship(
         "RunStepComponent",
         back_populates="step",
@@ -50,6 +65,12 @@ class RunStep(db.Model):
         cascade="all, delete-orphan",
         order_by="RunChecklistItem.position",
         primaryjoin="and_(RunStep.id==RunChecklistItem.step_id, RunChecklistItem.run_id==None)",
+    )
+    parameters: Mapped[list[RunStepParameter]] = relationship(
+        "RunStepParameter",
+        back_populates="step",
+        cascade="all, delete-orphan",
+        order_by="RunStepParameter.position",
     )
 
     def __repr__(self) -> str:
@@ -95,7 +116,8 @@ class RunStepComponent(db.Model):
     __table_args__ = (
         CheckConstraint(
             "(CASE WHEN substance_id IS NULL THEN 0 ELSE 1 END) + "
-            "(CASE WHEN mixture_id IS NULL THEN 0 ELSE 1 END) = 1",
+            "(CASE WHEN mixture_id IS NULL THEN 0 ELSE 1 END) + "
+            "(CASE WHEN free_name IS NULL THEN 0 ELSE 1 END) = 1",
             name="ck_run_step_component_substance_xor_mixture",
         ),
     )
@@ -178,3 +200,29 @@ class RunChecklistItem(db.Model):
 
     def __repr__(self) -> str:
         return f"<RunChecklistItem #{self.id} done={self.is_done}>"
+
+
+class RunStepParameter(db.Model):
+    """A recorded process parameter on a run step (P3).
+
+    Snapshot of a reaction step's StepParameter (label + unit), plus the
+    ``value`` the operator records during execution. Stored as text so
+    ranges and non-numeric notes are allowed; the unit gives context.
+    Rendered in the run PDF.
+    """
+
+    __tablename__ = "run_step_parameter"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    step_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("run_step.id"), nullable=False, index=True
+    )
+    position: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    label: Mapped[str] = mapped_column(String(120), nullable=False)
+    unit: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    value: Mapped[str | None] = mapped_column(String(120), nullable=True)
+
+    step: Mapped[RunStep] = relationship("RunStep", back_populates="parameters")
+
+    def __repr__(self) -> str:
+        return f"<RunStepParameter #{self.id} {self.label!r}={self.value!r}>"

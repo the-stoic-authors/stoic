@@ -471,6 +471,8 @@ def deactivate(item_id: int):
     db.session.commit()
     log_event(action="deactivate", entity_type="inventory_item", entity_id=item.id)
     flash(_("Lotto disattivato."), "info")
+    if item.mixture_id:
+        return redirect(url_for("mixtures.detail", mixture_id=item.mixture_id))
     return redirect(url_for("substances.detail", substance_id=item.substance_id))
 
 
@@ -485,6 +487,8 @@ def reactivate(item_id: int):
     db.session.commit()
     log_event(action="reactivate", entity_type="inventory_item", entity_id=item.id)
     flash(_("Lotto riattivato."), "info")
+    if item.mixture_id:
+        return redirect(url_for("mixtures.detail", mixture_id=item.mixture_id))
     return redirect(url_for("substances.detail", substance_id=item.substance_id))
 
 

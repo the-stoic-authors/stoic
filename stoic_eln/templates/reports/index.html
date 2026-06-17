@@ -33,6 +33,19 @@
       </a>
     </div>
     <div class="col-md-6">
+      <a href="{{ url_for('reports.production') }}"
+         class="card text-decoration-none h-100">
+        <div class="card-body">
+          <h5 class="card-title">
+            <i data-lucide="factory"></i> {{ _("Costi di produzione") }}
+          </h5>
+          <p class="card-text small text-muted mb-0">
+            {{ _("Costo dei materiali per produrre ogni batch, aggregato per sostanza e per batch, su base cumulativa e diretta.") }}
+          </p>
+        </div>
+      </a>
+    </div>
+    <div class="col-md-6">
       <a href="{{ url_for('runs.stats') }}"
          class="card text-decoration-none h-100">
         <div class="card-body">

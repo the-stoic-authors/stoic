@@ -21,6 +21,8 @@ from datetime import date, datetime, time, timedelta
 
 from sqlalchemy import or_
 
+from flask_babel import lazy_gettext as _l
+
 from stoic_eln.extensions import db
 from stoic_eln.models.audit import AuditLog
 from stoic_eln.models.user import User
@@ -33,43 +35,43 @@ from stoic_eln.models.user import User
 # Falls back to (action, "secondary") for unknown verbs.
 _ACTION_LABELS: dict[str, tuple[str, str]] = {
     # Auth
-    "login": ("accesso", "secondary"),
-    "logout": ("uscita", "secondary"),
-    "login_failed": ("accesso fallito", "danger"),
+    "login": (_l("accesso"), "secondary"),
+    "logout": (_l("uscita"), "secondary"),
+    "login_failed": (_l("accesso fallito"), "danger"),
     # Reactions
-    "create_draft": ("bozza creata", "secondary"),
-    "publish": ("pubblicato", "success"),
-    "edit_started": ("inizio modifica", "secondary"),
-    "edit_cancelled": ("modifica annullata", "secondary"),
-    "archive": ("archiviato", "warning"),
-    "deactivate": ("disattivato", "warning"),
-    "reactivate": ("riattivato", "success"),
+    "create_draft": (_l("bozza creata"), "secondary"),
+    "publish": (_l("pubblicato"), "success"),
+    "edit_started": (_l("inizio modifica"), "secondary"),
+    "edit_cancelled": (_l("modifica annullata"), "secondary"),
+    "archive": (_l("archiviato"), "warning"),
+    "deactivate": (_l("disattivato"), "warning"),
+    "reactivate": (_l("riattivato"), "success"),
     # Substances
-    "create": ("creato", "primary"),
-    "update": ("aggiornato", "primary"),
-    "delete": ("eliminato", "danger"),
-    "read": ("consultato", "light"),
+    "create": (_l("creato"), "primary"),
+    "update": (_l("aggiornato"), "primary"),
+    "delete": (_l("eliminato"), "danger"),
+    "read": (_l("consultato"), "light"),
     # Inventory
-    "create_lot": ("lotto creato", "primary"),
-    "update_lot": ("lotto aggiornato", "primary"),
-    "deactivate_lot": ("lotto disattivato", "warning"),
+    "create_lot": (_l("lotto creato"), "primary"),
+    "update_lot": (_l("lotto aggiornato"), "primary"),
+    "deactivate_lot": (_l("lotto disattivato"), "warning"),
     # Orders
-    "create_order": ("ordine pianificato", "primary"),
-    "update_order": ("ordine aggiornato", "primary"),
-    "mark_order_ordered": ("ordine confermato", "info"),
-    "receive_order": ("ordine ricevuto", "success"),
-    "cancel_order": ("ordine annullato", "warning"),
-    "bulk_create_orders_from_shopping_list": ("ordini bulk", "primary"),
-    "update_shopping_list_settings": ("settaggi spesa", "secondary"),
+    "create_order": (_l("ordine pianificato"), "primary"),
+    "update_order": (_l("ordine aggiornato"), "primary"),
+    "mark_order_ordered": (_l("ordine confermato"), "info"),
+    "receive_order": (_l("ordine ricevuto"), "success"),
+    "cancel_order": (_l("ordine annullato"), "warning"),
+    "bulk_create_orders_from_shopping_list": (_l("ordini bulk"), "primary"),
+    "update_shopping_list_settings": (_l("settaggi spesa"), "secondary"),
     # Runs
-    "run_create_draft": ("run creato", "primary"),
-    "run_start": ("run avviato", "info"),
-    "run_complete": ("run completato", "success"),
-    "run_cancel": ("run annullato", "warning"),
-    "run_set_lot": ("lotto su run", "secondary"),
-    "run_set_actual": ("quantità run", "secondary"),
+    "run_create_draft": (_l("run creato"), "primary"),
+    "run_start": (_l("run avviato"), "info"),
+    "run_complete": (_l("run completato"), "success"),
+    "run_cancel": (_l("run annullato"), "warning"),
+    "run_set_lot": (_l("lotto su run"), "secondary"),
+    "run_set_actual": (_l("quantità run"), "secondary"),
     # Settings
-    "update_settings": ("impostazioni aggiornate", "secondary"),
+    "update_settings": (_l("impostazioni aggiornate"), "secondary"),
 }
 
 

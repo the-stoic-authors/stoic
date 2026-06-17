@@ -31,10 +31,12 @@ from stoic_eln.models.checklist_item import ChecklistItem
 from stoic_eln.models.reaction import Reaction
 from stoic_eln.models.reaction_step import STEP_KINDS, ReactionStep
 from stoic_eln.models.reaction_step_component import ReactionStepComponent
+from stoic_eln.models.step_parameter import StepParameter
 from stoic_eln.models.step_template import (
     StepTemplate,
     StepTemplateChecklistItem,
     StepTemplateComponent,
+    StepTemplateParameter,
 )
 from stoic_eln.services.audit import log_event
 
@@ -84,6 +86,7 @@ def save_from_step(step_id: int):
         existing.description = step.description
         existing.components.clear()
         existing.checklist_items.clear()
+        existing.parameters.clear()
         tpl = existing
         action = "overwrite_procedure"
     else:
@@ -114,6 +117,10 @@ def save_from_step(step_id: int):
     for item in step.checklist_items:
         tpl.checklist_items.append(
             StepTemplateChecklistItem(position=item.position, text=item.text)
+        )
+    for prm in step.parameters:
+        tpl.parameters.append(
+            StepTemplateParameter(position=prm.position, label=prm.label, unit=prm.unit)
         )
 
     db.session.commit()
@@ -170,6 +177,10 @@ def insert_into_reaction(template_id: int, reaction_id: int):
         )
     for item in tpl.checklist_items:
         db.session.add(ChecklistItem(step_id=step.id, position=item.position, text=item.text))
+    for prm in tpl.parameters:
+        db.session.add(
+            StepParameter(step_id=step.id, position=prm.position, label=prm.label, unit=prm.unit)
+        )
 
     db.session.commit()
     log_event(

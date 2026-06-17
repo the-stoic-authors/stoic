@@ -58,13 +58,13 @@
         {% endif %}
 
         {% if tpl.components %}
+        {% set ratiolabels = {'eq':'eq','mL_per_g':'mL/g','mL_per_mmol':'mL/mmol','g_per_g':'g/g','percent_vv':'% v/v','absolute_mL':'mL','absolute_g':'g','fixed_value':''} %}
         <div class="small mb-1"><strong>{{ _("Componenti") }}:</strong></div>
         <ul class="small mb-2">
           {% for c in tpl.components %}
           <li>
-            {{ c.substance.name if c.substance else c.mixture.name }}
-            — {{ c.role }}{% if c.ratio_value is not none %},
-            {{ c.ratio_value }} {{ c.ratio_kind }}{% endif %}
+            {{ c.substance.name if c.substance else (c.mixture.name if c.mixture else c.free_name) }}
+            — {{ c.role }}{% if c.ratio_kind == 'free' %} · {{ _("q.b.") }}{% elif c.ratio_kind == 'column_diameter_mm' %} · {{ _("Ø colonna") }} (h {{ c.ratio_value }} cm){% elif c.ratio_value is not none %} · {{ c.ratio_value }} {{ c.free_unit if c.free_name else ratiolabels.get(c.ratio_kind, c.ratio_kind) }}{% endif %}
           </li>
           {% endfor %}
         </ul>

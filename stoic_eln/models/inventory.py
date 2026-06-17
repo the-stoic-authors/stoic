@@ -22,6 +22,8 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from flask_babel import lazy_gettext as _l
+
 from stoic_eln.extensions import db
 
 if TYPE_CHECKING:
@@ -317,11 +319,11 @@ class InventoryItem(db.Model):
     def status_label_color(self) -> tuple[str, str]:
         """Return (label_it, bootstrap_color) for the current status."""
         return {
-            "inactive": ("inattivo", "secondary"),
-            "empty": ("esaurito", "secondary"),
-            "expired": ("scaduto", "danger"),
-            "expiring": ("in scadenza", "warning"),
-            "in_stock": ("in stock", "success"),
+            "inactive": (_l("inattivo"), "secondary"),
+            "empty": (_l("esaurito"), "secondary"),
+            "expired": (_l("scaduto"), "danger"),
+            "expiring": (_l("in scadenza"), "warning"),
+            "in_stock": (_l("in stock"), "success"),
         }[self.status_key]
 
     def use_quantity(self, amount: float, unit: str) -> bool:

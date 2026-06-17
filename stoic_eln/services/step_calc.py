@@ -26,6 +26,18 @@ class StepQuantity:
     free: float | None = None
 
 
+def _ref_substance(comp):
+    """Best substance to read MW/density from for a reference component.
+
+    Mixture-backed components expose their primary solute via
+    ``effective_substance``; substance-backed ones just have
+    ``substance``. Returns None when neither is available.
+    """
+    if comp is None:
+        return None
+    return getattr(comp, "effective_substance", None) or getattr(comp, "substance", None)
+
+
 def reference_quantities(
     *,
     ref_equivalents: float,
@@ -107,6 +119,18 @@ def compute_step_component(
             if sub_mw and sub_mw > 0:
                 out.mmol = out.g * 1000.0 / sub_mw
 
+    elif ratio_kind == "g_per_g":
+        # X g of component per gram of the reference (mass:mass loading).
+        # Pure mass ratio — no MW/density needed. DELIBERATELY g-only:
+        # for the canonical use case (flash silica loading) converting
+        # to mL via the substance density would yield the skeletal
+        # volume, meaningless for bed packing. The column-diameter calc
+        # applies a process bulk density (SILICA_BULK_DENSITY_G_PER_ML)
+        # separately when it needs a bed volume.
+        if ref_quantity.g is None:
+            return out
+        out.g = ratio_value * ref_quantity.g
+
     elif ratio_kind == "percent_vv":
         # 5 % v/v of TFA → mL = ref_mL * 5 / 100
         if ref_quantity.mL is None:
@@ -172,21 +196,26 @@ def compute_run_step_component(rsc, run, *, fallback_ref_mmol=None) -> StepQuant
     if run.scale_mmol is None or rsc.ratio_value is None:
         return StepQuantity()
 
-    # Find the limiting reagent in the run's components
-    limiting = next((c for c in run.components if c.is_limiting), None)
-    if limiting is None or limiting.substance is None:
+    # Resolve the reference component (P2b): the step's snapshotted
+    # reference component if present (e.g. the product, for a flash
+    # purification — gives "g per g of crude"), otherwise the run's
+    # limiting reagent. We use the reference's own equivalents so the
+    # reference mass scales correctly for non-limiting references.
+    ref_comp = getattr(rsc.step, "reference_run_component", None)
+    if ref_comp is None or _ref_substance(ref_comp) is None:
+        ref_comp = next((c for c in run.components if c.is_limiting), None)
+    if ref_comp is None:
         return StepQuantity()
 
-    sub = limiting.substance
-    ref_mw = sub.molecular_weight
-    ref_density = sub.density
+    ref_sub = _ref_substance(ref_comp)
+    if ref_sub is None:
+        return StepQuantity()
 
-    # Reference quantity = the limiting at run.scale_mmol (eq=1)
     ref_q = reference_quantities(
-        ref_equivalents=1.0,
+        ref_equivalents=ref_comp.equivalents or 1.0,
         scale_mmol=run.scale_mmol,
-        ref_mw=ref_mw,
-        ref_density=ref_density,
+        ref_mw=ref_sub.molecular_weight,
+        ref_density=ref_sub.density,
     )
 
     sub_mw = rsc.substance.molecular_weight if rsc.substance else None

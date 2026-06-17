@@ -960,6 +960,26 @@ def execute_preparation(
     if resolved:
         output_lot.group_id = resolved[0][0].group_id
 
+    # Production cost of the mixture: sum the cost of the priced
+    # precursor lots consumed (consumed quantity × the lot's €/unit).
+    # A precursor without a price is skipped; the total is set as long
+    # as at least one precursor was priced — partial costs are still
+    # useful, and this lets runs that consume the mixture count it.
+    from stoic_eln.services.run_cost import _line_cost
+
+    cost_total = 0.0
+    any_priced = False
+    for c_lot, c_qty, c_unit, _cn in resolved:
+        if c_unit in ("mL", "L"):
+            line = _line_cost(None, _normalize_to_mL(c_qty, c_unit), c_lot)
+        else:
+            line = _line_cost(_normalize_to_g(c_qty, c_unit), None, c_lot)
+        if line is not None:
+            cost_total += line
+            any_priced = True
+    if any_priced:
+        output_lot.total_cost_eur = cost_total
+
     # Expiry date for the output lot:
     #   - explicit user input wins (operator override)
     #   - otherwise default to the earliest expiry among the

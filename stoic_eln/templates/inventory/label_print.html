@@ -7,6 +7,16 @@
 
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb small">
+        {% if item.mixture %}
+        <li class="breadcrumb-item">
+          <a href="{{ url_for('mixtures.list_view') }}">{{ _("Miscele") }}</a>
+        </li>
+        <li class="breadcrumb-item">
+          <a href="{{ url_for('mixtures.detail', mixture_id=item.mixture.id) }}">
+            {{ item.mixture.name }}
+          </a>
+        </li>
+        {% else %}
         <li class="breadcrumb-item">
           <a href="{{ url_for('substances.list_view') }}">{{ _("Sostanze") }}</a>
         </li>
@@ -15,6 +25,7 @@
             {{ item.substance.name }}
           </a>
         </li>
+        {% endif %}
         <li class="breadcrumb-item">
           <a href="{{ url_for('inventory.edit', item_id=item.id) }}">
             {{ item.batch_code or _("Lotto #%(id)d", id=item.id) }}
@@ -28,7 +39,7 @@
       <div class="card-body">
         <h2 class="mb-1">{{ _("Stampa etichetta") }}</h2>
         <p class="text-muted small mb-4">
-          {{ item.substance.name }}
+          {{ item.substance.name if item.substance else (item.mixture.display_label if item.mixture else "") }}
           {% if item.batch_code %} · <code>{{ item.batch_code }}</code>{% endif %}
           {% if item.expiry_date %} · {{ _("Scad") }} {{ item.expiry_date.isoformat() }}{% endif %}
         </p>

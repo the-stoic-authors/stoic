@@ -27,7 +27,7 @@ from stoic_eln.models.run import (
     Run,
 )
 from stoic_eln.models.run_component import RunComponent
-from stoic_eln.models.run_step import RunChecklistItem, RunStep, RunStepComponent
+from stoic_eln.models.run_step import RunChecklistItem, RunStep, RunStepComponent, RunStepParameter
 from stoic_eln.models.user import User
 from stoic_eln.services import run_code as run_code_service
 
@@ -75,6 +75,7 @@ def create_draft(reaction: Reaction, operator: User | None = None) -> Run:
     db.session.flush()  # ensure run.id is available
 
     # Copy reaction-level components
+    comp_map: dict[int, RunComponent] = {}
     for c in reaction.components:
         rc = RunComponent(
             run_id=run.id,
@@ -88,6 +89,7 @@ def create_draft(reaction: Reaction, operator: User | None = None) -> Run:
             position=c.position,
         )
         db.session.add(rc)
+        comp_map[c.id] = rc
 
     # Copy reaction-level checklist items (default not done)
     for item in reaction.checklist_items:
@@ -101,6 +103,13 @@ def create_draft(reaction: Reaction, operator: User | None = None) -> Run:
 
     # Copy steps + their components + their checklists
     for step in reaction.steps:
+        # Resolve the step's reference component to its RunComponent
+        # snapshot (P2b). NULL on the template → leave NULL here, so
+        # the calc falls back to the run's limiting reagent.
+        ref_rc = None
+        if step.reference_component_id is not None:
+            ref_rc = comp_map.get(step.reference_component_id)
+
         rs = RunStep(
             run_id=run.id,
             template_step_id=step.id,
@@ -108,6 +117,7 @@ def create_draft(reaction: Reaction, operator: User | None = None) -> Run:
             kind=step.kind,
             description=step.description,
             position=step.position,
+            reference_run_component=ref_rc,
         )
         db.session.add(rs)
         db.session.flush()
@@ -134,6 +144,17 @@ def create_draft(reaction: Reaction, operator: User | None = None) -> Run:
                     text=it.text,
                     position=it.position,
                     is_done=False,
+                )
+            )
+
+        for prm in step.parameters:
+            db.session.add(
+                RunStepParameter(
+                    step_id=rs.id,
+                    label=prm.label,
+                    unit=prm.unit,
+                    position=prm.position,
+                    value=None,
                 )
             )
 

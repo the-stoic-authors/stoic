@@ -30,6 +30,7 @@ if TYPE_CHECKING:
     from stoic_eln.models.reaction import Reaction
     from stoic_eln.models.reaction_component import ReactionComponent
     from stoic_eln.models.reaction_step_component import ReactionStepComponent
+    from stoic_eln.models.step_parameter import StepParameter
 
 
 def _now_utc() -> datetime:
@@ -111,6 +112,12 @@ class ReactionStep(db.Model):
         cascade="all, delete-orphan",
         order_by="ChecklistItem.position.asc()",
         overlaps="reaction,step",
+    )
+    parameters: Mapped[list[StepParameter]] = relationship(
+        "StepParameter",
+        back_populates="step",
+        cascade="all, delete-orphan",
+        order_by="StepParameter.position.asc()",
     )
 
     def __repr__(self) -> str:

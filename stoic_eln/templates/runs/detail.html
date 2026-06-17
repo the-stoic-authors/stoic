@@ -19,7 +19,7 @@
     </li>
     <li class="breadcrumb-item active">
       <code class="text-body">{{ run.code }}</code>
-      <span class="badge text-bg-{{ run.status_color }} ms-1">{{ run.status_label_it }}</span>
+      <span class="badge text-bg-{{ run.status_color }} ms-1">{{ run.status_label }}</span>
     </li>
   </ol>
 </nav>
@@ -701,6 +701,29 @@
     {% if step.description %}
     <strong class="small d-block mb-1">{{ _("Procedimento") }}</strong>
     <p class="mb-3" style="white-space: pre-wrap">{{ step.description }}</p>
+    {% endif %}
+
+    {# Step-level recorded parameters (P3) — operator fills these in #}
+    {% if step.parameters %}
+    <strong class="small d-block mb-2">{{ _("Parametri registrati") }}</strong>
+    <div class="mb-3">
+      {% for prm in step.parameters|sort(attribute='position') %}
+      <div class="row g-2 align-items-center mb-1">
+        <label class="col-6 col-sm-4 col-form-label col-form-label-sm small mb-0"
+               for="prm-{{ prm.id }}">{{ prm.label }}</label>
+        <div class="col-6 col-sm-4">
+          <div class="input-group input-group-sm">
+            <input type="text" class="form-control" id="prm-{{ prm.id }}"
+                   name="value" value="{{ prm.value or '' }}"
+                   {% if is_done %}disabled{% endif %}
+                   hx-post="{{ url_for('runs.set_step_parameter', run_id=run.id, pid=prm.id) }}"
+                   hx-trigger="change" hx-swap="none">
+            {% if prm.unit %}<span class="input-group-text">{{ prm.unit }}</span>{% endif %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
     {% endif %}
 
     {# Step-level checklist (toggleable in any non-completed run) #}

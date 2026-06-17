@@ -70,7 +70,7 @@ jobs:
           cache-dependency-path: pyproject.toml
 
       - name: Install ruff
-        run: pip install ruff
+        run: pip install ruff==0.15.17
 
       - name: Ruff check
         run: ruff check stoic_eln/ tests/

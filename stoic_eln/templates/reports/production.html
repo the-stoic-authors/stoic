@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% block title %}{{ _("Costi di produzione") }} — Stoic{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <nav aria-label="breadcrumb" class="small mb-2">
+    <ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item">
+        <a href="{{ url_for('reports.index') }}">{{ _("Report") }}</a>
+      </li>
+      <li class="breadcrumb-item active">{{ _("Costi di produzione") }}</li>
+    </ol>
+  </nav>
+
+  <h1 class="mb-1">{{ _("Costi di produzione") }}</h1>
+  <p class="text-muted small mb-4">
+    {{ _("Costo dei materiali per produrre ogni batch, per sostanza e per batch. Base cumulativa (incluso il valore degli intermedi fatti in casa) e diretta (solo soldi freschi) affiancate.") }}
+  </p>
+
+  {# ── Filters ───────────────────────────────────────────── #}
+  <form method="get" class="card mb-4">
+    <div class="card-body">
+      <div class="row g-3 align-items-end">
+        <div class="col-md-3">
+          <label class="form-label small text-muted">{{ _("Periodo") }}</label>
+          <select name="period" class="form-select form-select-sm">
+            <option value="3m"     {% if period == '3m' %}selected{% endif %}>{{ _("Ultimi 3 mesi") }}</option>
+            <option value="6m"     {% if period == '6m' %}selected{% endif %}>{{ _("Ultimi 6 mesi") }}</option>
+            <option value="12m"    {% if period == '12m' %}selected{% endif %}>{{ _("Ultimi 12 mesi") }}</option>
+            <option value="custom" {% if period == 'custom' %}selected{% endif %}>{{ _("Personalizzato") }}</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small text-muted">{{ _("Dal") }}</label>
+          <input type="date" name="from"
+                 value="{{ date_from.isoformat() if date_from else '' }}"
+                 class="form-control form-control-sm">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small text-muted">{{ _("Al") }}</label>
+          <input type="date" name="to"
+                 value="{{ date_to.isoformat() if date_to else '' }}"
+                 class="form-control form-control-sm">
+        </div>
+        <div class="col-md-3 text-end">
+          <button type="submit" class="btn btn-primary btn-sm">{{ _("Aggiorna") }}</button>
+          <a href="{{ url_for('reports.production') }}" class="btn btn-link btn-sm">{{ _("Reset") }}</a>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  {% if not report.has_data %}
+    <div class="alert alert-light border text-muted">
+      {{ _("Nessun batch prodotto nel periodo selezionato.") }}
+    </div>
+  {% else %}
+    {# ── Grand totals ─────────────────────────────────────── #}
+    <div class="row g-3 mb-4">
+      <div class="col-md-4">
+        <div class="card h-100"><div class="card-body">
+          <div class="small text-muted">{{ _("Massa totale prodotta") }}</div>
+          <div class="fs-4">{{ "%g"|format(report.total_produced_g) }} g</div>
+        </div></div>
+      </div>
+      <div class="col-md-4">
+        <div class="card h-100"><div class="card-body">
+          <div class="small text-muted">{{ _("Costo di produzione (cumulativo)") }}</div>
+          <div class="fs-4">{{ report.total_cost_cumulative|currency }}</div>
+        </div></div>
+      </div>
+      <div class="col-md-4">
+        <div class="card h-100"><div class="card-body">
+          <div class="small text-muted">{{ _("Costo di produzione (diretto)") }}</div>
+          <div class="fs-4">{{ report.total_cost_direct|currency }}</div>
+        </div></div>
+      </div>
+    </div>
+
+    {# ── Per substance ────────────────────────────────────── #}
+    {% for s in report.substances %}
+    <div class="card mb-3">
+      <div class="card-header d-flex flex-wrap justify-content-between align-items-baseline gap-2">
+        <span class="fw-semibold">
+          {{ s.substance_name }}
+          {% if s.any_partial %}
+          <span class="badge text-bg-warning ms-1" title="{{ _('Alcuni run hanno componenti senza prezzo: costi sottostimati.') }}">{{ _("parziale") }}</span>
+          {% endif %}
+        </span>
+        <span class="small text-muted">
+          {{ s.batch_count }} {{ _("batch") }} ·
+          {{ "%g"|format(s.total_produced_g) }} g ·
+          {{ _("cum.") }} {{ s.total_cost_cumulative|currency }}
+          {% if s.avg_per_g_cumulative is not none %}({{ s.avg_per_g_cumulative|currency }}/g){% endif %} ·
+          {{ _("dir.") }} {{ s.total_cost_direct|currency }}
+          {% if s.avg_per_g_direct is not none %}({{ s.avg_per_g_direct|currency }}/g){% endif %}
+        </span>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-sm mb-0 align-middle">
+          <thead class="small text-muted">
+            <tr>
+              <th>{{ _("Batch") }}</th>
+              <th>{{ _("Run") }}</th>
+              <th>{{ _("Prodotto il") }}</th>
+              <th class="text-end">{{ _("Massa") }}</th>
+              <th class="text-end">{{ _("Costo cum.") }}</th>
+              <th class="text-end">{{ _("€/g cum.") }}</th>
+              <th class="text-end">{{ _("Costo dir.") }}</th>
+              <th class="text-end">{{ _("€/g dir.") }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for b in s.batches %}
+            <tr>
+              <td class="small">{{ b.batch_code or "—" }}
+                {% if b.partial %}<span class="text-warning" title="{{ _('Dati costo incompleti') }}">*</span>{% endif %}
+              </td>
+              <td class="small">
+                {% if b.run_id %}<a href="{{ url_for('runs.detail', run_id=b.run_id) }}">{{ b.run_code or "—" }}</a>{% else %}{{ b.run_code or "—" }}{% endif %}
+              </td>
+              <td class="small">{{ b.produced_on.isoformat() if b.produced_on else "—" }}</td>
+              <td class="text-end small">{{ "%g"|format(b.produced_g) }} g</td>
+              <td class="text-end small">{{ b.cost_cumulative|currency if b.cost_cumulative is not none else "—" }}</td>
+              <td class="text-end small">{{ (b.per_g_cumulative|currency ~ "/g") if b.per_g_cumulative is not none else "—" }}</td>
+              <td class="text-end small">{{ b.cost_direct|currency if b.cost_direct is not none else "—" }}</td>
+              <td class="text-end small">{{ (b.per_g_direct|currency ~ "/g") if b.per_g_direct is not none else "—" }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endfor %}
+  {% endif %}
+</div>
+{% endblock %}

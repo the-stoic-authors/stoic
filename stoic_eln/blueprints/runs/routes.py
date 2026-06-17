@@ -403,6 +403,37 @@ def set_step_actual(run_id: int, scid: int):
     return redirect(url_for("runs.detail", run_id=run_id))
 
 
+@bp.route("/<int:run_id>/step-parameter/<int:pid>", methods=["POST"])
+@login_required
+def set_step_parameter(run_id: int, pid: int):
+    """Record the operator's value for a step parameter (P3).
+
+    Stored as free text (the unit lives on the parameter), so ranges
+    like ``65-68`` or notes are fine. Allowed while draft/in-progress,
+    blocked once the run is completed. HTMX-friendly (204, no swap).
+    """
+    from stoic_eln.models.run_step import RunStepParameter
+
+    run = db.session.get(Run, run_id)
+    if run is None:
+        abort(404)
+    if run.is_completed:
+        flash(_("Run completato: non si possono modificare i parametri."), "warning")
+        return redirect(url_for("runs.detail", run_id=run_id))
+
+    prm = db.session.get(RunStepParameter, pid)
+    if prm is None or prm.step.run_id != run_id:
+        abort(404)
+
+    raw = (request.form.get("value") or "").strip()
+    prm.value = raw or None
+    db.session.commit()
+
+    if request.headers.get("HX-Request"):
+        return ("", 204)
+    return redirect(url_for("runs.detail", run_id=run_id))
+
+
 @bp.route("/<int:run_id>/checklist/<int:cid>/toggle", methods=["POST"])
 @login_required
 def toggle_checklist(run_id: int, cid: int):

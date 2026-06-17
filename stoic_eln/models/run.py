@@ -145,11 +145,13 @@ class Run(db.Model):
         return self.status == STATUS_COMPLETED
 
     @property
-    def status_label_it(self) -> str:
+    def status_label(self):
+        from flask_babel import lazy_gettext as _l
+
         return {
-            STATUS_DRAFT: "in preparazione",
-            STATUS_IN_PROGRESS: "in esecuzione",
-            STATUS_COMPLETED: "completato",
+            STATUS_DRAFT: _l("in preparazione"),
+            STATUS_IN_PROGRESS: _l("in esecuzione"),
+            STATUS_COMPLETED: _l("completato"),
         }.get(self.status, self.status)
 
     @property

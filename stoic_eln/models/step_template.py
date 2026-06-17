@@ -84,6 +84,12 @@ class StepTemplate(db.Model):
         cascade="all, delete-orphan",
         order_by="StepTemplateChecklistItem.position.asc()",
     )
+    parameters: Mapped[list[StepTemplateParameter]] = relationship(
+        "StepTemplateParameter",
+        back_populates="template",
+        cascade="all, delete-orphan",
+        order_by="StepTemplateParameter.position.asc()",
+    )
 
     def __repr__(self) -> str:
         return f"<StepTemplate #{self.id} {self.name!r} kind={self.kind}>"
@@ -160,3 +166,30 @@ class StepTemplateChecklistItem(db.Model):
 
     def __repr__(self) -> str:
         return f"<StepTemplateChecklistItem tpl={self.template_id} {self.text[:30]!r}>"
+
+
+class StepTemplateParameter(db.Model):
+    """A recorded-parameter declaration of a library procedure (P3).
+
+    Label + unit only — the value is recorded per run. Snapshotted to a
+    reaction step's StepParameter when the procedure is inserted, then
+    to a RunStepParameter (with the operator's value) at run launch.
+    """
+
+    __tablename__ = "step_template_parameter"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    template_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("step_template.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    position: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    label: Mapped[str] = mapped_column(String(120), nullable=False)
+    unit: Mapped[str | None] = mapped_column(String(20), nullable=True)
+
+    template: Mapped[StepTemplate] = relationship("StepTemplate", back_populates="parameters")
+
+    def __repr__(self) -> str:
+        return f"<StepTemplateParameter tpl={self.template_id} {self.label!r}>"

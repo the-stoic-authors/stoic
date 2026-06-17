@@ -282,7 +282,7 @@ def _build_header(run: Run, styles: dict) -> list:
 
     # Abstract: status + scale + yield in 2-3 lines
     abstract_lines = []
-    abstract_lines.append(f"<b>Stato:</b> {_esc(run.status_label_it)}.")
+    abstract_lines.append(f"<b>Stato:</b> {_esc(run.status_label)}.")
     if run.scale_input_value and run.scale_input_unit:
         abstract_lines.append(
             f"<b>Scala:</b> {run.scale_input_value} {run.scale_input_unit} "
@@ -576,6 +576,19 @@ def _build_steps(run: Run, styles: dict, *, section_no: int) -> list:
                     styles["body"],
                 )
             )
+
+        if getattr(step, "parameters", None):
+            flow.append(Spacer(1, 4))
+            flow.append(Paragraph("<b>Parametri registrati</b>", styles["body_small"]))
+            for prm in sorted(step.parameters, key=lambda x: x.position):
+                val = prm.value if prm.value not in (None, "") else "—"
+                unit = f" {_esc(prm.unit)}" if prm.unit else ""
+                flow.append(
+                    Paragraph(
+                        f"{_esc(prm.label)}: <b>{_esc(val)}</b>{unit}",
+                        styles["body_small"],
+                    )
+                )
 
         if step.checklist_items:
             for item in sorted(step.checklist_items, key=lambda x: x.position):

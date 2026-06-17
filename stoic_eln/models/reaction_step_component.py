@@ -18,6 +18,11 @@ flexible kind. The supported ratio kinds are:
                    (e.g. "10 mL of water per gram of crude")
   - "mL_per_mmol" — mL per mmol of the reference
                    (e.g. "20 mL of EtOAc per mmol of starting material")
+  - "g_per_g"     — grams of the component per gram of the reference
+                   (a pure mass:mass loading, no MW/density needed).
+                   The canonical use case is flash-chromatography
+                   silica loading: "30 g silica per g of crude". Only
+                   the mass (g) is derived — see step_calc.
   - "percent_vv" — % volume relative to the reference's volume
                    (e.g. "5 % v/v of TFA")
   - "absolute_mL" — fixed volume in mL, no ratio
@@ -66,6 +71,7 @@ RATIO_KINDS: tuple[str, ...] = (
     "eq",
     "mL_per_g",
     "mL_per_mmol",
+    "g_per_g",
     "percent_vv",
     "absolute_mL",
     "absolute_g",
@@ -78,6 +84,7 @@ RATIO_KIND_LABELS_IT = {
     "eq": "eq",
     "mL_per_g": "mL/g",
     "mL_per_mmol": "mL/mmol",
+    "g_per_g": "g/g",
     "percent_vv": "% v/v",
     "absolute_mL": "mL fissi",
     "absolute_g": "g fissi",
@@ -90,6 +97,7 @@ RATIO_KIND_LABELS_EN = {
     "eq": "eq",
     "mL_per_g": "mL/g",
     "mL_per_mmol": "mL/mmol",
+    "g_per_g": "g/g",
     "percent_vv": "% v/v",
     "absolute_mL": "fixed mL",
     "absolute_g": "fixed g",
@@ -185,6 +193,8 @@ class ReactionStepComponent(db.Model):
             return self.mixture.display_label
         if self.substance is not None:
             return self.substance.name
+        if self.free_name:
+            return self.free_name
         return "—"
 
     @property
