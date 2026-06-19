@@ -2,16 +2,9 @@
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
-
 import pytest
 
-# scripts/ isn't an importable package; anchor to this file's location so the
-# import works regardless of the working directory pytest runs from (CI vs local).
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
-
-from backfill_mixture_costs import run_backfill  # noqa: E402
+from scripts.backfill_mixture_costs import run_backfill
 
 from stoic_eln.extensions import db
 from stoic_eln.models import (
