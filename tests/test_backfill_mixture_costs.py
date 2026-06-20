@@ -1,10 +1,8 @@
-"""Tests for scripts/backfill_mixture_costs.py."""
+"""Tests for the mixture-cost backfill (stoic_eln.services.backfill)."""
 
 from __future__ import annotations
 
 import pytest
-
-from scripts.backfill_mixture_costs import run_backfill
 
 from stoic_eln.extensions import db
 from stoic_eln.models import (
@@ -14,6 +12,7 @@ from stoic_eln.models import (
     MixtureComponent,
     Substance,
 )
+from stoic_eln.services.backfill import run_backfill
 from stoic_eln.services.prep_service import (
     ConsumptionInput,
     PrepInput,

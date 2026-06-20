@@ -181,8 +181,3 @@ exclude = ["migrations/", "tests/"]
 testpaths = ["tests"]
 python_files = "test_*.py"
 addopts = "-v --tb=short"
-# Put the repo root on sys.path so tests can import helper modules that live
-# in scripts/ (a package) regardless of whether the project is installed
-# editable. Without this, `from scripts...` resolves on some machines (editable
-# install exposes it) but not others, and CI fails on collection.
-pythonpath = ["."]
