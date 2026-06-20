@@ -7056,3 +7056,27 @@ msgstr "Search substances, reactions, runs, lots…"
 msgid "Digita almeno 2 caratteri per cercare."
 msgstr "Type at least 2 characters to search."
 
+
+# ── Off-site backup (backup.offsite.*) ───────────────────────────
+msgid "Copia off-site attiva"
+msgstr "Enable off-site copy"
+
+msgid "Percorso off-site (mount esterno)"
+msgstr "Off-site path (external mount)"
+
+msgid ""
+"Il percorso deve esistere e essere scrivibile. "
+"Stoic non monta il volume — configuralo via fstab o systemd.mount."
+msgstr ""
+"The path must exist and be writable. "
+"Stoic does not mount the volume — configure it via fstab or systemd.mount."
+
+msgid "Copia off-site completata."
+msgstr "Off-site copy completed."
+
+msgid ""
+"Backup locale OK, ma la copia off-site è fallita. "
+"Controlla il percorso e che il mount sia attivo."
+msgstr ""
+"Local backup OK, but the off-site copy failed. "
+"Check the path and make sure the mount is active."

@@ -326,6 +326,30 @@
           <button type="submit" class="btn btn-primary btn-sm">
             <i data-lucide="save"></i> {{ _("Salva configurazione") }}
           </button>
+
+          <hr class="my-3">
+
+          <div class="form-check form-switch mb-2">
+            <input class="form-check-input" type="checkbox"
+                   id="offsite-enabled" name="offsite_enabled"
+                   {% if settings.offsite_enabled %}checked{% endif %}>
+            <label class="form-check-label" for="offsite-enabled">
+              {{ _("Copia off-site attiva") }}
+            </label>
+          </div>
+          <div class="mb-0">
+            <label class="form-label small text-muted">
+              {{ _("Percorso off-site (mount esterno)") }}
+            </label>
+            <input type="text" name="offsite_path"
+                   class="form-control form-control-sm font-monospace"
+                   value="{{ settings.offsite_path }}"
+                   placeholder="/mnt/nas/stoic-backups">
+            <small class="text-muted d-block mt-1">
+              {{ _("Il percorso deve esistere e essere scrivibile. "
+                   "Stoic non monta il volume — configuralo via fstab o systemd.mount.") }}
+            </small>
+          </div>
         </form>
 
         <hr class="my-3">

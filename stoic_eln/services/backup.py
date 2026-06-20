@@ -56,6 +56,7 @@ class BackupFile:
     timestamp: datetime  # naive UTC, derived from filename
     size_bytes: int
     encrypted: bool = False
+    offsite_ok: bool | None = None  # None = not attempted; True/False = result
 
     @property
     def filename(self) -> str:
@@ -162,6 +163,8 @@ def get_settings() -> dict:
         "keep_daily": _int("backup.keep_daily", 30),
         "keep_weekly": _int("backup.keep_weekly", 12),
         "encryption_enabled": encryption_enabled(),
+        "offsite_enabled": _bool("backup.offsite.enabled", False),
+        "offsite_path": AppSetting.get("backup.offsite.path") or "",
     }
 
 
@@ -185,6 +188,32 @@ def _get_passphrase() -> str | None:
 
 
 # ── Core operations ──────────────────────────────────────────────
+
+
+def _copy_offsite(backup_file: Path) -> bool:
+    """Copy *backup_file* to the configured off-site path.
+
+    Returns True on success, False on any error (logged but not
+    re-raised — the local backup is already safe).
+    """
+    from stoic_eln.models.settings import AppSetting
+
+    raw = (AppSetting.get("backup.offsite.path") or "").strip()
+    if not raw:
+        return False
+    dest_dir = Path(raw)
+    try:
+        if not dest_dir.exists():
+            raise FileNotFoundError(f"Off-site path does not exist: {dest_dir}")
+        if not dest_dir.is_dir():
+            raise NotADirectoryError(f"Off-site path is not a directory: {dest_dir}")
+        dest = dest_dir / backup_file.name
+        shutil.copy2(backup_file, dest)
+        logger.info("off-site copy: %s → %s", backup_file.name, dest_dir)
+        return True
+    except Exception as exc:
+        logger.error("off-site copy failed: %s", exc)
+        return False
 
 
 def create_backup(reason: str = "manual") -> BackupFile:
@@ -311,11 +340,24 @@ def create_backup(reason: str = "manual") -> BackupFile:
         encrypted,
     )
 
+    # Off-site copy: attempt only if enabled.
+    from stoic_eln.models.settings import AppSetting
+
+    offsite_ok: bool | None = None
+    if (AppSetting.get("backup.offsite.enabled") or "0").lower() in (
+        "1",
+        "true",
+        "yes",
+        "on",
+    ):
+        offsite_ok = _copy_offsite(final_path)
+
     return BackupFile(
         path=final_path,
         timestamp=ts,
         size_bytes=size,
         encrypted=encrypted,
+        offsite_ok=offsite_ok,
     )
 
 

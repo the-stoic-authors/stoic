@@ -239,3 +239,52 @@ def test_parse_timestamp_rejects_invalid():
     assert backup_service._parse_timestamp("stoic_eln-bogus.db.gz") is None
     assert backup_service._parse_timestamp("stoic_eln-20260101-000000.db") is None
     assert backup_service._parse_timestamp("stoic_eln-20260101-120000.db.gz") is not None
+
+
+# ── Off-site copy (backup.offsite.*) ─────────────────────────────
+
+
+def test_offsite_copy_succeeds_when_enabled(file_app, tmp_path):
+    """When offsite is enabled and the path exists, BackupFile.offsite_ok is True
+    and the file appears in the destination directory."""
+    offsite_dir = tmp_path / "nas"
+    offsite_dir.mkdir()
+    with file_app.app_context():
+        AppSetting.set("backup.offsite.enabled", "1")
+        AppSetting.set("backup.offsite.path", str(offsite_dir))
+        bf = backup_service.create_backup(reason="test-offsite")
+        assert bf.offsite_ok is True
+        assert (offsite_dir / bf.filename).exists()
+
+
+def test_offsite_copy_fails_gracefully_on_bad_path(file_app, tmp_path):
+    """When offsite is enabled but the path doesn't exist, offsite_ok is False
+    and the local backup still exists (no exception raised)."""
+    with file_app.app_context():
+        AppSetting.set("backup.offsite.enabled", "1")
+        AppSetting.set("backup.offsite.path", str(tmp_path / "nonexistent"))
+        bf = backup_service.create_backup(reason="test-offsite-fail")
+        assert bf.offsite_ok is False
+        assert bf.path.exists()
+
+
+def test_offsite_not_attempted_when_disabled(file_app, tmp_path):
+    """When offsite is disabled, offsite_ok is None (not attempted)."""
+    offsite_dir = tmp_path / "nas"
+    offsite_dir.mkdir()
+    with file_app.app_context():
+        AppSetting.set("backup.offsite.enabled", "0")
+        AppSetting.set("backup.offsite.path", str(offsite_dir))
+        bf = backup_service.create_backup(reason="test-offsite-disabled")
+        assert bf.offsite_ok is None
+        assert list(offsite_dir.iterdir()) == []
+
+
+def test_offsite_settings_roundtrip(file_app):
+    """get_settings returns offsite_enabled and offsite_path from AppSetting."""
+    with file_app.app_context():
+        AppSetting.set("backup.offsite.enabled", "1")
+        AppSetting.set("backup.offsite.path", "/mnt/nas/stoic")
+        s = backup_service.get_settings()
+        assert s["offsite_enabled"] is True
+        assert s["offsite_path"] == "/mnt/nas/stoic"

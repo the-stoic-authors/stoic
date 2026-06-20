@@ -544,9 +544,23 @@ def backups_run():
         bf = backup_service.create_backup(reason="manual")
         backup_service.prune_old_backups()
         flash(
-            _("Backup creato: %(name)s (%(mb).2f MB).", name=bf.filename, mb=bf.size_mb),
+            _(
+                "Backup creato: %(name)s (%(mb).2f MB).",
+                name=bf.filename,
+                mb=bf.size_mb,
+            ),
             "success",
         )
+        if bf.offsite_ok is True:
+            flash(_("Copia off-site completata."), "success")
+        elif bf.offsite_ok is False:
+            flash(
+                _(
+                    "Backup locale OK, ma la copia off-site è fallita. "
+                    "Controlla il percorso e che il mount sia attivo."
+                ),
+                "warning",
+            )
     except Exception as e:
         flash(_("Backup fallito: %(err)s", err=str(e)), "danger")
     return redirect(url_for("settings.backups"))
@@ -672,6 +686,11 @@ def backups_config():
     path_raw = (request.form.get("path") or "").strip()
     if path_raw:
         AppSetting.set("backup.path", path_raw)
+
+    offsite_enabled = request.form.get("offsite_enabled") == "on"
+    AppSetting.set("backup.offsite.enabled", "1" if offsite_enabled else "0")
+    offsite_path_raw = (request.form.get("offsite_path") or "").strip()
+    AppSetting.set("backup.offsite.path", offsite_path_raw)
 
     log_event(
         action="update_backup_config",
