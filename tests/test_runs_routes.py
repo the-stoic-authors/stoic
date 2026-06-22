@@ -401,3 +401,153 @@ def test_set_actual_still_redirects_without_htmx(app, client, setup_data):
         data={"csrf_token": csrf, "actual": "0.5", "unit": "g"},
     )
     assert r.status_code == 302
+
+
+# ── P2c: aggiungi step a run avviato ─────────────────────────────
+
+
+def test_add_step_to_draft_run(app, client, setup_data):
+    """A new step can be added to a draft run."""
+    _login(client, "ric")
+    csrf = _csrf(client)
+    client.post(f"/runs/from/{setup_data['reaction_id']}", data={"csrf_token": csrf})
+    with app.app_context():
+        run = db.session.query(Run).first()
+        rid = run.id
+        step_count_before = len(run.steps)
+
+    r = client.post(
+        f"/runs/{rid}/step/add",
+        data={"csrf_token": csrf, "title": "Estrazione con EtOAc", "kind": "extraction"},
+        follow_redirects=False,
+    )
+    assert r.status_code == 302
+
+    with app.app_context():
+        run = db.session.get(Run, rid)
+        assert len(run.steps) == step_count_before + 1
+        new_step = run.steps[-1]
+        assert new_step.title == "Estrazione con EtOAc"
+        assert new_step.kind == "extraction"
+        assert new_step.template_step_id is None
+
+
+def test_add_step_to_in_progress_run(app, client, setup_data):
+    """A new step can be added to an in-progress run."""
+    _login(client, "ric")
+    csrf = _csrf(client)
+    client.post(f"/runs/from/{setup_data['reaction_id']}", data={"csrf_token": csrf})
+    with app.app_context():
+        run = db.session.query(Run).first()
+        rid = run.id
+        run.status = STATUS_IN_PROGRESS
+        db.session.commit()
+
+    r = client.post(
+        f"/runs/{rid}/step/add",
+        data={"csrf_token": csrf, "title": "Colonna flash", "kind": "purification"},
+        follow_redirects=False,
+    )
+    assert r.status_code == 302
+
+    with app.app_context():
+        run = db.session.get(Run, rid)
+        titles = [s.title for s in run.steps]
+        assert "Colonna flash" in titles
+
+
+def test_add_step_requires_title(app, client, setup_data):
+    """A step without a title is rejected with a redirect (flash warning)."""
+    _login(client, "ric")
+    csrf = _csrf(client)
+    client.post(f"/runs/from/{setup_data['reaction_id']}", data={"csrf_token": csrf})
+    with app.app_context():
+        run = db.session.query(Run).first()
+        rid = run.id
+        step_count_before = len(run.steps)
+
+    r = client.post(
+        f"/runs/{rid}/step/add",
+        data={"csrf_token": csrf, "title": "", "kind": "other"},
+        follow_redirects=False,
+    )
+    assert r.status_code == 302
+    with app.app_context():
+        run = db.session.get(Run, rid)
+        assert len(run.steps) == step_count_before
+
+
+def test_add_step_blocked_on_completed_run(app, client, setup_data):
+    """Completed runs are immutable: adding a step is rejected."""
+    from stoic_eln.models.run import STATUS_COMPLETED
+
+    _login(client, "ric")
+    csrf = _csrf(client)
+    client.post(f"/runs/from/{setup_data['reaction_id']}", data={"csrf_token": csrf})
+    with app.app_context():
+        run = db.session.query(Run).first()
+        rid = run.id
+        run.status = STATUS_COMPLETED
+        db.session.commit()
+        step_count_before = len(run.steps)
+
+    r = client.post(
+        f"/runs/{rid}/step/add",
+        data={"csrf_token": csrf, "title": "Nuovo step", "kind": "other"},
+        follow_redirects=False,
+    )
+    assert r.status_code == 302
+    with app.app_context():
+        run = db.session.get(Run, rid)
+        assert len(run.steps) == step_count_before
+
+
+def test_add_step_from_library(app, client, setup_data):
+    """Cloning a StepTemplate creates a RunStep with the template's name
+    and copies its components."""
+    from stoic_eln.models.step_template import StepTemplate, StepTemplateComponent
+    from stoic_eln.models.substance import Substance
+
+    _login(client, "ric")
+    csrf = _csrf(client)
+    client.post(f"/runs/from/{setup_data['reaction_id']}", data={"csrf_token": csrf})
+
+    with app.app_context():
+        run = db.session.query(Run).first()
+        rid = run.id
+
+        # Create a minimal StepTemplate in the library
+        sub = db.session.query(Substance).first()
+        tmpl = StepTemplate(name="Estrazione standard", kind="extraction")
+        db.session.add(tmpl)
+        db.session.flush()
+        db.session.add(
+            StepTemplateComponent(
+                template_id=tmpl.id,
+                substance_id=sub.id,
+                role="solvent",
+                ratio_kind="mL_per_g",
+                ratio_value=10.0,
+                position=0,
+            )
+        )
+        db.session.commit()
+        tmpl_id = tmpl.id
+        step_count_before = len(run.steps)
+
+    r = client.post(
+        f"/runs/{rid}/step/add",
+        data={"csrf_token": csrf, "template_step_id": str(tmpl_id)},
+        follow_redirects=False,
+    )
+    assert r.status_code == 302
+
+    with app.app_context():
+        run = db.session.get(Run, rid)
+        assert len(run.steps) == step_count_before + 1
+        new_step = run.steps[-1]
+        assert new_step.title == "Estrazione standard"
+        assert new_step.kind == "extraction"
+        assert new_step.template_step_id is None
+        assert len(new_step.components) == 1
+        assert new_step.components[0].ratio_value == 10.0

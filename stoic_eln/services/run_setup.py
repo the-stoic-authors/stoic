@@ -519,3 +519,76 @@ def complete_run(run: Run, *, force_no_products: bool = False) -> dict:
         "yield_percent": run.yield_percent,
         "is_failed": False,
     }
+
+
+# ─── Clone a StepTemplate onto an existing run (P2c) ────────────────────────
+
+
+def clone_template_step_to_run(template_id: int, run: Run) -> RunStep:
+    """Copy a StepTemplate (procedure library entry) as a new RunStep
+    appended to *run*.
+
+    Clones components (substance/mixture/free XOR), checklist items, and
+    parameters. template_step_id is left NULL because the source is a
+    StepTemplate, not a ReactionStep — the field tracks reaction-template
+    lineage only.
+
+    Raises ValueError if the template does not exist.
+    """
+    from stoic_eln.models.step_template import StepTemplate
+
+    tmpl = db.session.get(StepTemplate, template_id)
+    if tmpl is None:
+        raise ValueError(f"StepTemplate #{template_id} not found")
+
+    existing_positions = [s.position for s in run.steps]
+    position = (max(existing_positions) + 1) if existing_positions else 0
+
+    rs = RunStep(
+        run_id=run.id,
+        template_step_id=None,
+        title=tmpl.name,
+        kind=tmpl.kind,
+        description=tmpl.description,
+        position=position,
+    )
+    db.session.add(rs)
+    db.session.flush()
+
+    for sc in tmpl.components:
+        db.session.add(
+            RunStepComponent(
+                step_id=rs.id,
+                substance_id=sc.substance_id,
+                mixture_id=sc.mixture_id,
+                free_name=sc.free_name,
+                free_unit=sc.free_unit,
+                role=sc.role,
+                ratio_value=sc.ratio_value,
+                ratio_kind=sc.ratio_kind,
+                position=sc.position,
+            )
+        )
+
+    for it in tmpl.checklist_items:
+        db.session.add(
+            RunChecklistItem(
+                step_id=rs.id,
+                text=it.text,
+                position=it.position,
+                is_done=False,
+            )
+        )
+
+    for prm in tmpl.parameters:
+        db.session.add(
+            RunStepParameter(
+                step_id=rs.id,
+                label=prm.label,
+                unit=prm.unit,
+                position=prm.position,
+                value=None,
+            )
+        )
+
+    return rs

@@ -84,6 +84,10 @@ def detail(run_id: int):
 
     attachments_for_entity = list_attachments("run", run.id)
 
+    from stoic_eln.models.step_template import StepTemplate
+
+    step_templates = db.session.query(StepTemplate).order_by(StepTemplate.name).all()
+
     return render_template(
         "runs/detail.html",
         run=run,
@@ -92,6 +96,7 @@ def detail(run_id: int):
         metrics_direct=metrics_direct,
         notes_for_entity=notes_for_entity,
         attachments_for_entity=attachments_for_entity,
+        step_templates=step_templates,
     )
 
 
@@ -597,6 +602,74 @@ def cancel(run_id: int):
 
 
 # ─── Entry point: create from a template ────────────────────────────────
+
+
+@bp.route("/<int:run_id>/step/add", methods=["POST"])
+@login_required
+def add_step(run_id: int):
+    """Add a new RunStep to a run that is in draft or in-progress.
+
+    Two modes:
+    - Free step: title + kind submitted directly.
+    - From library: template_step_id submitted; step is cloned from the
+      StepTemplate (components, checklist items, parameters included).
+
+    Completed and cancelled runs are read-only.
+    """
+    from stoic_eln.models.run_step import RunStep
+
+    run = db.session.get(Run, run_id)
+    if run is None:
+        abort(404)
+    if run.is_completed or run.status == "cancelled":
+        flash(_("Non è possibile aggiungere step a un run completato o annullato."), "warning")
+        return redirect(url_for("runs.detail", run_id=run_id))
+
+    template_step_id_raw = (request.form.get("template_step_id") or "").strip()
+
+    if template_step_id_raw:
+        # ── Clone from procedure library ──────────────────────────
+        try:
+            tid = int(template_step_id_raw)
+        except ValueError:
+            flash(_("Procedura non valida."), "warning")
+            return redirect(url_for("runs.detail", run_id=run_id))
+        try:
+            run_setup.clone_template_step_to_run(tid, run)
+            db.session.commit()
+        except ValueError as exc:
+            flash(str(exc), "danger")
+        return redirect(url_for("runs.detail", run_id=run_id))
+
+    # ── Free step ─────────────────────────────────────────────────
+    title = (request.form.get("title") or "").strip()
+    kind = (request.form.get("kind") or "other").strip()
+    description = (request.form.get("description") or "").strip() or None
+
+    if not title:
+        flash(_("Il titolo dello step è obbligatorio."), "warning")
+        return redirect(url_for("runs.detail", run_id=run_id))
+
+    from stoic_eln.models.reaction_step import STEP_KINDS
+
+    if kind not in STEP_KINDS:
+        kind = "other"
+
+    existing_positions = [s.position for s in run.steps]
+    position = (max(existing_positions) + 1) if existing_positions else 0
+
+    step = RunStep(
+        run_id=run.id,
+        template_step_id=None,
+        title=title,
+        kind=kind,
+        description=description,
+        position=position,
+    )
+    db.session.add(step)
+    db.session.commit()
+
+    return redirect(url_for("runs.detail", run_id=run_id))
 
 
 @bp.route("/from/<int:reaction_id>", methods=["POST"])

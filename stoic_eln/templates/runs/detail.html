@@ -740,7 +740,96 @@
 {% endfor %}
 {% endif %}
 
-<!-- ─── Notes (during execution) ─────────────────────────────────── -->
+<!-- ─── Aggiungi step (draft o in progress) ───────────────────────── -->
+{% if not is_done and run.status != 'cancelled' %}
+<div class="card mb-3 border-dashed" id="add-step-card">
+  <div class="card-body py-2">
+    <button class="btn btn-sm btn-outline-secondary w-100"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#add-step-form"
+            aria-expanded="false">
+      <i data-lucide="plus"></i> {{ _("Aggiungi step") }}
+    </button>
+    <div class="collapse mt-3" id="add-step-form">
+
+      {# Tab switcher #}
+      <ul class="nav nav-tabs nav-sm mb-3" id="add-step-tabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="tab-free-btn"
+                  data-bs-toggle="tab" data-bs-target="#tab-free"
+                  type="button" role="tab">
+            {{ _("Step libero") }}
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="tab-library-btn"
+                  data-bs-toggle="tab" data-bs-target="#tab-library"
+                  type="button" role="tab">
+            {{ _("Da libreria") }}
+          </button>
+        </li>
+      </ul>
+
+      <div class="tab-content">
+        {# Tab 1: step libero #}
+        <div class="tab-pane fade show active" id="tab-free" role="tabpanel">
+          <form method="post"
+                action="{{ url_for('runs.add_step', run_id=run.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="row g-2 mb-2">
+              <div class="col-8">
+                <input type="text" name="title" class="form-control form-control-sm"
+                       placeholder="{{ _('Titolo step') }}" required>
+              </div>
+              <div class="col-4">
+                <select name="kind" class="form-select form-select-sm">
+                  <option value="workup">{{ _("Workup") }}</option>
+                  <option value="extraction">{{ _("Estrazione") }}</option>
+                  <option value="purification">{{ _("Purificazione") }}</option>
+                  <option value="analysis">{{ _("Analisi") }}</option>
+                  <option value="other" selected>{{ _("Altro") }}</option>
+                </select>
+              </div>
+            </div>
+            <div class="mb-2">
+              <textarea name="description" class="form-control form-control-sm" rows="2"
+                        placeholder="{{ _('Descrizione (opzionale)') }}"></textarea>
+            </div>
+            <button type="submit" class="btn btn-sm btn-primary">
+              <i data-lucide="plus"></i> {{ _("Aggiungi") }}
+            </button>
+          </form>
+        </div>
+
+        {# Tab 2: da libreria #}
+        <div class="tab-pane fade" id="tab-library" role="tabpanel">
+          {% if step_templates %}
+          <form method="post"
+                action="{{ url_for('runs.add_step', run_id=run.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="mb-2">
+              <select name="template_step_id" class="form-select form-select-sm" required>
+                <option value="" disabled selected>{{ _("Seleziona procedura…") }}</option>
+                {% for tmpl in step_templates %}
+                <option value="{{ tmpl.id }}">{{ tmpl.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <button type="submit" class="btn btn-sm btn-primary">
+              <i data-lucide="plus"></i> {{ _("Inserisci") }}
+            </button>
+          </form>
+          {% else %}
+          <p class="text-muted small mb-0">{{ _("Nessuna procedura in libreria.") }}</p>
+          {% endif %}
+        </div>
+      </div>{# /tab-content #}
+
+    </div>{# /collapse #}
+  </div>
+</div>
+{% endif %}
 {% if not is_setup %}
 <div class="card mb-3">
   <div class="card-header"><strong>{{ _("Note di esecuzione") }}</strong></div>
