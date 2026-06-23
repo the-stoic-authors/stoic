@@ -24,6 +24,14 @@ class Config:
     # Security
     SECRET_KEY = os.environ.get("SECRET_KEY") or secrets.token_hex(32)
     WTF_CSRF_ENABLED = True
+    # Allow disabling SSL strict CSRF check for local/mDNS deployments
+    # where browsers (Safari) may not send cookies reliably on .local domains.
+    WTF_CSRF_SSL_STRICT = os.environ.get("WTF_CSRF_SSL_STRICT", "true").lower() not in (
+        "0",
+        "false",
+        "no",
+        "off",
+    )
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"
     PERMANENT_SESSION_LIFETIME = 60 * 60 * 24 * 7  # 7 days
