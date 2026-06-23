@@ -7109,3 +7109,10 @@ msgstr "No procedures in library."
 
 msgid "Procedura non valida."
 msgstr "Invalid procedure."
+
+# ── How-to guide ─────────────────────────────────────────────────
+msgid "Come si fa"
+msgstr "How To"
+
+msgid "Guida rapida ai workflow più comuni: passi numerati, niente teoria."
+msgstr "Quick-reference guide for the most common workflows: numbered steps, no theory."

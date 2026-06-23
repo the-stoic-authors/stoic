@@ -50,6 +50,7 @@ _MANUAL_REGISTRY: dict[str, tuple[str, str, bool]] = {
     "user": ("manuale-utente.md", "user-manual.md", False),
     "admin": ("manuale-amministratore.md", "admin-manual.md", True),
     "developer": ("manuale-sviluppatore.md", "developer-manual.md", True),
+    "howto": ("come-si-fa.md", "how-to.md", False),
 }
 
 
@@ -152,6 +153,7 @@ _DEFAULT_TITLES: dict[str, str] = {
     "user": "Manuale utente",
     "admin": "Manuale amministratore",
     "developer": "Manuale sviluppatore",
+    "howto": "Come si fa",
 }
 
 
@@ -168,6 +170,11 @@ def index():
     user_is_admin = bool(getattr(current_user, "is_admin", False))
     available: list[tuple[str, str, str]] = [
         # (slug, title, short description)
+        (
+            "howto",
+            _("Come si fa"),
+            _("Guida rapida ai workflow più comuni: passi numerati, niente teoria."),
+        ),
         (
             "user",
             _("Manuale utente"),
@@ -201,6 +208,13 @@ def index():
 def user_manual():
     """User manual — accessible to every authenticated user."""
     return _render_manual("user")
+
+
+@bp.route("/howto")
+@login_required
+def howto_manual():
+    """How-to guide — quick-reference workflows, accessible to every authenticated user."""
+    return _render_manual("howto")
 
 
 @bp.route("/admin")

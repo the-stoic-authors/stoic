@@ -17,7 +17,9 @@
        class="card text-decoration-none text-body h-100">
       <div class="card-body">
         <div class="d-flex align-items-center gap-3 mb-2">
-          {% if slug == "user" %}
+          {% if slug == "howto" %}
+            <i data-lucide="list-checks" style="width:24px;height:24px"></i>
+          {% elif slug == "user" %}
             <i data-lucide="book-open" style="width:24px;height:24px"></i>
           {% elif slug == "admin" %}
             <i data-lucide="settings-2" style="width:24px;height:24px"></i>
