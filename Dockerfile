@@ -95,6 +95,7 @@ COPY --from=builder /opt/venv /opt/venv
 # gunicorn command line, so they have to be present in /app too.
 COPY --from=builder /build/wsgi.py /app/wsgi.py
 COPY --from=builder /build/gunicorn.conf.py /app/gunicorn.conf.py
+COPY --from=builder /build/docs /app/docs
 
 # Volume mount points. We pre-create them so the entrypoint can
 # stat them even before docker-compose mounts named volumes.

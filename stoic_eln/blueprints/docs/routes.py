@@ -35,13 +35,25 @@ from stoic_eln.blueprints.docs import bp
 
 
 def _docs_root() -> Path:
-    """Locate the docs/ folder at the repo root.
+    """Locate the docs/ folder.
 
-    Stoic's package lives at ``<repo>/stoic_eln/``, so ``docs/``
-    is at ``<repo>/docs/``. We compute it from ``current_app.root_path``
-    (= the package dir).
+    In development (editable install), ``stoic_eln/`` lives inside the
+    repo root, so ``docs/`` is one level up from the package dir.
+
+    In production (Docker, non-editable install), the package lives in
+    the venv and the docs are copied to ``/app/docs/``. We check both
+    locations and return whichever exists.
     """
-    return Path(current_app.root_path).parent / "docs"
+    # 1. Sibling of the package dir (dev / editable install)
+    candidate = Path(current_app.root_path).parent / "docs"
+    if candidate.is_dir():
+        return candidate
+    # 2. /app/docs (Docker production layout)
+    docker_candidate = Path("/app/docs")
+    if docker_candidate.is_dir():
+        return docker_candidate
+    # Fallback: return the sibling path and let callers handle missing files
+    return candidate
 
 
 # Mapping of slug → (it_filename, en_filename, requires_admin).
