@@ -5,13 +5,13 @@
 <style>
   .docs-layout {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 280px;
+    grid-template-columns: minmax(0, 1fr) 240px;
     gap: 2rem;
     align-items: start;
   }
-  @media (max-width: 991px) {
+  @media (max-width: 1199px) {
     .docs-layout { grid-template-columns: 1fr; }
-    .docs-toc-wrapper { order: -1; }
+    .docs-toc-wrapper { display: none; }
   }
 
   .docs-toc-wrapper {
@@ -21,6 +21,7 @@
     overflow-y: auto;
     border-left: 2px solid var(--bs-border-color);
     padding-left: 1rem;
+    align-self: start;
   }
   .docs-toc-wrapper > .toc > ul {
     list-style: none;
@@ -107,6 +108,10 @@
   <div class="vr"></div>
 
   {# Quick nav between available manuals #}
+  <a href="{{ url_for('docs.howto_manual', lang=lang) }}"
+     class="btn btn-sm {% if slug == 'howto' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+    {{ _("Come si fa") }}
+  </a>
   <a href="{{ url_for('docs.user_manual', lang=lang) }}"
      class="btn btn-sm {% if slug == 'user' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
     {{ _("Manuale utente") }}
