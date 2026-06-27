@@ -70,6 +70,59 @@ Prefer to drive Docker yourself, or running on a NAS / macOS /
 Windows? See the full guide: [docs/en/install-docker.md](docs/en/install-docker.md)
 ([italiano](docs/it/install-docker.md)).
 
+## HTTPS and the browser security warning
+
+Stoic always runs over HTTPS — your lab data is always encrypted in
+transit. The browser warning ("Your connection is not private") is a
+separate issue from encryption: it means the browser doesn't
+recognise the certificate authority (CA) that signed the certificate.
+
+**Why this happens on `.local` domains**: Caddy generates a
+self-signed certificate using its own local CA. Browsers only show
+a green padlock for certificates issued by publicly trusted CAs
+(like Let's Encrypt). A local CA is not in the browser's built-in
+trust store.
+
+**Option A — Install the local CA once per device (recommended for
+home/lab use)**
+
+One-time setup per client device. After this, the padlock is green
+on that device forever.
+
+```bash
+# On the server, export the CA certificate:
+docker compose exec caddy cat /data/caddy/pki/authorities/local/root.crt > stoichub-ca.crt
+```
+
+Then install `stoichub-ca.crt` on each client:
+- **macOS**: double-click → Keychain Access → mark as Always Trust
+- **Windows**: double-click → Install Certificate → Local Machine →
+  Trusted Root Certification Authorities
+- **iOS/iPadOS**: AirDrop the file → Settings → General → VPN &
+  Device Management → install → Settings → General → About →
+  Certificate Trust Settings → enable
+- **Android**: Settings → Security → Install from storage
+- **Linux**: `sudo cp stoichub-ca.crt /usr/local/share/ca-certificates/
+  && sudo update-ca-certificates`
+
+> **Safari on iOS with `.local` domains**: due to a known WebKit
+> limitation, Safari does not store session cookies for `.local`
+> mDNS domains even after the CA is trusted. Use **Chrome on
+> iOS/iPadOS** instead — it works correctly and supports PWA
+> installation.
+
+**Option B — Use a real domain with automatic Let's Encrypt**
+
+If you own a domain (e.g. `lab.example.com`), point it to your
+server's LAN IP and set `STOIC_DOMAIN=lab.example.com` plus
+`STOIC_TLS_EMAIL=your@email.com` in `.env`. Caddy handles
+certificate issuance automatically. Green padlock everywhere,
+no manual CA installation needed.
+
+The domain can point to a private LAN IP — external users will
+see the DNS record but cannot reach the server unless they are on
+your network or VPN.
+
 ## Quick start — development (macOS / Linux)
 
 ```bash
