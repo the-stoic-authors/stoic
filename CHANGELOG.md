@@ -5,18 +5,112 @@ All notable changes to Stoic are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and Stoic adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+# Changelog
+
+All notable changes to Stoic are documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and Stoic adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
 ## [Unreleased]
 
-Path to v1.0.0. Planned (non-exhaustive):
-
-- Live remediation of any v0.9.0 bug reports surfacing once the
-  public install base grows
+- Inventory decrement for mixture-as-component preparations
+  (e.g. preparing HCl 6N consumes a lot of HCl 12N)
 - "Plan order" workflow extended from Substance to Mixture
-  (commercial mixtures like HCl 12N from Sigma)
-- `prep_service` decrement of inventory for mixture-as-component
-  preparations (e.g. preparing HCl 6N consumes a lot of HCl 12N)
-- Additional connector ecosystem (Stoic ↔ eLabFTW import/export,
-  ChemDraw/ChemAxon paste-in)
+- Docker multi-arch arm64 image (Raspberry Pi 4 support)
+
+## [1.0.0] — 2026-06-27
+
+First stable release. Stoic is now a fully self-hosted lab server:
+one machine in the lab runs Stoic, everyone connects from their
+own device (laptop, tablet, phone). The single-user desktop mode
+remains supported but is no longer the primary deployment target.
+
+### Added
+
+- **Self-hosted server deployment** — Docker Compose stack (Stoic +
+  Caddy) with automatic HTTPS via Caddy's local CA for `.local`
+  domains and Let's Encrypt for public domains. One-line installer
+  for Debian/Ubuntu: `curl -fsSL .../install-linux.sh | bash`.
+
+- **gunicorn production server** — replaces `flask run` in
+  production. Worker count, timeout, and bind address configurable
+  via env vars (`STOIC_WORKERS`, `STOIC_TIMEOUT`, `STOIC_BIND`).
+  Background scheduler runs in the gunicorn master process only.
+
+- **Procedure library** (`/procedures/`) — lab-wide reusable step
+  templates (flash chromatography, extraction, recrystallization,
+  distillation). Inserting a procedure into a reaction protocol
+  copies it (editing the library never touches historical protocols).
+
+- **Step parameters** — typed process measurements (temperature,
+  pressure, column head temperature, etc.) attached to reaction
+  steps, propagated to run steps, and printed in the run PDF.
+  Editable at any time during a run.
+
+- **Step components: free-entry** (`free_name` / `free_unit`) —
+  off-inventory items (filter paper, molecular sieves, sand) usable
+  in step components without a substance record.
+
+- **Standard procedure seed** — 8 built-in procedures: flash
+  chromatography at 30/50/100 g silica per g compound (Still
+  geometry, column diameter calculated automatically), standard
+  aqueous/organic extraction, recrystallization, simple distillation,
+  vacuum distillation, short-path distillation.
+
+- **Add step to active run** (`POST /runs/<id>/step/add`) — add a
+  step to a draft or in-progress run. Two modes: free step or clone
+  from procedure library (copies components, checklist, parameters).
+
+- **Global search Cmd+K** — modal palette across 8 entity types.
+  Live results as you type. Cmd+K (macOS) / Ctrl+K (other).
+
+- **Bench mode** — tablet-optimised layout for run execution.
+  Sidebar hidden, larger tap targets, larger font. State persisted
+  per run.
+
+- **PWA support** — installable from Chrome on iOS/iPadOS, Android,
+  and desktop. (Safari iOS on `.local` domains has a known WebKit
+  cookie limitation; use Chrome on iOS.)
+
+- **Off-site backup copy** — after every successful backup, Stoic
+  copies the file to a configurable mount path. Failed copy shows
+  a warning but never aborts the local backup.
+
+- **How-to guide** (`/docs/howto`) — 14 quick-reference workflows
+  in Italian and English: substances, PubChem import, orders,
+  inventory, mixtures, preparations, reaction templates, procedures,
+  runs, backup, lot labels, global search.
+
+- **`WTF_CSRF_SSL_STRICT` configurable** via env var — set to
+  `false` for `.local` deployments.
+
+- **ProxyFix middleware**, **`/healthz` endpoint**, **`flask init-db`**
+  command, **version string** in sidebar footer and `/healthz`.
+
+### Fixed
+
+- `_docs_root()` in production: fallback to `/app/docs` (Docker).
+- `docs/` missing from Docker image (404 on all doc pages).
+- TOC overlay on narrow screens in the documentation viewer.
+- Caddyfile `email ""` causing Caddy startup failure on `.local`.
+- Installer pulling source build context instead of ghcr.io image.
+- Backfill logic moved to `services/` (importable from package).
+
+### Changed
+
+- `BackupFile` dataclass gains `offsite_ok: bool | None` field.
+- `run_setup.py` gains `clone_template_step_to_run()`.
+
+### Documentation
+
+- `README.md`: new section "HTTPS and the browser security warning".
+- How-to guide added (`docs/it/come-si-fa.md`, `docs/en/how-to.md`).
+- Docker install guide updated with stoichub walkthrough and CA trust.
+
+### Test suite
+
+692 tests passing on macOS Intel x86_64 with Python 3.12.
 
 
 ## [0.9.1] — 2026-05-25
