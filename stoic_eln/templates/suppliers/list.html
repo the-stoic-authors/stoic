@@ -60,12 +60,12 @@
             </a>
           </div>
         </div>
-        {% if s.orders|length > 0 %}
+        {% if (s.orders or [])|length > 0 %}
         <div class="mt-2">
           <small class="text-muted">
             <a href="{{ url_for('suppliers.detail', supplier_id=s.id) }}"
                class="text-muted">
-              {{ _("%(n)d ordini", n=s.orders|length) }}
+              {{ _("%(n)d ordini", n=(s.orders or [])|length) }}
             </a>
           </small>
         </div>

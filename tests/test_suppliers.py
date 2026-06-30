@@ -200,3 +200,16 @@ def test_supplier_list_page(app, client, admin_user):
     _login(client, "ric")
     r = client.get("/suppliers/")
     assert r.status_code == 200
+
+
+def test_supplier_orders_is_list_not_none(app, admin_user):
+    """Regression: Supplier.orders must be a list (possibly empty),
+    never None. A bare `Mapped[list]` annotation without a type
+    parameter previously confused SQLAlchemy's uselist inference."""
+    with app.app_context():
+        s = Supplier(name="Empty Orders Co")
+        db.session.add(s)
+        db.session.commit()
+        assert s.orders is not None
+        assert s.orders == []
+        assert len(s.orders) == 0

@@ -8,10 +8,15 @@ LUKS encryption on the server.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from sqlalchemy import Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from stoic_eln.extensions import db
+
+if TYPE_CHECKING:
+    from stoic_eln.models.order import Order
 
 
 class Supplier(db.Model):
@@ -30,7 +35,9 @@ class Supplier(db.Model):
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     # Back-reference to orders
-    orders: Mapped[list] = relationship("Order", back_populates="supplier_ref", lazy="select")
+    orders: Mapped[list["Order"]] = relationship(  # noqa: UP037
+        "Order", back_populates="supplier_ref", lazy="select", uselist=True
+    )
 
     def __repr__(self) -> str:
         return f"<Supplier #{self.id} {self.name!r}>"
