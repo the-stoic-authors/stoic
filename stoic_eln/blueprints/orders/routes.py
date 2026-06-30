@@ -216,6 +216,7 @@ def new():
             mixture_id=mix.id if mix else None,
             group_id=group.id,
             supplier=(request.form.get("supplier") or "").strip() or None,
+            supplier_id=request.form.get("supplier_id", type=int) or None,
             catalogue_number=(request.form.get("catalogue_number") or "").strip() or None,
             ordered_quantity_g=qty_g,
             ordered_quantity_mL=qty_mL,
@@ -270,6 +271,8 @@ def new():
             "catalogue_number": (request.args.get("catalogue_number") or "").strip() or None,
         }
 
+    from stoic_eln.models.supplier import Supplier as SupplierModel
+
     substances = (
         db.session.query(Substance)
         .filter(Substance.is_active.is_(True))
@@ -282,6 +285,7 @@ def new():
         .order_by(func.lower(Mixture.name).asc())
         .all()
     )
+    suppliers = db.session.query(SupplierModel).order_by(SupplierModel.name).all()
     return render_template(
         "orders/form.html",
         order=None,
@@ -290,6 +294,7 @@ def new():
         pre=pre,
         substances=substances,
         mixtures=mixtures,
+        suppliers=suppliers,
     )
 
 
@@ -323,10 +328,8 @@ def edit(order_id: int):
         return redirect(url_for("orders.detail", order_id=order.id))
 
     if request.method == "POST":
-        # NOTE: substance_id / mixture_id are NOT editable. The target
-        # is locked at creation time. If the user wants to change it,
-        # they cancel this order and create a new one.
         order.supplier = (request.form.get("supplier") or "").strip() or None
+        order.supplier_id = request.form.get("supplier_id", type=int) or None
         order.catalogue_number = (request.form.get("catalogue_number") or "").strip() or None
         order.ordered_quantity_g = _parse_float("ordered_quantity_g")
         order.ordered_quantity_mL = _parse_float("ordered_quantity_mL")
@@ -338,6 +341,8 @@ def edit(order_id: int):
         log_event(action="update_order", entity_type="order", entity_id=order.id)
         flash(_("Ordine aggiornato."), "success")
         return redirect(url_for("orders.detail", order_id=order.id))
+
+    from stoic_eln.models.supplier import Supplier as SupplierModel
 
     substances = (
         db.session.query(Substance)
@@ -351,6 +356,7 @@ def edit(order_id: int):
         .order_by(func.lower(Mixture.name).asc())
         .all()
     )
+    suppliers = db.session.query(SupplierModel).order_by(SupplierModel.name).all()
     return render_template(
         "orders/form.html",
         order=order,
@@ -359,6 +365,7 @@ def edit(order_id: int):
         pre={},
         substances=substances,
         mixtures=mixtures,
+        suppliers=suppliers,
     )
 
 

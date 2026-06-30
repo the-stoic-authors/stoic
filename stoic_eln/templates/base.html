@@ -139,6 +139,12 @@
           <i data-lucide="shopping-cart"></i>
           <span>{{ _("Ordini") }}</span>
         </a>
+        <a class="nav-item {% if request.endpoint and request.endpoint.startswith('suppliers.') %}active{% endif %}"
+           href="{{ url_for('suppliers.list_view') }}"
+           title="{{ _('Fornitori') }}">
+          <i data-lucide="book-user"></i>
+          <span>{{ _("Fornitori") }}</span>
+        </a>
         <a class="nav-item {% if request.endpoint and request.endpoint.startswith('reports.') %}active{% endif %}"
            href="{{ url_for('reports.index') }}"
            title="{{ _('Report') }}">

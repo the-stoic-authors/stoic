@@ -43,6 +43,9 @@ from __future__ import annotations
 from datetime import UTC, date, datetime
 from typing import TYPE_CHECKING
 
+if TYPE_CHECKING:
+    from stoic_eln.models.supplier import Supplier
+
 from flask_babel import lazy_gettext as _l
 from sqlalchemy import (
     CheckConstraint,
@@ -125,6 +128,15 @@ class Order(db.Model):
     )
 
     supplier: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    supplier_id: Mapped[int | None] = mapped_column(
+        Integer,
+        ForeignKey("supplier.id"),
+        nullable=True,
+        index=True,
+    )
+    supplier_ref: Mapped[Supplier | None] = relationship(
+        "Supplier", back_populates="orders", foreign_keys=[supplier_id]
+    )
     catalogue_number: Mapped[str | None] = mapped_column(String(64), nullable=True)
 
     # Quantity to order (use either _g for solids or _mL for liquids)

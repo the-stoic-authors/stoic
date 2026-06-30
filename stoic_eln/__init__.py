@@ -350,6 +350,7 @@ def _register_blueprints(app: Flask) -> None:
     from stoic_eln.blueprints.search import bp as search_bp
     from stoic_eln.blueprints.settings import bp as settings_bp
     from stoic_eln.blueprints.substances import bp as substances_bp
+    from stoic_eln.blueprints.suppliers import bp as suppliers_bp
 
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp, url_prefix="/auth")
@@ -359,6 +360,7 @@ def _register_blueprints(app: Flask) -> None:
     app.register_blueprint(procedures_bp)
     app.register_blueprint(inventory_bp)
     app.register_blueprint(orders_bp)
+    app.register_blueprint(suppliers_bp)
     app.register_blueprint(reactions_bp)
     app.register_blueprint(runs_bp)
     app.register_blueprint(search_bp)

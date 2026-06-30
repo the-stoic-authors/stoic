@@ -7116,3 +7116,70 @@ msgstr "How To"
 
 msgid "Guida rapida ai workflow più comuni: passi numerati, niente teoria."
 msgstr "Quick-reference guide for the most common workflows: numbered steps, no theory."
+
+# ── Suppliers / contact book ─────────────────────────────────────
+msgid "Fornitori"
+msgstr "Suppliers"
+
+msgid "Nuovo fornitore"
+msgstr "New supplier"
+
+msgid "Rubrica contatti dei fornitori del laboratorio"
+msgstr "Lab supplier contact book"
+
+msgid "Cerca fornitore…"
+msgstr "Search supplier…"
+
+msgid "Nessun fornitore in rubrica."
+msgstr "No suppliers in the contact book."
+
+msgid "Aggiungi il primo."
+msgstr "Add the first one."
+
+msgid "Nessun fornitore trovato per «%(q)s»."
+msgstr "No supplier found for "%(q)s"."
+
+msgid "Sito web / portale ordini"
+msgstr "Website / order portal"
+
+msgid "Accesso portale"
+msgstr "Portal access"
+
+msgid "Nessuna credenziale salvata."
+msgstr "No credentials saved."
+
+msgid "Apri portale"
+msgstr "Open portal"
+
+msgid "Modifica fornitore"
+msgstr "Edit supplier"
+
+msgid "Aggiungi fornitore"
+msgstr "Add supplier"
+
+msgid "Credenziali portale (salvate in chiaro, protette dalla cifratura del disco)"
+msgstr "Portal credentials (stored in plain text, protected by disk encryption)"
+
+msgid "Seleziona dalla rubrica oppure digita liberamente."
+msgstr "Select from the contact book or type freely."
+
+msgid "Il nome del fornitore è obbligatorio."
+msgstr "Supplier name is required."
+
+msgid "Esiste già un fornitore con questo nome."
+msgstr "A supplier with this name already exists."
+
+msgid "Fornitore %(name)s aggiunto."
+msgstr "Supplier %(name)s added."
+
+msgid "Fornitore aggiornato."
+msgstr "Supplier updated."
+
+msgid "Fornitore eliminato."
+msgstr "Supplier deleted."
+
+msgid "Elimina questo fornitore? Gli ordini collegati non vengono eliminati."
+msgstr "Delete this supplier? Linked orders will not be deleted."
+
+msgid "Nessun ordine per questo fornitore."
+msgstr "No orders for this supplier."

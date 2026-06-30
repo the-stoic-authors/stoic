@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}
+  {% if supplier %}{{ _("Modifica fornitore") }}{% else %}{{ _("Nuovo fornitore") }}{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="page-header mb-3">
+  <h1>
+    {% if supplier %}{{ _("Modifica fornitore") }}{% else %}{{ _("Nuovo fornitore") }}{% endif %}
+  </h1>
+</div>
+
+<div class="card" style="max-width:640px">
+  <div class="card-body">
+    <form method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <div class="mb-3">
+        <label class="form-label">{{ _("Nome") }} <span class="text-danger">*</span></label>
+        <input type="text" name="name" class="form-control"
+               value="{{ supplier.name if supplier else '' }}" required autofocus>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">{{ _("Indirizzo") }}</label>
+        <textarea name="address" class="form-control" rows="2">{{ supplier.address or '' }}</textarea>
+      </div>
+
+      <div class="row g-3 mb-3">
+        <div class="col-sm-6">
+          <label class="form-label">{{ _("Telefono") }}</label>
+          <input type="text" name="phone" class="form-control"
+                 value="{{ supplier.phone or '' }}">
+        </div>
+        <div class="col-sm-6">
+          <label class="form-label">{{ _("Email") }}</label>
+          <input type="email" name="email" class="form-control"
+                 value="{{ supplier.email or '' }}">
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">{{ _("Sito web / portale ordini") }}</label>
+        <input type="url" name="url" class="form-control"
+               value="{{ supplier.url or '' }}"
+               placeholder="https://www.sigmaaldrich.com">
+      </div>
+
+      <hr class="my-3">
+      <p class="text-muted small mb-2">
+        <i data-lucide="lock" style="width:13px;height:13px"></i>
+        {{ _("Credenziali portale (salvate in chiaro, protette dalla cifratura del disco)") }}
+      </p>
+
+      <div class="row g-3 mb-3">
+        <div class="col-sm-6">
+          <label class="form-label">{{ _("Username portale") }}</label>
+          <input type="text" name="portal_username" class="form-control"
+                 autocomplete="off"
+                 value="{{ supplier.portal_username or '' }}">
+        </div>
+        <div class="col-sm-6">
+          <label class="form-label">{{ _("Password portale") }}</label>
+          <div class="input-group">
+            <input type="password" name="portal_password" class="form-control"
+                   id="portal-password" autocomplete="off"
+                   value="{{ supplier.portal_password or '' }}">
+            <button class="btn btn-outline-secondary" type="button"
+                    onclick="var f=document.getElementById('portal-password');
+                             f.type=f.type==='password'?'text':'password'">
+              <i data-lucide="eye"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">{{ _("Note") }}</label>
+        <textarea name="notes" class="form-control" rows="3"
+                  placeholder="{{ _('Condizioni di pagamento, contatto commerciale, ecc.') }}"
+                  >{{ supplier.notes or '' }}</textarea>
+      </div>
+
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">
+          <i data-lucide="save"></i>
+          {% if supplier %}{{ _("Salva modifiche") }}{% else %}{{ _("Aggiungi fornitore") }}{% endif %}
+        </button>
+        <a href="{{ url_for('suppliers.list_view') }}" class="btn btn-outline-secondary">
+          {{ _("Annulla") }}
+        </a>
+        {% if supplier %}
+        <form method="post" action="{{ url_for('suppliers.delete', supplier_id=supplier.id) }}"
+              class="ms-auto"
+              onsubmit="return confirm('{{ _('Eliminare questo fornitore? Gli ordini collegati non vengono eliminati.') }}')">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-outline-danger btn-sm">
+            <i data-lucide="trash-2"></i> {{ _("Elimina") }}
+          </button>
+        </form>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

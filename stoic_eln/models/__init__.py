@@ -31,6 +31,7 @@ from stoic_eln.models.run_step import (
 )
 from stoic_eln.models.settings import AppSetting
 from stoic_eln.models.substance import Substance
+from stoic_eln.models.supplier import Supplier
 from stoic_eln.models.user import User
 
 __all__ = [
@@ -64,5 +65,6 @@ __all__ = [
     "StepTemplateComponent",
     "StepTemplateParameter",
     "Substance",
+    "Supplier",
     "User",
 ]

@@ -132,9 +132,81 @@
 
         <div class="col-md-6">
           <label class="form-label">{{ _("Fornitore") }}</label>
-          <input type="text" class="form-control" name="supplier"
+          {% if suppliers %}
+          <div class="input-group">
+            <select class="form-select" id="supplier-select"
+                    onchange="
+                      var s=this.options[this.selectedIndex];
+                      document.querySelector('[name=supplier]').value=s.text==='—'?'':s.text;
+                      document.getElementById('supplier-id-field').value=s.value;
+                      var panel=document.getElementById('supplier-panel');
+                      var email=s.dataset.email||'';
+                      var phone=s.dataset.phone||'';
+                      var url=s.dataset.url||'';
+                      var user=s.dataset.user||'';
+                      var pwd=s.dataset.pwd||'';
+                      if(s.value){
+                        panel.style.display='';
+                        panel.querySelector('.sp-email').textContent=email||'—';
+                        panel.querySelector('.sp-email').href=email?'mailto:'+email:'#';
+                        panel.querySelector('.sp-phone').textContent=phone||'—';
+                        panel.querySelector('.sp-url').href=url||'#';
+                        panel.querySelector('.sp-url').style.display=url?'':'none';
+                        panel.querySelector('.sp-user').textContent=user||'—';
+                        panel.querySelector('.sp-pwd').textContent=pwd||'—';
+                      } else { panel.style.display='none'; }
+                    ">
+              <option value="">—</option>
+              {% for s in suppliers %}
+              <option value="{{ s.id }}"
+                      data-email="{{ s.email or '' }}"
+                      data-phone="{{ s.phone or '' }}"
+                      data-url="{{ s.url or '' }}"
+                      data-user="{{ s.portal_username or '' }}"
+                      data-pwd="{{ s.portal_password or '' }}"
+                      {% if (order and order.supplier_id == s.id) or (request.args.get('supplier_id')|int == s.id) %}selected{% endif %}>
+                {{ s.name }}
+              </option>
+              {% endfor %}
+            </select>
+            <a href="{{ url_for('suppliers.new') }}" class="btn btn-outline-secondary" title="{{ _('Nuovo fornitore') }}" target="_blank">
+              <i data-lucide="plus"></i>
+            </a>
+          </div>
+          <input type="hidden" name="supplier_id" id="supplier-id-field"
+                 value="{{ order.supplier_id if order and order.supplier_id else (request.args.get('supplier_id') or '') }}">
+          {% endif %}
+          <input type="text" class="form-control {% if suppliers %}mt-1{% endif %}" name="supplier"
                  value="{{ order.supplier if order else (pre.supplier or '') }}"
-                 placeholder="{{ _('Sigma-Aldrich, TCI, …') }}">
+                 placeholder="{{ _('Sigma-Aldrich, TCI, … (testo libero)') }}">
+          {% if suppliers %}
+          <small class="text-muted">{{ _("Seleziona dalla rubrica oppure digita liberamente.") }}</small>
+
+          {# Pannello contatti fornitore selezionato #}
+          <div id="supplier-panel" class="card mt-2 border-primary"
+               style="display:{% if order and order.supplier_id %}{% else %}none{% endif %}">
+            <div class="card-body py-2 px-3 small">
+              <div class="d-flex gap-3 flex-wrap">
+                <span>
+                  <i data-lucide="mail" style="width:12px;height:12px"></i>
+                  <a class="sp-email" href="">—</a>
+                </span>
+                <span>
+                  <i data-lucide="phone" style="width:12px;height:12px"></i>
+                  <span class="sp-phone">—</span>
+                </span>
+                <a class="sp-url btn btn-link btn-sm p-0" href="#" target="_blank" rel="noopener">
+                  <i data-lucide="external-link" style="width:12px;height:12px"></i>
+                  {{ _("Portale") }}
+                </a>
+              </div>
+              <div class="d-flex gap-3 flex-wrap mt-1">
+                <span><small class="text-muted">User:</small> <code class="sp-user"></code></span>
+                <span><small class="text-muted">Pwd:</small> <code class="sp-pwd"></code></span>
+              </div>
+            </div>
+          </div>
+          {% endif %}
         </div>
         <div class="col-md-6">
           <label class="form-label">{{ _("Numero catalogo") }}</label>
