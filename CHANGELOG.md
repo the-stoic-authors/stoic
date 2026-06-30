@@ -5,19 +5,42 @@ All notable changes to Stoic are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and Stoic adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-# Changelog
-
-All notable changes to Stoic are documented in this file.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and Stoic adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
 ## [Unreleased]
 
 - Inventory decrement for mixture-as-component preparations
   (e.g. preparing HCl 6N consumes a lot of HCl 12N)
-- "Plan order" workflow extended from Substance to Mixture
 - Docker multi-arch arm64 image (Raspberry Pi 4 support)
+
+## [1.1.0] — 2026-06-30
+
+### Added
+
+- **Supplier contact book** (`/suppliers/`) — store supplier name,
+  address, phone, email, website/order portal, and portal
+  credentials (username/password, plain text — protected by disk
+  encryption at the deployment level).
+
+- **Supplier selection in orders** — the order form's Supplier
+  field is now a dropdown sourced from the contact book, alongside
+  the existing free-text field for one-off suppliers. Selecting a
+  contact-book supplier shows a live panel with email, phone, and a
+  direct link to the order portal.
+
+- **Orders grouped by supplier** — a supplier's detail page lists
+  every linked order regardless of status, making it easy to spot
+  when several lab members need reagents from the same supplier and
+  consolidate into a single purchase order.
+
+- `Order.supplier_id` — nullable foreign key to `Supplier`,
+  additive and backward compatible with the existing free-text
+  `Order.supplier` field. No migration needed; the table is created
+  automatically via `ensure-schema` on first run after upgrade.
+
+### Documentation
+
+- User manual (IT/EN): new "Supplier contact book" section.
+- How-to guide (IT/EN): three new workflows — add a supplier, use a
+  supplier in an order, view all orders for a supplier.
 
 ## [1.0.0] — 2026-06-27
 

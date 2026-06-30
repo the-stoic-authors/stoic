@@ -331,6 +331,43 @@ unit cost. Handy to print/copy for bulk orders.
 
 ---
 
+## Supplier contact book
+
+Since version 1.1, Stoic has a dedicated supplier contact book,
+accessible from the **Suppliers** entry in the sidebar.
+
+### What you can save
+
+For each supplier: name, address, phone, email, website / order
+portal, portal username and password, and free-text notes (payment
+terms, sales contact, etc.).
+
+> Portal username and password are stored in plain text in the
+> database. On a self-hosted installation with disk encryption (as
+> recommended for production deployments) this is an acceptable
+> trade-off — it is still not a substitute for a dedicated password
+> manager for high-risk credentials.
+
+### Using a supplier in an order
+
+When planning a new order, the **Supplier** field shows a dropdown
+of suppliers in the contact book, plus a free-text field for
+one-off suppliers not yet saved. Selecting a supplier from the
+contact book shows a panel with email, phone, and a direct link to
+the order portal — useful so you don't have to look up credentials
+elsewhere while filling in the order.
+
+### Orders grouped by supplier
+
+From a supplier's detail page (click the name from the contact
+book), you see all orders linked to that supplier, in any status.
+This is useful when several people in the lab need reagents from
+the same supplier: you can see everything planned and place a
+single cumulative order instead of several separate ones with
+multiple shipping costs.
+
+---
+
 ## Dashboard and statistics
 
 Stoic's home shows:

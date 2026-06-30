@@ -52,6 +52,38 @@ Per i concetti di base vedi il [Manuale utente](manuale-utente.md).
 
 ---
 
+## Aggiungere un fornitore alla rubrica
+
+1. Sidebar → **Fornitori** → **Nuovo fornitore**
+2. Inserisci nome, indirizzo, telefono, email
+3. Aggiungi il sito web / portale ordini se disponibile
+4. Se hai un account sul portale, inserisci username e password
+   (salvati in chiaro — il disco del server è cifrato)
+5. **Aggiungi fornitore**
+
+> Puoi anche creare un fornitore al volo dal form di un nuovo
+> ordine, cliccando l'icona "+" accanto al menu fornitori.
+
+## Usare un fornitore dalla rubrica in un ordine
+
+1. Quando pianifichi un ordine, apri il menu a tendina **Fornitore**
+2. Seleziona il fornitore dalla rubrica
+3. Appare un riquadro con email, telefono e link al portale —
+   tutto quello che ti serve per fare l'ordine è davanti a te
+4. Completa il resto del form e **Salva**
+
+## Vedere tutti gli ordini di un fornitore
+
+1. Sidebar → **Fornitori** → clic sul nome del fornitore
+2. La pagina mostra contatti, credenziali portale e la lista
+   completa degli ordini collegati, in qualsiasi stato
+
+> Utile quando più persone del laboratorio devono ordinare dallo
+> stesso fornitore: guardi tutto quello che è pianificato e fai un
+> unico ordine cumulativo invece di spese di spedizione multiple.
+
+---
+
 ## Aggiungere una sostanza all'inventario (lotto)
 
 Per aggiungere un lotto senza passare dal modulo ordini (es. reagente

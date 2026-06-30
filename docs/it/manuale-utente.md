@@ -328,6 +328,43 @@ stimato. Comodo da stampare/copiare per fare ordini bulk.
 
 ---
 
+## Rubrica fornitori
+
+Dalla versione 1.1, Stoic ha una rubrica dedicata ai fornitori del
+laboratorio, accessibile dalla voce **Fornitori** in sidebar.
+
+### Cosa puoi salvare
+
+Per ogni fornitore: nome, indirizzo, telefono, email, sito web /
+portale ordini, username e password del portale, e note libere
+(condizioni di pagamento, contatto commerciale, ecc.).
+
+> Username e password del portale sono salvati in chiaro nel
+> database. Su un'installazione self-hosted con disco cifrato (come
+> raccomandato per stoichub) questo è un compromesso accettabile —
+> non è comunque un sostituto di un password manager dedicato per
+> credenziali ad alto rischio.
+
+### Usare un fornitore in un ordine
+
+Quando pianifichi un nuovo ordine, il campo **Fornitore** mostra un
+menu a tendina con i fornitori in rubrica, oltre al campo di testo
+libero per fornitori occasionali non ancora salvati. Selezionando un
+fornitore dalla rubrica, appare un riquadro con email, telefono e
+link diretto al portale ordini — utile per non dover cercare le
+credenziali altrove mentre si compila l'ordine.
+
+### Ordini raggruppati per fornitore
+
+Dalla pagina di dettaglio di un fornitore (clic sul nome dalla
+rubrica) vedi tutti gli ordini collegati a quel fornitore, in
+qualsiasi stato. È utile quando più persone del laboratorio hanno
+bisogno di reagenti dallo stesso fornitore: puoi vedere tutto quello
+che è pianificato e fare un unico ordine cumulativo, invece di
+diversi ordini separati con relative spese di spedizione multiple.
+
+---
+
 ## Dashboard e statistiche
 
 La home di Stoic mostra:

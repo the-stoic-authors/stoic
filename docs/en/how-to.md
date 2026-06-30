@@ -51,6 +51,38 @@ For background concepts see the [User Manual](user-manual.md).
 
 ---
 
+## Add a supplier to the contact book
+
+1. Sidebar → **Suppliers** → **New supplier**
+2. Enter name, address, phone, email
+3. Add the website / order portal if available
+4. If you have a portal account, enter username and password
+   (stored in plain text — the server disk is encrypted)
+5. **Add supplier**
+
+> You can also create a supplier on the fly from the new order
+> form, by clicking the "+" icon next to the supplier dropdown.
+
+## Use a supplier from the contact book in an order
+
+1. When planning an order, open the **Supplier** dropdown
+2. Select the supplier from the contact book
+3. A panel appears with email, phone, and a portal link —
+   everything you need to place the order is right there
+4. Fill in the rest of the form and **Save**
+
+## See all orders for a supplier
+
+1. Sidebar → **Suppliers** → click the supplier's name
+2. The page shows contacts, portal credentials, and the full list
+   of linked orders, in any status
+
+> Useful when several people in the lab need to order from the same
+> supplier: see everything planned and place a single cumulative
+> order instead of multiple shipping costs.
+
+---
+
 ## Add a substance to inventory (lot)
 
 To add a lot without going through the order module (e.g. a reagent
