@@ -49,7 +49,7 @@ def new():
         )
         db.session.add(s)
         db.session.commit()
-        log_event("create", "supplier", s.id, {"name": s.name})
+        log_event(action="create", entity_type="supplier", entity_id=s.id, details={"name": s.name})
         flash(_("Fornitore %(name)s aggiunto.", name=s.name), "success")
         return redirect(url_for("suppliers.detail", supplier_id=s.id))
 
@@ -98,7 +98,7 @@ def edit(supplier_id: int):
         s.portal_password = (request.form.get("portal_password") or "").strip() or None
         s.notes = (request.form.get("notes") or "").strip() or None
         db.session.commit()
-        log_event("update", "supplier", s.id, {"name": s.name})
+        log_event(action="update", entity_type="supplier", entity_id=s.id, details={"name": s.name})
         flash(_("Fornitore aggiornato."), "success")
         return redirect(url_for("suppliers.detail", supplier_id=s.id))
 
@@ -116,6 +116,8 @@ def delete(supplier_id: int):
         order.supplier_id = None
     db.session.delete(s)
     db.session.commit()
-    log_event("delete", "supplier", supplier_id, {"name": s.name})
+    log_event(
+        action="delete", entity_type="supplier", entity_id=supplier_id, details={"name": s.name}
+    )
     flash(_("Fornitore eliminato."), "success")
     return redirect(url_for("suppliers.list_view"))
