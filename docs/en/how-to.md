@@ -115,8 +115,11 @@ The mixture is now available as a reagent in reactions and procedures.
 ## Prepare a mixture (execution)
 
 1. Open the mixture → clic **New preparation**
-2. Enter the target volume (e.g. 500 mL)
-3. Stoic calculates the quantity of each component
+2. Enter the target volume (e.g. 1 L) and unit
+3. Stoic automatically calculates quantities:
+   - Solutes with `g/L`: mass = concentration × volume (e.g. 400 g/L × 1 L = 400 g)
+   - Solvent with no concentration: full target volume (qsp, bring to volume)
+   - Ratio or percentage mixtures: proportional split
 4. Select the lots to use for each component
 5. Physically prepare the mixture
 6. Enter the actual quantity obtained

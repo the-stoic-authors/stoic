@@ -31,16 +31,41 @@ and Stoic adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   when several lab members need reagents from the same supplier and
   consolidate into a single purchase order.
 
+- **Mass concentration preparation strategy** — `suggest_consumptions`
+  now handles mixtures where solutes have `g/L` or `mg/mL`
+  concentrations (e.g. NaCl 400 g/L brine). The service calculates
+  mass = concentration × target volume for each solute, and proposes
+  the full target volume as "bring to volume" (qsp) for solvents
+  with no explicit concentration. Previously these recipes fell
+  through to the manual fallback.
+
 - `Order.supplier_id` — nullable foreign key to `Supplier`,
   additive and backward compatible with the existing free-text
   `Order.supplier` field. No migration needed; the table is created
   automatically via `ensure-schema` on first run after upgrade.
 
+### Fixed
+
+- `Supplier.orders` relationship returned `None` instead of an empty
+  list due to a bare `Mapped[list]` annotation (without type parameter)
+  confusing SQLAlchemy 2.0's `uselist` inference. Fixed by using
+  `Mapped[list["Order"]]` with explicit `uselist=True`.
+- `log_event()` called with positional arguments in the suppliers
+  blueprint; the function signature requires keyword-only arguments.
+- Hardcoded Italian strings in `prep_service.py` warnings and
+  `ValueError` messages now use English, fixing display in the EN
+  locale.
+- `Order.supplier_id` column missing from existing databases on
+  upgrade; the column must be added via `flask ensure-schema` or
+  the manual `ALTER TABLE` command documented in the upgrade notes.
+
 ### Documentation
 
-- User manual (IT/EN): new "Supplier contact book" section.
-- How-to guide (IT/EN): three new workflows — add a supplier, use a
-  supplier in an order, view all orders for a supplier.
+- User manual (IT/EN): new "Supplier contact book" section; mixture
+  preparation section expanded with automatic calculation strategy
+  table (dilution, mass concentration, ratio/%).
+- How-to guide (IT/EN): three new supplier workflows; preparation
+  workflow updated with mass concentration example (brine recipe).
 
 ## [1.0.0] — 2026-06-27
 

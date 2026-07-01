@@ -209,6 +209,21 @@ Stoic crea:
 Da qui in poi puoi usare il nuovo lotto di HCl 1N in reazioni
 come qualunque altro lotto, e stampare etichette dal lotto creato.
 
+### Strategie di calcolo automatico
+
+Stoic riconosce tre tipi di ricetta e calcola di conseguenza:
+
+| Strategia | Quando si attiva | Esempio |
+|-----------|-----------------|---------|
+| **Diluizione** | Un solo soluto + concentrazione principale impostata sulla miscela | HCl 1N da HCl 6N |
+| **Concentrazione massa** | Uno o più soluti con unità `g/L` o `mg/mL` | NaCl 400 g/L (salamoia) |
+| **Ratio / %** | Componenti in `ratio`, `%v/v`, `%w/w` o `%w/v` | EtOAc/Esano 3:7 |
+
+Per le ricette a **concentrazione di massa** (es. salamoia):
+- Inserisci il soluto con ruolo `Soluto` e concentrazione `400 g/L`
+- Inserisci il solvente (acqua) con ruolo `Solvente` e concentrazione vuota
+- Stoic proporrà: **400 g di NaCl** + **1 L d'acqua** per portare a volume
+
 ---
 
 ## Libreria procedure

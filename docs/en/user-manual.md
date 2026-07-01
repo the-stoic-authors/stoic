@@ -213,6 +213,21 @@ Stoic creates:
 From here you can use the new HCl 1N batch in reactions like any
 other batch, and print labels from the created batch.
 
+### Automatic calculation strategies
+
+Stoic recognises three recipe types and calculates accordingly:
+
+| Strategy | When triggered | Example |
+|----------|---------------|---------|
+| **Dilution** | Single solute + primary concentration set on the mixture | HCl 1N from HCl 6N |
+| **Mass concentration** | One or more solutes with `g/L` or `mg/mL` units | NaCl 400 g/L (brine) |
+| **Ratio / %** | Components in `ratio`, `%v/v`, `%w/w` or `%w/v` | EtOAc/Hexane 3:7 |
+
+For **mass concentration** recipes (e.g. brine):
+- Add the solute with role `Solute` and concentration `400 g/L`
+- Add the solvent (water) with role `Solvent` and empty concentration
+- Stoic will propose: **400 g of NaCl** + **1 L of water** to bring to volume
+
 ---
 
 ## Procedure library

@@ -101,14 +101,18 @@ per i run.
 
 ## Creare una miscela (ricetta)
 
-Una miscela è una "ricetta" riutilizzabile (es. HCl 1N, EtOAc/Esano 3:7).
+Una miscela è una "ricetta" riutilizzabile (es. HCl 1N, EtOAc/Esano 3:7, salamoia 400 g/L).
 
 1. Sidebar → **Miscele** → **Nuova miscela**
-2. Assegna un nome descrittivo (es. `HCl 1N acquoso`)
-3. Aggiungi i componenti: per ognuno cerca la sostanza, inserisci
-   il rapporto (es. mL/L o % v/v) e il ruolo
-4. Aggiungi note di preparazione se utile
-5. **Salva**
+2. Assegna un nome descrittivo (es. `Salamoia 400 g/L`)
+3. Aggiungi i componenti con il loro ruolo e la concentrazione:
+   - **Soluto** con concentrazione assoluta: scegli `g/L` o `mg/mL` e inserisci il valore
+     (es. NaCl → ruolo `soluto`, 400 g/L)
+   - **Solvente** senza concentrazione: lascia il campo vuoto — Stoic proporrà
+     automaticamente "portare a volume" (qsp) durante la preparazione
+   - **Miscele a ratio**: usa l'unità `ratio` (es. EtOAc 7, Esano 3)
+   - **Miscele percentuali**: usa `%v/v` o `%w/v` (la somma deve essere ≈ 100)
+4. **Salva**
 
 La miscela è ora disponibile come reagente nelle reazioni e nelle procedure.
 
@@ -117,8 +121,11 @@ La miscela è ora disponibile come reagente nelle reazioni e nelle procedure.
 ## Preparare una miscela (esecuzione)
 
 1. Apri la miscela → clic **Nuova preparazione**
-2. Inserisci il volume target (es. 500 mL)
-3. Stoic calcola le quantità di ogni componente
+2. Inserisci il volume target (es. 1 L) e l'unità
+3. Stoic calcola automaticamente le quantità:
+   - Soluti con `g/L`: massa = concentrazione × volume (es. 400 g/L × 1 L = 400 g)
+   - Solvente senza concentrazione: volume intero (qsp, portare a volume)
+   - Miscele a ratio o percentuale: ripartizione proporzionale
 4. Seleziona i lotti da usare per ogni componente
 5. Prepara fisicamente la miscela
 6. Inserisci la quantità effettiva ottenuta
