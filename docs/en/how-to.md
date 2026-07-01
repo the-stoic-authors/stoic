@@ -105,8 +105,11 @@ A mixture is a reusable recipe (e.g. 1N HCl, EtOAc/Hexane 3:7).
 2. Assign a descriptive name (e.g. `1N HCl aqueous`)
 3. Add components: for each one, search the substance, enter the
    ratio (e.g. mL/L or % v/v) and the role
-4. Add preparation notes if useful
-5. **Save**
+4. For **direct dissolution** recipes (e.g. NaCl in water): leave the
+   "Primary concentration" field at the top **empty** — it is only
+   needed for dilutions from stock
+5. Add preparation notes if useful
+6. **Save**
 
 The mixture is now available as a reagent in reactions and procedures.
 

@@ -216,8 +216,10 @@ Stoic riconosce tre tipi di ricetta e calcola di conseguenza:
 | Strategia | Quando si attiva | Esempio |
 |-----------|-----------------|---------|
 | **Diluizione** | Un solo soluto + concentrazione principale impostata sulla miscela | HCl 1N da HCl 6N |
-| **Concentrazione massa** | Uno o più soluti con unità `g/L` o `mg/mL` | NaCl 400 g/L (salamoia) |
+| **Concentrazione massa** | Uno o più soluti con unità `g/L` o `mg/mL` **e concentrazione principale vuota** | NaCl 400 g/L (salamoia) |
 | **Ratio / %** | Componenti in `ratio`, `%v/v`, `%w/w` o `%w/v` | EtOAc/Esano 3:7 |
+
+> **Importante**: il campo "Concentrazione principale" della miscela va compilato **solo per le diluizioni da stock** (es. HCl 1N da HCl 6N). Per le ricette a dissoluzione diretta (es. NaCl solido in acqua), lasciarlo **vuoto** — altrimenti Stoic tenta la diluizione invece del calcolo massa.
 
 Per le ricette a **concentrazione di massa** (es. salamoia):
 - Inserisci il soluto con ruolo `Soluto` e concentrazione `400 g/L`

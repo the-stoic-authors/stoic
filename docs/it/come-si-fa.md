@@ -112,7 +112,9 @@ Una miscela è una "ricetta" riutilizzabile (es. HCl 1N, EtOAc/Esano 3:7, salamo
      automaticamente "portare a volume" (qsp) durante la preparazione
    - **Miscele a ratio**: usa l'unità `ratio` (es. EtOAc 7, Esano 3)
    - **Miscele percentuali**: usa `%v/v` o `%w/v` (la somma deve essere ≈ 100)
-4. **Salva**
+4. Per ricette a **dissoluzione diretta** (es. NaCl in acqua): lascia **vuoto** il campo
+   "Concentrazione principale" in cima al form — serve solo per le diluizioni da stock
+5. **Salva**
 
 La miscela è ora disponibile come reagente nelle reazioni e nelle procedure.
 

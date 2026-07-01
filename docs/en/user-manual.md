@@ -220,8 +220,10 @@ Stoic recognises three recipe types and calculates accordingly:
 | Strategy | When triggered | Example |
 |----------|---------------|---------|
 | **Dilution** | Single solute + primary concentration set on the mixture | HCl 1N from HCl 6N |
-| **Mass concentration** | One or more solutes with `g/L` or `mg/mL` units | NaCl 400 g/L (brine) |
+| **Mass concentration** | One or more solutes with `g/L` or `mg/mL` units **and primary concentration left empty** | NaCl 400 g/L (brine) |
 | **Ratio / %** | Components in `ratio`, `%v/v`, `%w/w` or `%w/v` | EtOAc/Hexane 3:7 |
+
+> **Important**: the mixture's "Primary concentration" field should only be filled for **dilutions from stock** (e.g. HCl 1N from HCl 6N). For direct dissolution recipes (e.g. solid NaCl in water), leave it **empty** — otherwise Stoic will attempt a dilution instead of a mass calculation.
 
 For **mass concentration** recipes (e.g. brine):
 - Add the solute with role `Solute` and concentration `400 g/L`
