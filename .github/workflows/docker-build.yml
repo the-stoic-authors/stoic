@@ -23,6 +23,7 @@ on:
       - "gunicorn.conf.py"
       - "pyproject.toml"
       - "stoic_eln/**"
+      - "docs/**"
       - ".github/workflows/docker-build.yml"
   pull_request:
     branches: [main]
@@ -36,6 +37,7 @@ on:
       - "gunicorn.conf.py"
       - "pyproject.toml"
       - "stoic_eln/**"
+      - "docs/**"
 
 permissions:
   contents: read
