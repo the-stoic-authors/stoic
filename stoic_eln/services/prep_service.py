@@ -41,6 +41,7 @@ from stoic_eln.extensions import db
 from stoic_eln.models.inventory import InventoryItem
 from stoic_eln.models.mixture import (
     COMPONENT_ROLE_SOLUTE,
+    COMPONENT_ROLE_SOLVENT,
     Mixture,
     MixtureComponent,
 )
@@ -548,8 +549,8 @@ def suggest_consumptions(
     if not mixture.components:
         # Quick-label mixture with no recipe: nothing to suggest.
         warnings.append(
-            "Questa miscela non ha componenti definiti. "
-            "Aggiungi i componenti per usare il suggerimento automatico."
+            "This mixture has no defined components. "
+            "Add components to use the automatic suggestion."
         )
         return SuggestionResult(
             target_quantity=target_quantity,
@@ -592,6 +593,11 @@ def suggest_consumptions(
     #     a warning so the operator fills them in by hand.
 
     solutes = [c for c in mixture.components if c.role == COMPONENT_ROLE_SOLUTE]
+    mass_conc_solutes = [
+        c
+        for c in solutes
+        if c.concentration_unit in ("g/L", "mg/mL") and c.concentration is not None
+    ]
     ratio_components = [
         c
         for c in mixture.components
@@ -618,6 +624,8 @@ def suggest_consumptions(
     strategy = "fallback"
     if can_try_dilution:
         strategy = "single_solute_dilution"
+    elif mass_conc_solutes:
+        strategy = "mass_concentration"
     elif ratio_components and len(ratio_components) >= 2:
         strategy = "ratio_parts"
     elif pct_components and 99.0 <= pct_total <= 101.0:
@@ -699,15 +707,15 @@ def suggest_consumptions(
                 # leaving the row blank.
                 if stock_value is None:
                     warnings.append(
-                        f"Concentrazione stock di "
-                        f"{solute_comp.display_name} non determinabile "
-                        "dal lotto suggerito; compila a mano."
+                        f"Stock concentration of "
+                        f"{solute_comp.display_name} cannot be determined "
+                        "from the suggested lot; fill in manually."
                     )
                 else:
                     warnings.append(
-                        f"Unità stock ({stock_unit}) e target "
+                        f"Stock unit ({stock_unit}) and target "
                         f"({mixture.primary_concentration_unit}) "
-                        "incompatibili per diluizione."
+                        "are incompatible for dilution."
                     )
                 strategy = "fallback"
 
@@ -747,6 +755,28 @@ def suggest_consumptions(
                     suggested_unit_out = "L"
                 else:
                     suggested_qty = qty_mL
+                    suggested_unit_out = "mL"
+
+        elif strategy == "mass_concentration":
+            # Solutes: mass = concentration_g_per_L × volume_target_L
+            # Solvents with no concentration: fill to target volume (qsp)
+            v_target_L = _normalize_to_mL(target_quantity, target_unit) / 1000.0
+            if comp.concentration_unit in ("g/L", "mg/mL") and comp.concentration is not None:
+                # g/L and mg/mL are both 1:1 in g/L (per _UNIT_TO_CANONICAL)
+                conc_g_per_L = comp.concentration * _UNIT_TO_CANONICAL.get(
+                    comp.concentration_unit, 1.0
+                )
+                suggested_qty = conc_g_per_L * v_target_L
+                suggested_unit_out = "g"
+            elif comp.role == COMPONENT_ROLE_SOLVENT and (
+                comp.concentration is None or comp.concentration_unit is None
+            ):
+                # Solvent: propose "fill to volume" (qsp)
+                if target_unit == "L":
+                    suggested_qty = target_quantity
+                    suggested_unit_out = "L"
+                else:
+                    suggested_qty = _normalize_to_mL(target_quantity, target_unit)
                     suggested_unit_out = "mL"
 
         elif strategy == "cosolvent_pct":
@@ -803,8 +833,8 @@ def suggest_consumptions(
 
     if strategy == "fallback":
         warnings.append(
-            "Concentrazioni mancanti o non confrontabili: il suggerimento "
-            "automatico non può proporre quantità. Compila a mano."
+            "Missing or incompatible concentrations: "
+            "automatic suggestion cannot propose quantities. Fill in manually."
         )
 
     return SuggestionResult(
@@ -866,31 +896,29 @@ def execute_preparation(
     """
     mixture = db.session.get(Mixture, inp.mixture_id)
     if mixture is None:
-        raise ValueError("Miscela non trovata.")
+        raise ValueError("Mixture not found.")
     if not mixture.is_active:
-        raise ValueError("Miscela disattivata: non è preparabile.")
+        raise ValueError("Mixture is inactive and cannot be prepared.")
 
     if inp.target_quantity_unit not in ("mL", "L", "g", "kg"):
-        raise ValueError(f"Unità target non supportata: {inp.target_quantity_unit!r}")
+        raise ValueError(f"Unsupported target unit: {inp.target_quantity_unit!r}")
     if inp.target_quantity <= 0:
-        raise ValueError("La quantità target deve essere positiva.")
+        raise ValueError("Target quantity must be positive.")
 
     # Resolve every consumption lot before mutating anything.
     resolved: list[tuple[InventoryItem, float, str, str | None]] = []
     for c in inp.consumptions:
         lot = db.session.get(InventoryItem, c.inventory_item_id)
         if lot is None:
-            raise ValueError(f"Lotto #{c.inventory_item_id} non trovato.")
+            raise ValueError(f"Lot #{c.inventory_item_id} not found.")
         if not lot.is_active:
-            raise ValueError(f"Lotto {lot.batch_code or lot.id} disattivato; non utilizzabile.")
+            raise ValueError(f"Lot {lot.batch_code or lot.id} is inactive and cannot be used.")
         if c.quantity_unit not in ("mL", "L", "g", "kg"):
-            raise ValueError(f"Unità di consumo non supportata: {c.quantity_unit!r}")
+            raise ValueError(f"Unsupported consumption unit: {c.quantity_unit!r}")
         if c.quantity_consumed <= 0:
             # zero is a sign of "skip this row"; let the caller filter
             # those out before calling. We treat negative as a hard error.
-            raise ValueError(
-                f"Quantità consumata non positiva per lotto {lot.batch_code or lot.id}."
-            )
+            raise ValueError(f"Non-positive quantity consumed for lot {lot.batch_code or lot.id}.")
         resolved.append((lot, c.quantity_consumed, c.quantity_unit, c.notes))
 
     # Validate availability + apply decrements.
