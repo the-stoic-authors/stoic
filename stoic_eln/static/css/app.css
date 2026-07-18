@@ -292,6 +292,16 @@ body {
   z-index: 100;
 }
 
+/* Sticky action card (Save/Cancel) inside scrolling forms.
+   Sits just below the sticky app-header (56px) with a small gap,
+   and stays under the header (z-index < 100) so it never overlaps
+   the top bar while scrolling. */
+.stoic-sticky-actions {
+  position: sticky;
+  top: calc(56px + 1rem);
+  z-index: 90;
+}
+
 .app-header-title {
   font-weight: 600;
   flex: 1;

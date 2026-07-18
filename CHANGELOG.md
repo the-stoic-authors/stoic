@@ -11,6 +11,16 @@ and Stoic adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   (e.g. preparing HCl 6N consumes a lot of HCl 12N)
 - Docker multi-arch arm64 image (Raspberry Pi 4 support)
 
+## [1.1.1] — 2026-07-18
+
+### Fixed
+
+- Sticky "Save / Cancel" card in the mixture edit form scrolled up
+  behind the sticky app-header instead of stopping just below it.
+  Replaced the inline `top: 1rem` override with a reusable
+  `.stoic-sticky-actions` CSS class that offsets by the header
+  height (`calc(56px + 1rem)`) and sits below the header z-index.
+
 ## [1.1.0] — 2026-06-30
 
 ### Added

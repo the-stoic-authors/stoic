@@ -156,7 +156,7 @@
     </div>
 
     <div class="col-lg-4">
-      <div class="card mb-3 sticky-top" style="top: 1rem;">
+      <div class="card mb-3 stoic-sticky-actions">
         <div class="card-body">
           {{ form.submit(class="btn btn-primary w-100 mb-2") }}
           <a href="{% if mixture %}{{ url_for('mixtures.detail', mixture_id=mixture.id) }}{% else %}{{ url_for('mixtures.list_view') }}{% endif %}"
