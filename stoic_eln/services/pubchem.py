@@ -86,6 +86,22 @@ class PubChemResult:
     p_phrases: list[str] = field(default_factory=list)
 
 
+@dataclass
+class PubChemCandidate:
+    """Lightweight candidate for the disambiguation list.
+
+    Only the fields needed to let the user pick the right compound:
+    CID, name, molecular formula, and SMILES (for the client-side
+    structure depiction). Full data is fetched later via ``search``
+    once the user selects a CID.
+    """
+
+    cid: int
+    name: str | None = None
+    molecular_formula: str | None = None
+    smiles: str | None = None
+
+
 class PubChemError(Exception):
     """Raised when PubChem cannot be reached or returns an error."""
 
@@ -150,9 +166,18 @@ def search(query: str, query_type: str | None = None) -> PubChemResult:
 
 
 def _resolve_to_cid(query: str, qtype: str) -> int:
-    """Convert a query into a PubChem CID."""
+    """Convert a query into a single PubChem CID (the first match)."""
+    return _resolve_to_cids(query, qtype)[0]
+
+
+def _resolve_to_cids(query: str, qtype: str) -> list[int]:
+    """Convert a query into the full list of matching PubChem CIDs.
+
+    For unambiguous queries (CID, InChIKey, CAS) this is usually a
+    single element; for names it can be several (isomers, salts, …).
+    """
     if qtype == "cid":
-        return int(query)
+        return [int(query)]
 
     type_path = {
         "inchikey": ("inchikey", query),
@@ -182,7 +207,168 @@ def _resolve_to_cid(query: str, qtype: str) -> int:
     cids = data.get("IdentifierList", {}).get("CID", [])
     if not cids:
         raise PubChemNotFound(f"No CID for {qtype}: {query!r}")
-    return cids[0]
+    return list(cids)
+
+
+def _resolve_name_isomer_cids(query: str, qtype: str, scan: int = 200) -> list[int]:
+    """Resolve a NAME query to the CIDs of same-formula isomers.
+
+    PubChem has no "give me the stereoisomers of X" endpoint, so we
+    approximate it:
+      1. Resolve the canonical match (name_type=complete) → 1 CID +
+         its molecular formula.
+      2. Broaden with name_type=word → every CID whose name contains
+         the query (thousands, mostly unrelated derivatives).
+      3. Keep only those whose molecular formula equals the canonical
+         one — i.e. true isomers/stereoisomers (e.g. all C6H12O6 for
+         "glucose": glucose anomers, mannose, galactose, …).
+
+    The canonical CID is always placed first. Falls back to just the
+    canonical CID if anything in the broadening step fails.
+    """
+    # 1. Canonical match + its formula.
+    canonical = _resolve_to_cids(query, qtype)  # complete match
+    canon_cid = canonical[0]
+    canon_formula = None
+    try:
+        with _client() as c:
+            r = c.get(f"{PUBCHEM_BASE}/compound/cid/{canon_cid}/property/MolecularFormula/JSON")
+        if r.status_code == 200:
+            props = r.json().get("PropertyTable", {}).get("Properties", [])
+            if props:
+                canon_formula = props[0].get("MolecularFormula")
+    except httpx.HTTPError:
+        return [canon_cid]
+
+    if not canon_formula:
+        return [canon_cid]
+
+    # 2. Broaden with name_type=word.
+    namespace = "name"
+    url = f"{PUBCHEM_BASE}/compound/{namespace}/{query}/cids/JSON"
+    try:
+        with _client() as c:
+            r = c.get(url, params={"name_type": "word"})
+    except httpx.HTTPError:
+        return [canon_cid]
+    if r.status_code != 200:
+        return [canon_cid]
+    word_cids = r.json().get("IdentifierList", {}).get("CID", [])
+    if not word_cids:
+        return [canon_cid]
+
+    # 3. Filter the first `scan` CIDs by matching molecular formula.
+    scan_cids = word_cids[:scan]
+    cid_list = ",".join(str(c) for c in scan_cids)
+    try:
+        with _client() as c:
+            r = c.get(f"{PUBCHEM_BASE}/compound/cid/{cid_list}/property/MolecularFormula/JSON")
+    except httpx.HTTPError:
+        return [canon_cid]
+    if r.status_code != 200:
+        return [canon_cid]
+
+    matching = [
+        int(row["CID"])
+        for row in r.json().get("PropertyTable", {}).get("Properties", [])
+        if row.get("MolecularFormula") == canon_formula
+    ]
+
+    # Canonical CID first, then the rest (dedup, preserve order).
+    ordered = [canon_cid] + [c for c in matching if c != canon_cid]
+    seen: set[int] = set()
+    result: list[int] = []
+    for c in ordered:
+        if c not in seen:
+            seen.add(c)
+            result.append(c)
+    return result
+
+
+def search_candidates(
+    query: str, query_type: str | None = None, limit: int = 12
+) -> list[PubChemCandidate]:
+    """Return a list of candidate compounds matching *query*.
+
+    Resolves the query to CIDs, then fetches name + molecular formula
+    + SMILES for all of them in a SINGLE batch PUG-REST call (CIDs are
+    comma-separated in the URL), so the disambiguation list — including
+    client-side structure depictions — loads with one request.
+
+    Raises PubChemNotFound / PubChemError like ``search``.
+    """
+    cache_key = f"candidates:{query_type or 'auto'}:{query}:{limit}"
+    if cache_key in _cache:
+        return _cache[cache_key]
+
+    qtype = query_type or _detect_query_type(query)
+
+    # For NAME/CAS searches, resolve to same-formula isomers so the
+    # user can distinguish stereoisomers. Other query types (CID,
+    # InChIKey, SMILES, InChI) are unambiguous → single result.
+    if qtype in ("name", "cas"):
+        cids = _resolve_name_isomer_cids(query, qtype)[:limit]
+    else:
+        cids = _resolve_to_cids(query, qtype)[:limit]
+
+    # Batch property fetch for all CIDs at once.
+    cid_list = ",".join(str(c) for c in cids)
+    url = (
+        f"{PUBCHEM_BASE}/compound/cid/{cid_list}"
+        f"/property/MolecularFormula,SMILES,ConnectivitySMILES,IUPACName/JSON"
+    )
+    props_by_cid: dict[int, dict] = {}
+    try:
+        with _client() as c:
+            r = c.get(url)
+        if r.status_code == 200:
+            rows = r.json().get("PropertyTable", {}).get("Properties", [])
+            for row in rows:
+                props_by_cid[int(row.get("CID"))] = row
+    except httpx.HTTPError as e:
+        raise PubChemError(f"PubChem unreachable: {e}") from e
+
+    # Fetch a display name (first synonym) for each CID in one batch call.
+    names_by_cid = _batch_synonyms(cids)
+
+    candidates: list[PubChemCandidate] = []
+    for cid in cids:
+        props = props_by_cid.get(cid, {})
+        smiles = props.get("SMILES") or props.get("ConnectivitySMILES")
+        candidates.append(
+            PubChemCandidate(
+                cid=cid,
+                name=names_by_cid.get(cid) or props.get("IUPACName"),
+                molecular_formula=props.get("MolecularFormula"),
+                smiles=smiles,
+            )
+        )
+
+    _cache[cache_key] = candidates
+    return candidates
+
+
+def _batch_synonyms(cids: list[int]) -> dict[int, str]:
+    """Fetch the first synonym (common name) for each CID in one call."""
+    if not cids:
+        return {}
+    cid_list = ",".join(str(c) for c in cids)
+    url = f"{PUBCHEM_BASE}/compound/cid/{cid_list}/synonyms/JSON"
+    out: dict[int, str] = {}
+    try:
+        with _client() as c:
+            r = c.get(url)
+        if r.status_code == 200:
+            entries = r.json().get("InformationList", {}).get("Information", [])
+            for entry in entries:
+                cid = int(entry.get("CID"))
+                syns = entry.get("Synonym", [])
+                if syns:
+                    out[cid] = syns[0]
+    except httpx.HTTPError:
+        # Names are best-effort; fall back to IUPAC in the caller.
+        pass
+    return out
 
 
 def _fill_properties(result: PubChemResult) -> None:

@@ -11,6 +11,32 @@ and Stoic adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   (e.g. preparing HCl 6N consumes a lot of HCl 12N)
 - Docker multi-arch arm64 image (Raspberry Pi 4 support)
 
+## [1.2.1] — 2026-07-19
+
+### Fixed
+
+- PubChem candidate list never appeared: name searches resolved only
+  the canonical match (`name_type=complete`), always yielding a single
+  result. The candidate resolver now broadens the search with
+  `name_type=word` and keeps only CIDs whose molecular formula equals
+  the canonical match — i.e. genuine isomers and stereoisomers (all
+  C6H12O6 for "glucose": α/β anomers, open-chain form, isotopologues,
+  …), with the canonical compound listed first.
+
+## [1.2.0] — 2026-07-18
+
+### Added
+
+- **PubChem multi-candidate import** — when a search returns more
+  than one matching compound (e.g. isomers, salts, stereoisomers of
+  "glucose"), Stoic now shows a disambiguation page with each
+  candidate's name, molecular formula, CID, and a drawn structure,
+  instead of silently auto-selecting the first result. Unambiguous
+  searches (a single CID, InChIKey, CAS) still go straight to the
+  preview — no extra click. Candidate structures and metadata are
+  fetched in a single batch PUG-REST call and drawn client-side with
+  SmilesDrawer.
+
 ## [1.1.1] — 2026-07-18
 
 ### Fixed

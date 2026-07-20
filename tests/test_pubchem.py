@@ -344,3 +344,147 @@ def test_pubchem_request_url_includes_both_old_and_new_smiles_names():
     assert "ConnectivitySMILES" in pubchem.PROPERTIES
     assert "IsomericSMILES" in pubchem.PROPERTIES
     assert "CanonicalSMILES" in pubchem.PROPERTIES
+
+
+# ─── search_candidates (multi-candidate disambiguation) ──────────────────────
+
+
+@respx.mock
+def test_search_candidates_single_by_cid():
+    """A CID query is unambiguous → one candidate, no isomer broadening."""
+    pubchem.cache_clear()
+    respx.get(
+        "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/702"
+        "/property/MolecularFormula,SMILES,ConnectivitySMILES,IUPACName/JSON"
+    ).mock(
+        return_value=Response(
+            200,
+            json={
+                "PropertyTable": {
+                    "Properties": [
+                        {
+                            "CID": 702,
+                            "MolecularFormula": "C2H6O",
+                            "SMILES": "CCO",
+                            "IUPACName": "ethanol",
+                        }
+                    ]
+                }
+            },
+        )
+    )
+    respx.get("https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/702/synonyms/JSON").mock(
+        return_value=Response(
+            200,
+            json={"InformationList": {"Information": [{"CID": 702, "Synonym": ["Ethanol"]}]}},
+        )
+    )
+
+    candidates = pubchem.search_candidates("702", query_type="cid")
+    assert len(candidates) == 1
+    assert candidates[0].cid == 702
+    assert candidates[0].name == "Ethanol"
+    assert candidates[0].molecular_formula == "C2H6O"
+
+
+@respx.mock
+def test_search_candidates_name_isomer_filter():
+    """A NAME query broadens via name_type=word and keeps only CIDs
+    whose molecular formula matches the canonical match."""
+    pubchem.cache_clear()
+
+    # The /name/glucose/cids/JSON endpoint is called twice: once without
+    # params (complete → [5793]) and once with name_type=word (broad).
+    def name_cids_handler(request):
+        if "name_type=word" in str(request.url):
+            return Response(
+                200, json={"IdentifierList": {"CID": [5793, 64689, 79025, 999001, 999002]}}
+            )
+        return Response(200, json={"IdentifierList": {"CID": [5793]}})
+
+    respx.get("https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/glucose/cids/JSON").mock(
+        side_effect=name_cids_handler
+    )
+
+    # Canonical formula lookup (single CID 5793)
+    respx.get(
+        "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/5793/property/MolecularFormula/JSON"
+    ).mock(
+        return_value=Response(
+            200,
+            json={"PropertyTable": {"Properties": [{"CID": 5793, "MolecularFormula": "C6H12O6"}]}},
+        )
+    )
+
+    # Formula batch for scanned word CIDs — filter keeps only C6H12O6
+    respx.get(
+        "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/"
+        "5793,64689,79025,999001,999002/property/MolecularFormula/JSON"
+    ).mock(
+        return_value=Response(
+            200,
+            json={
+                "PropertyTable": {
+                    "Properties": [
+                        {"CID": 5793, "MolecularFormula": "C6H12O6"},
+                        {"CID": 64689, "MolecularFormula": "C6H12O6"},
+                        {"CID": 79025, "MolecularFormula": "C6H12O6"},
+                        {"CID": 999001, "MolecularFormula": "C6H13O9P"},
+                        {"CID": 999002, "MolecularFormula": "C12H22O11"},
+                    ]
+                }
+            },
+        )
+    )
+
+    # Full property batch for the 3 matching CIDs
+    respx.get(
+        "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/5793,64689,79025"
+        "/property/MolecularFormula,SMILES,ConnectivitySMILES,IUPACName/JSON"
+    ).mock(
+        return_value=Response(
+            200,
+            json={
+                "PropertyTable": {
+                    "Properties": [
+                        {"CID": 5793, "MolecularFormula": "C6H12O6", "SMILES": "S1"},
+                        {"CID": 64689, "MolecularFormula": "C6H12O6", "SMILES": "S2"},
+                        {"CID": 79025, "MolecularFormula": "C6H12O6", "SMILES": "S3"},
+                    ]
+                }
+            },
+        )
+    )
+
+    respx.get(
+        "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/5793,64689,79025/synonyms/JSON"
+    ).mock(
+        return_value=Response(
+            200,
+            json={
+                "InformationList": {
+                    "Information": [
+                        {"CID": 5793, "Synonym": ["D-glucose"]},
+                        {"CID": 64689, "Synonym": ["alpha-D-glucose"]},
+                        {"CID": 79025, "Synonym": ["L-glucose"]},
+                    ]
+                }
+            },
+        )
+    )
+
+    candidates = pubchem.search_candidates("glucose", query_type="name")
+    assert [c.cid for c in candidates] == [5793, 64689, 79025]
+    assert candidates[0].name == "D-glucose"
+    assert all(c.molecular_formula == "C6H12O6" for c in candidates)
+
+
+@respx.mock
+def test_search_candidates_not_found():
+    """No canonical CID → PubChemNotFound."""
+    pubchem.cache_clear()
+    respx.get(
+        "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/nonexistentcompound/cids/JSON"
+    ).mock(return_value=Response(404))
+    with pytest.raises(pubchem.PubChemNotFound):
+        pubchem.search_candidates("nonexistentcompound", query_type="name")
