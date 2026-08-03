@@ -22,14 +22,33 @@ Per i concetti di base vedi il [Manuale utente](manuale-utente.md).
 ## Aggiungere una sostanza da PubChem
 
 1. Sidebar → **Sostanze** → **Nuova sostanza**
-2. Scegli **Importa da PubChem**
-3. Incolla CAS, nome IUPAC o SMILES nel campo di ricerca
-4. Seleziona il risultato corretto dall'elenco
+2. Scegli **Importa da PubChem** → tab **Testo**
+3. Incolla CAS, nome IUPAC, SMILES, InChIKey o CID nel campo di ricerca
+4. Se il nome è ambiguo, appare un elenco di candidati con le
+   strutture disegnate: scegli l'isomero corretto. Se il risultato è
+   univoco, vai dritto all'anteprima.
 5. Verifica i dati pre-compilati (MW, densità, GHS)
 6. Correggi eventuali errori (PubChem non è sempre accurato su densità e stato)
 7. **Salva**
 
 > Per composti sintetici non in PubChem usa l'inserimento manuale.
+
+---
+
+## Cercare una sostanza disegnandone la struttura
+
+Utile quando conosci la struttura ma non il nome esatto o il CAS.
+
+1. Sidebar → **Sostanze** → **Nuova sostanza** → **Importa da PubChem**
+2. Apri la tab **Disegna**
+3. Costruisci la molecola con l'editor (atomi a sinistra, legami e
+   strumenti in alto). Lo SMILES generato appare sotto la tela.
+4. Clic su **Cerca su PubChem**: Stoic usa lo SMILES per trovare il
+   composto e ti porta all'anteprima
+5. Verifica i dati e **Salva**
+
+> L'editor resta chiaro (tela di disegno) anche in tema scuro: le
+> icone della barra strumenti sono leggibili solo su fondo chiaro.
 
 ---
 
@@ -163,6 +182,26 @@ Per registrare un lotto di miscela già preparato esternamente
 
 > Un template in bozza non può essere eseguito. Pubblica solo quando
 > la procedura è consolidata.
+
+---
+
+## Escludere uno scarto dall'inventario
+
+Quando una reazione produce un sottoprodotto che è scarto (non lo
+vuoi in inventario né nel calcolo della resa).
+
+Esempio: generazione di HCl, NaCl + H₂SO₄ → HCl + NaHSO₄. Vuoi l'HCl
+in inventario, ma non il bisolfato di sodio.
+
+1. Apri il template di reazione **in bozza**
+2. Nella tabella dei componenti, trova il sottoprodotto (qui NaHSO₄)
+3. Disattiva l'interruttore **Inventario** sulla sua riga
+4. Fatto: al completamento del run quel componente non creerà un
+   lotto e non conterà nella resa (la resa è solo sull'HCl)
+
+> I prodotti hanno l'interruttore **attivo** di default, i
+> sottoprodotti **disattivo**. Se un sottoprodotto è recuperabile e
+> vuoi tracciarlo in inventario, attiva l'interruttore sulla sua riga.
 
 ---
 

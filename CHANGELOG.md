@@ -14,6 +14,17 @@ and Stoic adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   completion into separate recovered-solvent lots, with a
   worst-case use counter and a soft per-run reuse limit
 
+## [1.4.3] — 2026-08-03
+
+### Documentation
+
+- User manual (IT/EN): documented the PubChem *Draw* tab and the
+  candidate disambiguation list; documented the per-product
+  *Save to inventory* switch (products on, byproducts off, excluded
+  from yield) with the HCl/NaHSO₄ example.
+- How-to (IT/EN): added "Search for a substance by drawing its
+  structure" and "Exclude a scrap from inventory" workflows.
+
 ## [1.4.2] — 2026-08-03
 
 ### Fixed

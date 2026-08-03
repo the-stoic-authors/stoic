@@ -72,9 +72,16 @@ metanolo, il catalizzatore. Per ognuno, controlla:
 Se manca una sostanza nel catalogo, clic su **Nuova sostanza**.
 Hai due opzioni:
 
-- **Import da PubChem**: incolla CAS, nome o SMILES, Stoic tira giù
-  proprietà, GHS e identificatori. Verifica che siano corretti
-  prima di salvare.
+- **Import da PubChem**: due modalità nella stessa pagina.
+  - *Testo*: incolla CAS, nome, SMILES, InChI, InChIKey o CID;
+    Stoic tira giù proprietà, GHS e identificatori. Se il nome è
+    ambiguo (es. "glucose"), Stoic mostra una lista di candidati con
+    la struttura disegnata, così scegli l'isomero corretto a colpo
+    d'occhio invece di prendere alla cieca il primo risultato.
+  - *Disegna*: apri la tab **Disegna** e costruisci la molecola con
+    l'editor. Stoic genera lo SMILES e cerca il composto su PubChem.
+    Comodo quando conosci la struttura ma non il nome esatto.
+  Verifica sempre che i dati scaricati siano corretti prima di salvare.
 - **Inserimento manuale**: compila i campi a mano. Utile per
   composti non in PubChem (intermedi sintetici, sostanze custom).
 
@@ -96,6 +103,18 @@ Vai su **Reazioni**. Se la trasformazione esiste già come template
   solvente/catalizzatore/altro), equivalenti, e per ognuno se è
   fissato in g o mL o ad lib (`quanto basta`, tipico per solventi
   di cromatografia)
+- **Prodotti e sottoprodotti — "Salva in inventario"**: ogni
+  prodotto e sottoprodotto ha un interruttore *Inventario*. Se
+  attivo, al completamento del run quel componente crea un lotto in
+  inventario e conta nel calcolo della resa. I **prodotti** sono
+  attivi di default (sono ciò che vuoi produrre); i **sottoprodotti**
+  sono disattivi di default, perché di solito sono scarti. Esempio:
+  nella generazione di HCl (NaCl + H₂SO₄ → HCl + NaHSO₄) vuoi l'HCl
+  in inventario, non il bisolfato di sodio — altrimenti l'inventario
+  si riempie di NaHSO₄ a ogni run. Un componente escluso
+  dall'inventario è escluso **anche dalla resa**: la resa è sul
+  prodotto, non sugli scarti. Se un sottoprodotto è invece
+  recuperabile e vuoi tracciarlo, attiva l'interruttore.
 - Aggiungi **step** opzionali (procedura): "Sciogliere SM in MeOH",
   "Aggiungere H2SO4 catalitico", "Riflusso 12 h", ecc.
 - Aggiungi **workup** e **checklist** se vuoi (azioni di routine

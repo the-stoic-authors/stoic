@@ -22,14 +22,34 @@ For background concepts see the [User Manual](user-manual.md).
 ## Add a substance from PubChem
 
 1. Sidebar → **Substances** → **New substance**
-2. Choose **Import from PubChem**
-3. Paste a CAS number, IUPAC name or SMILES into the search field
-4. Select the correct result from the list
+2. Choose **Import from PubChem** → **Text** tab
+3. Paste a CAS number, IUPAC name, SMILES, InChIKey or CID into the
+   search field
+4. If the name is ambiguous, a list of candidates appears with their
+   drawn structures: pick the correct isomer. If the result is
+   unique, you go straight to the preview.
 5. Review the pre-filled data (MW, density, GHS)
 6. Correct any errors (PubChem is not always accurate on density and state)
 7. **Save**
 
 > For synthetic intermediates not in PubChem, use manual entry.
+
+---
+
+## Search for a substance by drawing its structure
+
+Useful when you know the structure but not the exact name or CAS.
+
+1. Sidebar → **Substances** → **New substance** → **Import from PubChem**
+2. Open the **Draw** tab
+3. Build the molecule in the editor (atoms on the left, bonds and
+   tools along the top). The generated SMILES appears below the canvas.
+4. Click **Search PubChem**: Stoic uses the SMILES to find the
+   compound and takes you to the preview
+5. Review the data and **Save**
+
+> The editor stays light (a drawing canvas) even in dark theme: its
+> toolbar icons are only legible on a light background.
 
 ---
 
@@ -158,6 +178,26 @@ buffer, a received solution):
 
 > A draft template cannot be run. Publish only when the procedure
 > is established.
+
+---
+
+## Exclude a scrap from inventory
+
+When a reaction produces a byproduct that is waste (you don't want
+it in inventory or in the yield calculation).
+
+Example: HCl generation, NaCl + H₂SO₄ → HCl + NaHSO₄. You want the
+HCl in inventory, but not the sodium bisulfate.
+
+1. Open the reaction template **in draft**
+2. In the components table, find the byproduct (here NaHSO₄)
+3. Turn off the **Inventory** switch on its row
+4. Done: on run completion that component will not create a lot and
+   won't count toward the yield (the yield is on the HCl only)
+
+> Products have the switch **on** by default, byproducts **off**. If
+> a byproduct is recoverable and you want to track it in inventory,
+> turn the switch on for its row.
 
 ---
 

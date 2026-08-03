@@ -75,9 +75,16 @@ acid, methanol, the catalyst. For each, check:
 If a substance is missing from the catalog, click **New substance**.
 You have two options:
 
-- **Import from PubChem**: paste CAS, name, or SMILES; Stoic
-  pulls down properties, GHS, and identifiers. Verify them
-  before saving.
+- **Import from PubChem**: two modes on the same page.
+  - *Text*: paste CAS, name, SMILES, InChI, InChIKey, or CID; Stoic
+    pulls down properties, GHS, and identifiers. If the name is
+    ambiguous (e.g. "glucose"), Stoic shows a list of candidates with
+    their drawn structures, so you pick the right isomer at a glance
+    instead of blindly taking the first hit.
+  - *Draw*: open the **Draw** tab and build the molecule in the
+    editor. Stoic generates the SMILES and searches PubChem for it.
+    Handy when you know the structure but not the exact name.
+  Always verify the downloaded data before saving.
 - **Manual entry**: fill in fields by hand. Useful for compounds
   not in PubChem (synthetic intermediates, custom substances).
 
@@ -101,6 +108,17 @@ template (someone has done it before), open it. Otherwise
   solvent/catalyst/other), equivalents, and for each whether it's
   fixed in g or mL or free (`quantum satis`, typical for
   chromatography solvents)
+- **Products and byproducts — "Save to inventory"**: every product
+  and byproduct has an *Inventory* switch. When on, that component
+  creates an inventory lot on run completion and counts toward the
+  yield. **Products** are on by default (they are what you make);
+  **byproducts** are off by default, because they are usually waste.
+  Example: in HCl generation (NaCl + H₂SO₄ → HCl + NaHSO₄) you want
+  the HCl in inventory, not the sodium bisulfate — otherwise the
+  inventory fills up with NaHSO₄ on every run. A component excluded
+  from inventory is also excluded **from the yield**: the yield is on
+  the product, not on the scraps. If a byproduct is actually
+  recoverable and you want to track it, turn the switch on.
 - Add optional **steps** (procedure): "Dissolve SM in MeOH",
   "Add catalytic H2SO4", "Reflux 12 h", etc.
 - Add **workup** and **checklist** if desired (routine actions
