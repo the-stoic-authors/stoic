@@ -10,6 +10,73 @@ and Stoic adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Inventory decrement for mixture-as-component preparations
   (e.g. preparing HCl 6N consumes a lot of HCl 12N)
 - Docker multi-arch arm64 image (Raspberry Pi 4 support)
+- Solvent recovery (green chemistry): recover solvent at run
+  completion into separate recovered-solvent lots, with a
+  worst-case use counter and a soft per-run reuse limit
+
+## [1.4.2] — 2026-08-03
+
+### Fixed
+
+- The *Save to inventory* switch still returned 400 ("CSRF token
+  missing"): as a bare checkbox outside a `<form>`, its HTMX POST
+  carried no CSRF token. Added `hx-headers` with `X-CSRFToken`, the
+  same pattern already used by the run-code / prep-code inline
+  toggles. The switch now persists.
+
+## [1.4.1] — 2026-08-03
+
+### Fixed
+
+- The *Save to inventory* switch on products/byproducts did not
+  persist. The HTMX request used a `js:`-evaluated `hx-vals` reading
+  `event.target.checked`, which failed to serialise the `field`
+  parameter and made the endpoint return 400. Switched to a static
+  `hx-vals` with the checkbox value included natively (unchecked =
+  no value = not tracked), matching the other inline-edit controls.
+
+## [1.4.0] — 2026-07-19
+
+### Added
+
+- **Per-product inventory flag** — each product/byproduct in a
+  reaction now has a *Save to inventory* toggle. Products default to
+  on (they are what you make); byproducts default to off (usually
+  waste — e.g. NaHSO₄ from HCl generation, which you don't want
+  filling the inventory). Components excluded from inventory are also
+  excluded from the yield: the yield is on the product, not on the
+  scraps. The flag can be turned on for genuinely recoverable
+  byproducts.
+
+### Migration
+
+Adds column `track_in_inventory` to `reaction_component` and
+`run_component`. Run once after pulling:
+
+```
+.venv/bin/python scripts/migrate_track_in_inventory.py
+```
+
+Existing rows (including existing byproducts) keep the historical
+behaviour (tracked); the byproduct-off default applies only to newly
+added components.
+
+## [1.3.0] — 2026-07-19
+
+### Added
+
+- **Draw-to-search structure input for PubChem import** — the import
+  page now has two tabs: *Text* (the existing name / CAS / SMILES /
+  InChI / InChIKey / CID search) and *Draw*. The Draw tab embeds the
+  JSME molecule editor; the drawn structure is converted to SMILES in
+  the browser and searched on PubChem through the existing import
+  flow. JSME (BSD-licensed, Novartis/Bruno Bienfait) is bundled
+  locally under `static/lib/jsme/` and loaded lazily only when the
+  Draw tab is opened, so the server works fully offline and the text
+  search is unaffected. The JSME editor is framed as a light drawing
+  canvas (its toolbar icons are baked light-on-nothing and have no
+  recolour API, so it stays in its readable light look regardless of
+  Stoic's light/dark theme).
 
 ## [1.2.1] — 2026-07-19
 

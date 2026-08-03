@@ -112,6 +112,10 @@ class ReactionComponentForm(FlaskForm):
     amount_g = FloatField(_l("g"), validators=[Optional(), NumberRange(min=0)])
     amount_mL = FloatField(_l("mL"), validators=[Optional(), NumberRange(min=0)])
     is_limiting = BooleanField(_l("Reagente limitante"))
+    # For products/byproducts: whether to create an inventory lot on run
+    # completion. Rendered only for RIGHT-of-arrow roles in the template.
+    # Default handled per-role in the route (product on, byproduct off).
+    track_in_inventory = BooleanField(_l("Salva in inventario"), default=True)
     concentration_M = FloatField(
         _l("Concentrazione (M)"),
         validators=[Optional(), NumberRange(min=0)],

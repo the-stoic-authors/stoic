@@ -7183,3 +7183,48 @@ msgstr "Delete this supplier? Linked orders will not be deleted."
 
 msgid "Nessun ordine per questo fornitore."
 msgstr "No orders for this supplier."
+
+# ── PubChem multi-candidate import ───────────────────────────────
+msgid "Scegli il composto"
+msgstr "Choose the compound"
+
+msgid "Più risultati trovati"
+msgstr "Multiple results found"
+
+msgid "La ricerca per «%(q)s» ha restituito più composti. Scegli quello corretto confrontando le strutture."
+msgstr "The search for "%(q)s" returned several compounds. Pick the right one by comparing the structures."
+
+msgid "Struttura non disponibile"
+msgstr "Structure not available"
+
+msgid "Seleziona"
+msgstr "Select"
+
+msgid "Nuova ricerca"
+msgstr "New search"
+
+msgid "Composto non più disponibile su PubChem."
+msgstr "Compound no longer available on PubChem."
+
+# ── PubChem draw-to-search (structure editor) ────────────────────
+msgid "Testo"
+msgstr "Text"
+
+msgid "Disegna"
+msgstr "Draw"
+
+msgid "Disegna la molecola; Stoic la cerca su PubChem tramite lo SMILES generato."
+msgstr "Draw the molecule; Stoic searches PubChem using the generated SMILES."
+
+# ── Product/byproduct inventory tracking flag ────────────────────
+msgid "Salva in inventario"
+msgstr "Save to inventory"
+
+msgid "Se attivo, al completamento del run questo prodotto crea un lotto in inventario. Disattiva per gli scarti (es. sali di neutralizzazione)."
+msgstr "If on, this product creates an inventory lot when the run completes. Turn off for waste (e.g. neutralisation salts)."
+
+msgid "Crea un lotto in inventario"
+msgstr "Creates an inventory lot"
+
+msgid "Scarto — non va in inventario"
+msgstr "Waste — not stocked"

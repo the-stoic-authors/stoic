@@ -96,7 +96,34 @@
 
         <td class="text-end" style="white-space: nowrap;">
           {% if is_product %}
-            <span class="text-muted">—</span>
+            {% if is_draft %}
+              <div class="form-check form-switch d-inline-flex align-items-center gap-1"
+                   title="{{ _('Se attivo, al completamento del run questo prodotto crea un lotto in inventario. Disattiva per gli scarti (es. sali di neutralizzazione).') }}">
+                <input type="checkbox" class="form-check-input mt-0" role="switch"
+                       id="track-inv-{{ c.id }}"
+                       name="value" value="1"
+                       {% if c.track_in_inventory %}checked{% endif %}
+                       hx-post="{{ url_for('reactions.edit_component', component_id=c.id) }}"
+                       hx-trigger="change"
+                       hx-target="#components-table"
+                       hx-vals='{"field": "track_in_inventory"}'
+                       hx-headers='{"X-CSRFToken": "{{ csrf_token() }}"}'
+                       hx-include="this">
+                <label class="form-check-label small text-muted" for="track-inv-{{ c.id }}">
+                  {{ _("Inventario") }}
+                </label>
+              </div>
+            {% else %}
+              {% if c.track_in_inventory %}
+                <span class="small text-muted" title="{{ _('Crea un lotto in inventario') }}">
+                  <i data-lucide="package-check" style="width:14px;height:14px"></i>
+                </span>
+              {% else %}
+                <span class="small text-muted" title="{{ _('Scarto — non va in inventario') }}">
+                  <i data-lucide="trash-2" style="width:14px;height:14px"></i>
+                </span>
+              {% endif %}
+            {% endif %}
 
           {% elif is_draft %}
             {# ── EDIT MODE: input fields ─────────────────────────────── #}

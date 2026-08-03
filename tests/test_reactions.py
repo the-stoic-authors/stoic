@@ -554,3 +554,45 @@ def test_only_one_limiting_per_reaction(client, app):
         limiting = [c for c in components if c.is_limiting]
         assert len(limiting) == 1
         assert limiting[0].id == cb_id
+
+
+def test_edit_component_track_in_inventory(client, app):
+    """The inline-edit endpoint toggles track_in_inventory on
+    products/byproducts (on and off both persist)."""
+    with app.app_context():
+        rxn = Reaction(code="RX-2026-0042", title="HCl gen")
+        prod = Substance(name="HCl", molecular_weight=36.46)
+        db.session.add_all([rxn, prod])
+        db.session.flush()
+        c = ReactionComponent(
+            reaction_id=rxn.id,
+            substance_id=prod.id,
+            role="byproduct",
+            position=0,
+            track_in_inventory=True,
+        )
+        db.session.add(c)
+        db.session.commit()
+        cid = c.id
+
+    _login(client, app)
+
+    # Turn OFF — an unchecked checkbox sends NO "value" field at all
+    resp = client.post(
+        f"/reactions/components/{cid}/edit",
+        data={"field": "track_in_inventory"},
+        follow_redirects=False,
+    )
+    assert resp.status_code in (200, 302)
+    with app.app_context():
+        assert db.session.get(ReactionComponent, cid).track_in_inventory is False
+
+    # Turn ON — checked checkbox sends value=1
+    resp = client.post(
+        f"/reactions/components/{cid}/edit",
+        data={"field": "track_in_inventory", "value": "1"},
+        follow_redirects=False,
+    )
+    assert resp.status_code in (200, 302)
+    with app.app_context():
+        assert db.session.get(ReactionComponent, cid).track_in_inventory is True

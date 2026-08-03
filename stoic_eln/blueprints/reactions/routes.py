@@ -602,6 +602,20 @@ def add_component(reaction_id: int):
 
     next_position = max((c.position for c in rxn.components), default=-1) + 1
 
+    # track_in_inventory only matters for products/byproducts (the roles
+    # that create inventory lots on completion). Default per role: products
+    # are stocked, byproducts are treated as waste unless the user ticks
+    # the box. For non-RIGHT roles the value is irrelevant (they never
+    # create lots) and left at the model default.
+    role = form.role.data
+    if role == "product":
+        track_in_inventory = bool(form.track_in_inventory.data)
+    elif role == "byproduct":
+        # Checkbox unchecked → waste (default). Checked → stock it.
+        track_in_inventory = bool(form.track_in_inventory.data)
+    else:
+        track_in_inventory = True
+
     component = ReactionComponent(
         reaction_id=rxn.id,
         substance_id=sub.id if sub else None,
@@ -613,6 +627,7 @@ def add_component(reaction_id: int):
         amount_g=None,
         amount_mL=None,
         is_limiting=is_limiting,
+        track_in_inventory=track_in_inventory,
         concentration_M=concentration_M,
         notes=form.notes.data or None,
     )
@@ -677,10 +692,16 @@ def edit_component(component_id: int):
     field = request.form.get("field")
     raw_value = request.form.get("value", "").strip()
 
-    if field not in ("equivalents", "concentration_M", "is_limiting"):
+    if field not in ("equivalents", "concentration_M", "is_limiting", "track_in_inventory"):
         abort(400)
 
-    if field == "is_limiting":
+    if field == "track_in_inventory":
+        # Toggle for products/byproducts only (the roles that create lots).
+        # An unchecked checkbox sends no "value" at all (standard HTML
+        # behaviour), so absence means False; presence of "1"/"on" means True.
+        if component.role in ("product", "byproduct"):
+            component.track_in_inventory = raw_value in ("1", "true", "on", "yes")
+    elif field == "is_limiting":
         new_val = raw_value in ("1", "true", "on", "yes")
         if new_val:
             for c in rxn.components:

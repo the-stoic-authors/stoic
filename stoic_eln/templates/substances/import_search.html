@@ -3,7 +3,7 @@
 
 {% block content %}
 <div class="row">
-  <div class="col-12 col-lg-8 col-xl-6 mx-auto">
+  <div class="col-12 col-lg-8 col-xl-7 mx-auto">
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb small">
         <li class="breadcrumb-item">
@@ -16,9 +16,6 @@
     <div class="card">
       <div class="card-body">
         <h2 class="mb-3"><i data-lucide="download-cloud"></i> {{ _("Importa da PubChem") }}</h2>
-        <p class="text-muted">
-          {{ _("Cerca per nome, numero CAS, SMILES, InChI, InChIKey, o CID PubChem.") }}
-        </p>
 
         {% if error %}
         <div class="alert alert-danger">
@@ -26,40 +23,140 @@
         </div>
         {% endif %}
 
-        <form method="post" novalidate>
-          {{ form.hidden_tag() }}
+        <ul class="nav nav-tabs mb-3" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="tab-text-btn" data-bs-toggle="tab"
+                    data-bs-target="#tab-text" type="button" role="tab">
+              <i data-lucide="type"></i> {{ _("Testo") }}
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tab-draw-btn" data-bs-toggle="tab"
+                    data-bs-target="#tab-draw" type="button" role="tab">
+              <i data-lucide="pencil-ruler"></i> {{ _("Disegna") }}
+            </button>
+          </li>
+        </ul>
 
-          <div class="mb-3">
-            {{ form.query.label(class="form-label") }}
-            {{ form.query(class="form-control form-control-lg" + (" is-invalid" if form.query.errors else "")) }}
-            {% for e in form.query.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+        <div class="tab-content">
+          {# Tab 1: text search (unchanged behaviour) #}
+          <div class="tab-pane fade show active" id="tab-text" role="tabpanel">
+            <p class="text-muted">
+              {{ _("Cerca per nome, numero CAS, SMILES, InChI, InChIKey, o CID PubChem.") }}
+            </p>
+            <form method="post" novalidate>
+              {{ form.hidden_tag() }}
+              <div class="mb-3">
+                {{ form.query.label(class="form-label") }}
+                {{ form.query(class="form-control form-control-lg" + (" is-invalid" if form.query.errors else "")) }}
+                {% for e in form.query.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+              </div>
+              <div class="mb-3">
+                {{ form.query_type.label(class="form-label") }}
+                {{ form.query_type(class="form-select") }}
+              </div>
+              <div class="d-flex justify-content-end gap-2">
+                <a href="{{ url_for('substances.list_view') }}" class="btn btn-link">{{ _("Annulla") }}</a>
+                {{ form.submit(class="btn btn-primary") }}
+              </div>
+            </form>
+
+            <hr class="my-4">
+            <details class="small text-muted">
+              <summary>{{ _("Esempi di ricerca") }}</summary>
+              <ul class="mt-2 mb-0">
+                <li>{{ _("Nome") }}: <code>caffeine</code> · <code>aspirin</code></li>
+                <li>CAS: <code>64-17-5</code> · <code>50-78-2</code></li>
+                <li>SMILES: <code>CCO</code> · <code>CN1C=NC2=C1C(=O)N(C(=O)N2C)C</code></li>
+                <li>InChIKey: <code>RYYVLZVUVIJVGH-UHFFFAOYSA-N</code></li>
+                <li>CID: <code>2519</code></li>
+              </ul>
+            </details>
           </div>
 
-          <div class="mb-3">
-            {{ form.query_type.label(class="form-label") }}
-            {{ form.query_type(class="form-select") }}
+          {# Tab 2: draw a structure #}
+          <div class="tab-pane fade" id="tab-draw" role="tabpanel">
+            <p class="text-muted">
+              {{ _("Disegna la molecola; Stoic la cerca su PubChem tramite lo SMILES generato.") }}
+            </p>
+
+            <div id="jsme_container" style="width: 100%; max-width: 480px; height: 340px; background: #f8f9fa;"
+                 class="border rounded mb-3 mx-auto p-1"></div>
+
+            <form method="post" novalidate id="draw-form">
+              {{ form.hidden_tag() }}
+              <input type="hidden" name="query" id="drawn-smiles" value="">
+              <input type="hidden" name="query_type" value="smiles">
+
+              <div class="mb-3">
+                <label class="form-label small text-muted">{{ _("SMILES generato") }}</label>
+                <code id="smiles-preview" class="d-block p-2 bg-body-tertiary rounded">&mdash;</code>
+              </div>
+
+              <div class="d-flex justify-content-end gap-2">
+                <a href="{{ url_for('substances.list_view') }}" class="btn btn-link">{{ _("Annulla") }}</a>
+                <button type="submit" class="btn btn-primary" id="draw-submit" disabled>
+                  <i data-lucide="search"></i> {{ _("Cerca su PubChem") }}
+                </button>
+              </div>
+            </form>
           </div>
-
-          <div class="d-flex justify-content-end gap-2">
-            <a href="{{ url_for('substances.list_view') }}" class="btn btn-link">{{ _("Annulla") }}</a>
-            {{ form.submit(class="btn btn-primary") }}
-          </div>
-        </form>
-
-        <hr class="my-4">
-
-        <details class="small text-muted">
-          <summary>{{ _("Esempi di ricerca") }}</summary>
-          <ul class="mt-2 mb-0">
-            <li>Nome: <code>caffeine</code> · <code>aspirin</code></li>
-            <li>CAS: <code>64-17-5</code> (etanolo) · <code>50-78-2</code> (aspirina)</li>
-            <li>SMILES: <code>CCO</code> (etanolo) · <code>CN1C=NC2=C1C(=O)N(C(=O)N2C)C</code> (caffeina)</li>
-            <li>InChIKey: <code>RYYVLZVUVIJVGH-UHFFFAOYSA-N</code> (caffeina)</li>
-            <li>CID: <code>2519</code> (caffeina)</li>
-          </ul>
-        </details>
+        </div>
       </div>
     </div>
   </div>
 </div>
+
+<script src="{{ url_for('static', filename='lib/jsme/jsme.nocache.js') }}"></script>
+<script>
+(function () {
+  let jsmeApplet = null;
+  let jsmeReady = false;
+
+  // JSME's toolbar icons are baked into the GWT build with a fixed
+  // dark colour meant for a light background; there is no API to
+  // recolour them. Forcing a dark GUI background makes the icons
+  // unreadable (dark-on-dark). So JSME always runs in its readable
+  // light look, framed as a light "drawing canvas" inside the app —
+  // regardless of Stoic's light/dark theme.
+  function styleJsme() {
+    if (!jsmeApplet) return;
+    try {
+      jsmeApplet.options("newLook");
+      jsmeApplet.setUserInterfaceBackgroundColor("#f8f9fa");
+    } catch (e) {
+      // best-effort
+    }
+  }
+
+  window.jsmeOnLoad = function () {
+    jsmeReady = true;
+    if (document.getElementById("tab-draw-btn").classList.contains("active")) {
+      initJsme();
+    }
+  };
+
+  function initJsme() {
+    if (jsmeApplet || !jsmeReady) return;
+    jsmeApplet = new JSApplet.JSME("jsme_container", "100%", "340px", {
+      options: "newLook,star",
+    });
+    styleJsme();
+    jsmeApplet.setCallBack("AfterStructureModified", function () {
+      const smiles = jsmeApplet.smiles() || "";
+      document.getElementById("drawn-smiles").value = smiles;
+      document.getElementById("smiles-preview").textContent = smiles || "\u2014";
+      document.getElementById("draw-submit").disabled = smiles.trim() === "";
+    });
+  }
+
+  document.getElementById("tab-draw-btn").addEventListener("shown.bs.tab", initJsme);
+
+  document.getElementById("draw-form").addEventListener("submit", function (e) {
+    if (document.getElementById("drawn-smiles").value.trim() === "") {
+      e.preventDefault();
+    }
+  });
+})();
+</script>
 {% endblock %}

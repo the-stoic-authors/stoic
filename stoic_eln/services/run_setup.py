@@ -84,6 +84,7 @@ def create_draft(reaction: Reaction, operator: User | None = None) -> Run:
             mixture_id=c.mixture_id,
             role=c.role,
             is_limiting=c.is_limiting,
+            track_in_inventory=c.track_in_inventory,
             equivalents=c.equivalents,
             concentration_M=c.concentration_M,
             position=c.position,
@@ -412,13 +413,18 @@ def complete_run(run: Run, *, force_no_products: bool = False) -> dict:
         raise ValueError("Solo i run in esecuzione possono essere completati.")
 
     products = [c for c in run.components if c.role in ("product", "byproduct")]
-    products_with_mass = [p for p in products if p.actual_mass_g and p.actual_mass_g > 0]
+    # "Real" products count toward yield and inventory; components flagged
+    # track_in_inventory=False are waste (e.g. NaHSO4) and are excluded from
+    # both the yield and the lot creation below. Yield is on the product,
+    # not on the scraps.
+    real_products = [p for p in products if getattr(p, "track_in_inventory", True)]
+    products_with_mass = [p for p in real_products if p.actual_mass_g and p.actual_mass_g > 0]
 
     warnings: list[str] = []
     lots_created: list[dict] = []
 
     # Caso: nessun peso prodotto inserito
-    if products and not products_with_mass:
+    if real_products and not products_with_mass:
         if not force_no_products:
             raise RunStartError(
                 "Pesi dei prodotti non inseriti.",
@@ -440,16 +446,15 @@ def complete_run(run: Run, *, force_no_products: bool = False) -> dict:
         }
 
     # Caso normale: almeno un prodotto pesato
-    # Total yield = sum of all product masses (per Rico: P1 + P2 if multiple)
+    # Total yield = sum of REAL product masses (scraps excluded)
     total_yield_g = sum(p.actual_mass_g for p in products_with_mass)
     run.yield_g = total_yield_g
 
-    # Theoretical yield is based on the FIRST product's MW × scale (1:1
-    # stoichiometry assumed). If multiple products with different MWs,
-    # we use the first product (or main product = first by position).
+    # Theoretical yield is based on the FIRST real product's MW × scale
+    # (1:1 stoichiometry assumed). Scraps are never the main product.
     theoretical_g = None
-    if products and run.scale_mmol:
-        main_prod = sorted(products, key=lambda p: p.position)[0]
+    if real_products and run.scale_mmol:
+        main_prod = sorted(real_products, key=lambda p: p.position)[0]
         if main_prod.substance and main_prod.substance.molecular_weight:
             theoretical_g = run.scale_mmol * main_prod.substance.molecular_weight / 1000.0
 
@@ -460,8 +465,10 @@ def complete_run(run: Run, *, force_no_products: bool = False) -> dict:
     else:
         run.yield_percent = None
 
-    # Create inventory lots for each product with mass
-    sorted_products = sorted(products, key=lambda p: p.position)
+    # Create inventory lots for each REAL product with mass.
+    # Scraps (track_in_inventory=False) are already excluded from
+    # real_products, so they never reach this loop.
+    sorted_products = sorted(real_products, key=lambda p: p.position)
     p_index = 0
     created_lots = []  # (product_component, lot) pairs for cost allocation
     for p in sorted_products:

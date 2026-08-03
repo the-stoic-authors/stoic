@@ -68,6 +68,11 @@ class RunComponent(db.Model):
     # Snapshot of recipe data (so changes to template don't break the run)
     role: Mapped[str] = mapped_column(String(32), nullable=False)
     is_limiting: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    # Frozen snapshot of ReactionComponent.track_in_inventory: whether a
+    # product/byproduct creates an inventory lot on run completion.
+    track_in_inventory: Mapped[bool] = mapped_column(
+        Boolean, default=True, nullable=False, server_default="1"
+    )
     equivalents: Mapped[float | None] = mapped_column(Float, nullable=True)
     concentration_M: Mapped[float | None] = mapped_column(Float, nullable=True)
 

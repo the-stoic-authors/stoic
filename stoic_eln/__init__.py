@@ -30,7 +30,7 @@ from sqlalchemy import func
 from stoic_eln.config import Config, DevelopmentConfig, ProductionConfig, TestingConfig
 from stoic_eln.extensions import babel, csrf, db, login_manager, migrate
 
-__version__ = "1.2.1"
+__version__ = "1.4.2"
 
 CONFIG_MAP: dict[str, type[Config]] = {
     "debug": DevelopmentConfig,

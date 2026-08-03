@@ -337,3 +337,20 @@ def test_inventory_add_lot(client, app):
         assert item.initial_quantity_mL == 1000.0
         # quantity_mL should default to initial since it was empty
         assert item.quantity_mL == 1000.0
+
+
+def test_import_page_has_draw_tab(client, app):
+    """The PubChem import page exposes a text tab and a draw tab
+    (structure editor via JSME), and loads the JSME asset."""
+    _login(client, app)
+    resp = client.get("/substances/import")
+    assert resp.status_code == 200
+    body = resp.data.decode()
+    # Both tabs present
+    assert 'id="tab-text-btn"' in body
+    assert 'id="tab-draw-btn"' in body
+    # JSME editor container + lazy script
+    assert 'id="jsme_container"' in body
+    assert "lib/jsme/jsme.nocache.js" in body
+    # Draw form forces SMILES query type
+    assert 'name="query_type" value="smiles"' in body

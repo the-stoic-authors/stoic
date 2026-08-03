@@ -308,60 +308,80 @@ def import_pubchem():
             qtype = None
 
         try:
-            result = pubchem.search(query, query_type=qtype)
+            candidates = pubchem.search_candidates(query, query_type=qtype)
         except pubchem.PubChemNotFound:
             error = _("Nessun risultato trovato per '%(q)s'.", q=query)
         except pubchem.PubChemError as e:
             error = _("Errore PubChem: %(err)s", err=str(e))
             logger.exception("PubChem search failed")
         else:
-            # Check for duplicate before showing preview
-            existing = None
-            if result.inchi_key:
-                existing = db.session.query(Substance).filter_by(inchi_key=result.inchi_key).first()
-
-            # Stash result in session for confirmation step
-            session["pubchem_result"] = {
-                "cid": result.cid,
-                "name": result.name,
-                "iupac_name": result.iupac_name,
-                "cas_number": result.cas_number,
-                "molecular_formula": result.molecular_formula,
-                "molecular_weight": result.molecular_weight,
-                "smiles": result.smiles,
-                "inchi": result.inchi,
-                "inchi_key": result.inchi_key,
-                "density": result.density,
-                "state": result.state,
-                "melting_point_c": result.melting_point_c,
-                "boiling_point_c": result.boiling_point_c,
-                "ghs_pictograms": result.ghs_pictograms,
-                "h_phrases": result.h_phrases,
-                "p_phrases": result.p_phrases,
-            }
-
-            from flask_babel import get_locale
-
-            locale = str(get_locale())
-
-            # SMILES depiction is rendered client-side by
-            # SmilesDrawer.js (loaded in base.html). The template
-            # just emits a <canvas data-smiles="..."> element and
-            # the library auto-detects + draws on page load. This
-            # matches the rendering used in substances/detail.html
-            # and reactions/_scheme_card.html — same library,
-            # same ACS-like style, same theme awareness.
-
+            if len(candidates) == 1:
+                # Unambiguous — go straight to the full preview.
+                return _pubchem_preview(candidates[0].cid)
+            # Multiple matches — let the user pick.
             return render_template(
-                "substances/import_preview.html",
-                result=result,
-                existing=existing,
-                h_phrases=_phrase_dict(result.h_phrases, locale),
-                p_phrases=_phrase_dict(result.p_phrases, locale),
-                confirm_form=PubChemConfirmForm(),
+                "substances/import_candidates.html",
+                candidates=candidates,
+                query=query,
             )
 
     return render_template("substances/import_search.html", form=form, error=error)
+
+
+@bp.route("/import/select/<int:cid>", methods=["POST"])
+@login_required
+@supervisor_required
+def import_select(cid: int):
+    """Step 1b: user picked a specific candidate CID → show full preview."""
+    return _pubchem_preview(cid)
+
+
+def _pubchem_preview(cid: int):
+    """Fetch full data for *cid* and render the confirmation preview."""
+    try:
+        result = pubchem.search(str(cid), query_type="cid")
+    except pubchem.PubChemNotFound:
+        flash(_("Composto non più disponibile su PubChem."), "warning")
+        return redirect(url_for("substances.import_pubchem"))
+    except pubchem.PubChemError as e:
+        flash(_("Errore PubChem: %(err)s", err=str(e)), "danger")
+        return redirect(url_for("substances.import_pubchem"))
+
+    existing = None
+    if result.inchi_key:
+        existing = db.session.query(Substance).filter_by(inchi_key=result.inchi_key).first()
+
+    session["pubchem_result"] = {
+        "cid": result.cid,
+        "name": result.name,
+        "iupac_name": result.iupac_name,
+        "cas_number": result.cas_number,
+        "molecular_formula": result.molecular_formula,
+        "molecular_weight": result.molecular_weight,
+        "smiles": result.smiles,
+        "inchi": result.inchi,
+        "inchi_key": result.inchi_key,
+        "density": result.density,
+        "state": result.state,
+        "melting_point_c": result.melting_point_c,
+        "boiling_point_c": result.boiling_point_c,
+        "ghs_pictograms": result.ghs_pictograms,
+        "h_phrases": result.h_phrases,
+        "p_phrases": result.p_phrases,
+    }
+
+    from flask_babel import get_locale
+
+    locale = str(get_locale())
+
+    return render_template(
+        "substances/import_preview.html",
+        result=result,
+        existing=existing,
+        h_phrases=_phrase_dict(result.h_phrases, locale),
+        p_phrases=_phrase_dict(result.p_phrases, locale),
+        confirm_form=PubChemConfirmForm(),
+    )
 
 
 @bp.route("/import/confirm", methods=["POST"])

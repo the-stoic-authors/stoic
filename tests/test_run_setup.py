@@ -13,6 +13,7 @@ from stoic_eln.models.run import (
     STATUS_COMPLETED,
     STATUS_DRAFT,
     STATUS_IN_PROGRESS,
+    Run,
 )
 from stoic_eln.models.substance import Substance
 from stoic_eln.models.user import User
@@ -6284,3 +6285,117 @@ def test_short_label_does_not_get_rescaled(app):
     # is implicit in the helper's return value; we tested that
     # separately above.
     assert pdf.startswith(b"%PDF-")
+
+
+def _make_run_with_byproduct(app, operator, *, byproduct_tracked: bool):
+    """Build a published reaction (SM + product + byproduct) and a run,
+    ready to complete. Returns (run_id, product_sub_id, byproduct_sub_id).
+    The byproduct's track_in_inventory is set per the flag.
+    """
+    with app.app_context():
+        sm = Substance(name="Sodium chloride", molecular_formula="NaCl", molecular_weight=58.44)
+        prod = Substance(name="Hydrogen chloride", molecular_formula="HCl", molecular_weight=36.46)
+        byp = Substance(
+            name="Sodium bisulfate", molecular_formula="NaHSO4", molecular_weight=120.06
+        )
+        db.session.add_all([sm, prod, byp])
+        db.session.flush()
+
+        rxn = Reaction(
+            code="RX-2026-9001",
+            template_code="HCLGEN",
+            title="HCl generation",
+            status="published",
+            created_by_id=operator,
+        )
+        db.session.add(rxn)
+        db.session.flush()
+
+        db.session.add_all(
+            [
+                ReactionComponent(
+                    reaction_id=rxn.id,
+                    substance_id=sm.id,
+                    role="starting_material",
+                    position=0,
+                    is_limiting=True,
+                    equivalents=1.0,
+                ),
+                ReactionComponent(
+                    reaction_id=rxn.id,
+                    substance_id=prod.id,
+                    role="product",
+                    position=1,
+                    track_in_inventory=True,
+                ),
+                ReactionComponent(
+                    reaction_id=rxn.id,
+                    substance_id=byp.id,
+                    role="byproduct",
+                    position=2,
+                    track_in_inventory=byproduct_tracked,
+                ),
+            ]
+        )
+        db.session.commit()
+
+        op = db.session.get(User, operator)
+        run = run_setup.create_draft(rxn, op)
+        run.scale_mmol = 10.0
+        run_setup.recompute_targets(run)
+        # Give the SM a mass so the run can start; no lot deduction needed
+        # for this test — we only care about completion behaviour.
+        for c in run.components:
+            if c.role == "starting_material":
+                c.actual_mass_g = 0.584
+        db.session.commit()
+        run.status = STATUS_IN_PROGRESS  # skip lot plumbing, go straight to in-progress
+        db.session.commit()
+
+        # Weigh both product and byproduct
+        for c in run.components:
+            if c.role == "product":
+                c.actual_mass_g = 0.30
+            elif c.role == "byproduct":
+                c.actual_mass_g = 1.00
+        db.session.commit()
+        return run.id, prod.id, byp.id
+
+
+def test_byproduct_excluded_from_inventory(app, operator):
+    """A byproduct with track_in_inventory=False creates no lot and is
+    excluded from the yield."""
+    run_id, prod_id, byp_id = _make_run_with_byproduct(app, operator, byproduct_tracked=False)
+    with app.app_context():
+        run = db.session.get(Run, run_id)
+        result = run_setup.complete_run(run)
+        db.session.commit()
+
+        # Only the product lot is created — not the byproduct
+        assert len(result["lots_created"]) == 1
+        assert result["lots_created"][0]["product_name"] == "Hydrogen chloride"
+
+        # No inventory item for the byproduct
+        byp_lots = db.session.query(InventoryItem).filter_by(substance_id=byp_id).count()
+        assert byp_lots == 0
+
+        # Yield is the product only (0.30 g), NOT product + byproduct (1.30 g)
+        assert run.yield_g == 0.30
+
+
+def test_byproduct_included_when_tracked(app, operator):
+    """A byproduct with track_in_inventory=True does create a lot and
+    counts toward yield (opt-in for recoverable byproducts)."""
+    run_id, prod_id, byp_id = _make_run_with_byproduct(app, operator, byproduct_tracked=True)
+    with app.app_context():
+        run = db.session.get(Run, run_id)
+        result = run_setup.complete_run(run)
+        db.session.commit()
+
+        # Both product and byproduct lots created
+        assert len(result["lots_created"]) == 2
+        byp_lots = db.session.query(InventoryItem).filter_by(substance_id=byp_id).count()
+        assert byp_lots == 1
+
+        # Yield includes both (0.30 + 1.00 = 1.30 g)
+        assert run.yield_g == 1.30

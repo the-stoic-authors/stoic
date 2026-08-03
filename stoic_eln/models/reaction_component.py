@@ -100,6 +100,17 @@ class ReactionComponent(db.Model):
     # The "limiting reagent": equivalents=1.0 by convention. Only one per reaction.
     is_limiting: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
+    # Whether this component, when it is a product/byproduct, creates an
+    # inventory lot on run completion. Products default to True (they are
+    # what you make); byproducts default to False (usually waste — e.g.
+    # NaHSO4 from HCl generation — you don't want the inventory filling
+    # up with it). The default is applied per-role at component creation
+    # time in the reaction form; the column default is True so existing
+    # rows and non-product roles keep the historical behaviour.
+    track_in_inventory: Mapped[bool] = mapped_column(
+        Boolean, default=True, nullable=False, server_default="1"
+    )
+
     # Concentration (for solvents & solutions). For mixture-backed
     # components, the canonical concentration lives on the Mixture
     # itself (primary_concentration / per-component); this field
