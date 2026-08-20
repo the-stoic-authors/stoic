@@ -111,6 +111,22 @@ class RunStepComponent(db.Model):
     actual_mass_g: Mapped[float | None] = mapped_column(Float, nullable=True)
     actual_volume_mL: Mapped[float | None] = mapped_column(Float, nullable=True)
 
+    # ── Inventory deduction bookkeeping (v1.4.4) ────────────────
+    # Step quantities, unlike main reaction components, keep changing
+    # while the run is in progress (you don't know up front how much
+    # DCM the column will take). So the deduction is incremental: on
+    # every change we compare what the lot has ALREADY given to this
+    # component against what the operator now declares, and move only
+    # the difference. These three columns are that memory.
+    #
+    # ``deducted_lot_id`` is a plain Integer, not a ForeignKey, on
+    # purpose: SQLite cannot add a FK to an existing table without a
+    # full rebuild, and the same pattern is already used by
+    # ``InventoryItem.source_run_id``.
+    deducted_lot_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    deducted_mass_g: Mapped[float | None] = mapped_column(Float, nullable=True)
+    deducted_volume_mL: Mapped[float | None] = mapped_column(Float, nullable=True)
+
     position: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
 
     __table_args__ = (

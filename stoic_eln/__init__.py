@@ -30,7 +30,7 @@ from sqlalchemy import func
 from stoic_eln.config import Config, DevelopmentConfig, ProductionConfig, TestingConfig
 from stoic_eln.extensions import babel, csrf, db, login_manager, migrate
 
-__version__ = "1.4.3"
+__version__ = "1.4.4"
 
 CONFIG_MAP: dict[str, type[Config]] = {
     "debug": DevelopmentConfig,
@@ -706,6 +706,22 @@ def _register_cli(app: Flask) -> None:
             click.echo(f"Created {len(added)} table(s): {', '.join(added)}")
         else:
             click.echo("No missing tables. Schema is up to date.")
+
+    @app.cli.command("migrate-step-deduction")
+    def migrate_step_deduction_command() -> None:
+        """Add the v1.4.4 deduction-tracking columns to run_step_component.
+
+        ``ensure-schema`` only creates missing tables, never columns, so
+        an existing database needs this after applying v1.4.4. Idempotent.
+
+        Lives as a Flask command (not a script under ``scripts/``) so it
+        is available inside the Docker image too:
+            docker compose exec stoic flask migrate-step-deduction
+        """
+        from stoic_eln.services.schema_migrations import ensure_step_deduction_columns
+
+        for line in ensure_step_deduction_columns(db.engine):
+            click.echo(f"  - {line}")
 
     @app.cli.command("create-user")
     @click.argument("username")

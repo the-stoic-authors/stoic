@@ -5122,3 +5122,9 @@ msgstr "Modalità banco"
 #: stoic_eln/templates/runs/detail.html
 msgid "Modalità banco — schermo intero per esecuzione al laboratorio"
 msgstr "Modalità banco — schermo intero per esecuzione al laboratorio"
+
+
+# ── Consumo inventario dei componenti di step (v1.4.4) ───────────
+#: stoic_eln/blueprints/runs/routes.py
+msgid "Lotto %(lot)s: mancavano %(qty)g %(unit)s per %(name)s. Quantità registrata comunque, lotto azzerato."
+msgstr "Lotto %(lot)s: mancavano %(qty)g %(unit)s per %(name)s. Quantità registrata comunque, lotto azzerato."

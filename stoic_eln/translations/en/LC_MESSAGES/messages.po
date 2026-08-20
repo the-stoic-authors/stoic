@@ -7228,3 +7228,8 @@ msgstr "Creates an inventory lot"
 
 msgid "Scarto — non va in inventario"
 msgstr "Waste — not stocked"
+
+
+# ── Step-component inventory consumption (v1.4.4) ────────────────
+msgid "Lotto %(lot)s: mancavano %(qty)g %(unit)s per %(name)s. Quantità registrata comunque, lotto azzerato."
+msgstr "Lot %(lot)s: %(qty)g %(unit)s short for %(name)s. Quantity recorded anyway, lot set to zero."

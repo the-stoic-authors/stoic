@@ -9,7 +9,9 @@ Lifecycle:
   - recompute_targets(run)            → updates target_mass/volume on
     every component based on the current scale_mmol.
   - start_run(run)                    → validates lots + actuals,
-    deducts inventory, transitions to in_progress.
+    deducts inventory (main components AND any step quantity already
+    filled in), transitions to in_progress. Returns the list of step
+    deductions so the caller can report short lots.
   - complete_run(run, yield_g)        → marks completed, computes %.
 """
 
@@ -345,12 +347,19 @@ def validate_for_start(run: Run) -> list[str]:
     return errors
 
 
-def start_run(run: Run) -> None:
+def start_run(run: Run) -> list:
     """Deduct inventory and transition the run to in_progress.
 
     Raises RunStartError if validation fails. On success, all bound
     inventory lots are decremented atomically inside the current
     session (caller commits).
+
+    Step components whose quantity was already filled in during draft
+    are deducted here too (v1.4.4) — from this moment on they stay in
+    sync incrementally, on every edit. Returns the list of
+    ``StepDeduction`` results so the caller can surface any lot that
+    ran short; the main-component deductions still raise instead,
+    because those are validated up front.
     """
     errors = validate_for_start(run)
     if errors:
@@ -370,6 +379,13 @@ def start_run(run: Run) -> None:
 
     run.status = STATUS_IN_PROGRESS
     run.started_at = _now_utc()
+
+    # The run is live now, so step quantities entered during draft
+    # become real consumption. Done after the status flip because the
+    # sync reads it to decide whether anything should be held.
+    from stoic_eln.services.step_inventory import sync_run_step_inventory
+
+    return sync_run_step_inventory(run)
 
 
 # ─── Completion ─────────────────────────────────────────────────────────────

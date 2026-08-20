@@ -39,6 +39,34 @@ from stoic_eln.models.run_step import RunChecklistItem
 from stoic_eln.services import run_setup
 
 
+# ─── Shared helpers ─────────────────────────────────────────────────────
+
+
+def _flash_step_shortfall(res) -> bool:
+    """Warn when a step component asked its lot for more than it had.
+
+    The quantity is recorded anyway (it already happened at the bench)
+    and the lot is clamped at zero, so the message exists to surface the
+    discrepancy — usually an unrecorded residue or a wrong lot pick.
+
+    Returns True when a warning was emitted.
+    """
+    if res is None or not res.has_shortfall:
+        return False
+    flash(
+        _(
+            "Lotto %(lot)s: mancavano %(qty)g %(unit)s per %(name)s. "
+            "Quantità registrata comunque, lotto azzerato.",
+            lot=res.lot_label or "—",
+            qty=res.shortfall,
+            unit=res.unit or "",
+            name=res.component_name,
+        ),
+        "warning",
+    )
+    return True
+
+
 # ─── List ────────────────────────────────────────────────────────────────
 
 
@@ -333,8 +361,20 @@ def set_step_lot(run_id: int, scid: int):
                 return redirect(url_for("runs.detail", run_id=run_id))
         sc.inventory_item_id = lot_id
 
+    # Swapping the lot moves the deduction with it: the old lot gets
+    # its quantity back, the new one is charged (v1.4.4).
+    from stoic_eln.services.step_inventory import sync_step_component
+
+    res = sync_step_component(sc, active=run.is_in_progress)
     db.session.commit()
+
+    warned = _flash_step_shortfall(res)
     if request.headers.get("HX-Request"):
+        # The row's lot dropdown shows remaining quantities, so a
+        # deduction makes the page stale. Refresh only when something
+        # actually moved, to keep normal typing snappy.
+        if warned or res is not None:
+            return ("", 204, {"HX-Refresh": "true"})
         return ("", 204)
     return redirect(url_for("runs.detail", run_id=run_id))
 
@@ -365,9 +405,13 @@ def set_step_actual(run_id: int, scid: int):
     raw = (request.form.get("actual") or "").strip().replace(",", ".")
     unit = (request.form.get("unit") or "").strip()
 
+    from stoic_eln.services.step_inventory import sync_step_component
+
     if raw == "":
         sc.actual_mass_g = None
         sc.actual_volume_mL = None
+        # Clearing the field hands everything back to the lot.
+        sync_step_component(sc, active=run.is_in_progress)
         db.session.commit()
         if request.headers.get("HX-Request"):
             return ("", 204)
@@ -402,8 +446,17 @@ def set_step_actual(run_id: int, scid: int):
                 sc.actual_mass_g = amount
                 sc.actual_volume_mL = None
 
+    # Move only the difference against what this component already took.
+    res = sync_step_component(sc, active=run.is_in_progress)
     db.session.commit()
+
+    warned = _flash_step_shortfall(res)
     if request.headers.get("HX-Request"):
+        # Only a shortfall justifies yanking the page from under the
+        # operator: they may be filling in several quantities in a row,
+        # and a refresh mid-typing would steal focus.
+        if warned:
+            return ("", 204, {"HX-Refresh": "true"})
         return ("", 204)
     return redirect(url_for("runs.detail", run_id=run_id))
 
@@ -487,7 +540,7 @@ def start(run_id: int):
         return redirect(url_for("runs.detail", run_id=run_id))
 
     try:
-        run_setup.start_run(run)
+        step_results = run_setup.start_run(run)
     except run_setup.RunStartError as e:
         for err in e.errors:
             flash(err, "danger")
@@ -495,6 +548,8 @@ def start(run_id: int):
 
     db.session.commit()
     flash(_("Run avviato. Inventario aggiornato."), "success")
+    for res in step_results:
+        _flash_step_shortfall(res)
     return redirect(url_for("runs.detail", run_id=run_id))
 
 

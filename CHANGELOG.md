@@ -14,6 +14,38 @@ and Stoic adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   completion into separate recovered-solvent lots, with a
   worst-case use counter and a soft per-run reuse limit
 
+## [1.4.4] — 2026-08-20
+
+### Fixed
+
+- Step components (workup, extraction, chromatography) now decrement
+  the inventory lot they are bound to. Until now their quantities were
+  counted by the run cost report but never removed from stock, so a
+  column eluent had a price and no consumption.
+
+### Changed
+
+- Step consumption is reconciled incrementally: each component
+  remembers how much it has taken and from which lot, so raising a
+  quantity deducts only the difference, lowering it returns the excess,
+  swapping the lot moves the deduction, and clearing the field gives
+  everything back. Draft runs still hold nothing — deduction starts at
+  *Avvia*, matching the main components.
+- A lot that cannot cover a step quantity is clamped at zero and
+  reported as a warning: the quantity is recorded anyway, because at
+  that point it already happened at the bench.
+- Migrations that add columns can now ship as Flask commands
+  (`flask migrate-step-deduction`), which — unlike `scripts/` — are
+  present inside the Docker image.
+
+### Migration
+
+- `run_step_component` gains `deducted_lot_id`, `deducted_mass_g` and
+  `deducted_volume_mL` (all nullable). Run
+  `flask migrate-step-deduction` (or
+  `python scripts/migrate_step_deduction.py`) on an existing database:
+  `ensure-schema` creates missing tables, never missing columns.
+
 ## [1.4.3] — 2026-08-03
 
 ### Documentation
