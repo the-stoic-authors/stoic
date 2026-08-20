@@ -21,11 +21,11 @@ def _reset_passphrase_cache():
     from stoic_eln.services import passphrase_store as _ps
     _ps.reset_cache()
     _ps.set_prompt_callback(None)
-    print(f"  [autouse] _reset_passphrase_cache pre-yield")
+    print("  [autouse] _reset_passphrase_cache pre-yield")
     yield
     _ps.reset_cache()
     _ps.set_prompt_callback(None)
-    print(f"  [autouse] _reset_passphrase_cache post-yield")
+    print("  [autouse] _reset_passphrase_cache post-yield")
 
 
 @pytest.fixture(autouse=True)

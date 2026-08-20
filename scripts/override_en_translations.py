@@ -70,11 +70,9 @@ OVERRIDES: dict[str, str] = {
 
     # ── Dashboard ───────────────────────────────────────────────
     "Benvenuto": "Welcome",
-    "Lotti attivi": "Active batches",
     "Run completati": "Completed runs",
     "Ordini in arrivo": "Incoming orders",
     "Tutti gli ordini": "All orders",
-    "Lotti scaduti": "Expired batches",
     "Lotti in scadenza (≤30 giorni)": "Batches expiring (≤30 days)",
     "consegna prevista:": "expected delivery:",
     "in ritardo di %(d)d gg": "%(d)d days overdue",
@@ -98,7 +96,6 @@ OVERRIDES: dict[str, str] = {
     "Rimuovi": "Remove",
     "Cerca": "Search",
     "Indietro": "Back",
-    "Tutti": "All",
     "Tutte": "All",
     "Aggiorna": "Update",
     "Apri": "Open",
@@ -121,12 +118,10 @@ OVERRIDES: dict[str, str] = {
     "Qualsiasi": "Any",
     "Sì, ripristina questo backup": "Yes, restore this backup",
     "Anteprima": "Preview",
-    "Anteprima:": "Preview:",
     "Anteprima import": "Import preview",
     "Esempi": "Examples",
     "Pubblica": "Publish",
     "Esegui": "Run",
-    "Esegui:": "Run:",
     "Esegui backup ora": "Run backup now",
     "Vai": "Go",
     "Continua": "Continue",
@@ -263,12 +258,10 @@ OVERRIDES: dict[str, str] = {
     "Costo diretto": "Direct cost",
     "Data di acquisto": "Purchase date",
     "Data di scadenza": "Expiry date",
-    "Acquistato": "Purchased",
     "Posizione": "Location",
     "Fornitore": "Supplier",
     "Codice catalogo": "Catalog code",
     "Codice fornitore": "Supplier code",
-    "Lotto attivo": "Active",
     "Lotti attivi": "Active batches",
     "Lotti scaduti": "Expired batches",
     "Lotti consumati": "Consumed batches",
@@ -490,7 +483,6 @@ OVERRIDES: dict[str, str] = {
         "'Start execution'.",
     "Workup": "Workup",
     "Check list": "Checklist",
-    "Reale": "Actual",
     "Acquistato": "Purchased",
     "Reale": "Actual",
     "Costo totale per arrivare al prodotto, inclusi gli intermedi "
@@ -945,8 +937,6 @@ OVERRIDES: dict[str, str] = {
     "Token CSRF mancante. Riprova.": "Missing CSRF token. Retry.",
     "entity_type non valido: %(t)s": "invalid entity_type: %(t)s",
     "Errore durante il salvataggio": "Error during save",
-    "Si è verificato un errore. Riprova più tardi.":
-        "An error occurred. Please try again later.",
 
     # ── Misc / shared bits ──────────────────────────────────────
     "Si è verificato un errore. Riprova più tardi.":

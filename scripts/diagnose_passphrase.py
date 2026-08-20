@@ -6,7 +6,6 @@ Run with: .venv/bin/pytest scripts/diagnose_passphrase.py -s --no-header -v
 from __future__ import annotations
 
 import os
-import pytest
 
 from stoic_eln import create_app
 from stoic_eln.config import TestingConfig
@@ -37,7 +36,7 @@ def test_diagnose_resolve_env(tmp_path, monkeypatch):
 
         # Set source to ENV
         ps.set_source(ps.SOURCE_ENV)
-        print(f"set_source(ENV) called")
+        print("set_source(ENV) called")
 
         # Read it back from AppSetting
         from_db = AppSetting.get("auth.passphrase_source")
