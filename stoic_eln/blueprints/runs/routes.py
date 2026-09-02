@@ -461,6 +461,98 @@ def set_step_actual(run_id: int, scid: int):
     return redirect(url_for("runs.detail", run_id=run_id))
 
 
+@bp.route("/<int:run_id>/step/<int:step_id>/recover", methods=["POST"])
+@login_required
+def recover_solvent(run_id: int, step_id: int):
+    """Record solvent recovered from a step as a new inventory lot.
+
+    Deliberately a plain form POST with an explicit button, not an
+    HTMX field that saves on change: creating a lot is an action with
+    consequences in the catalogue, and an auto-saving input would mint
+    a 5 mL lot while you are still typing "50".
+    """
+    from stoic_eln.models.run_step import RunStep
+    from stoic_eln.services import solvent_recovery
+
+    run = db.session.get(Run, run_id)
+    if run is None:
+        abort(404)
+
+    step = db.session.get(RunStep, step_id)
+    if step is None or step.run_id != run_id:
+        abort(404)
+
+    if not run.is_in_progress:
+        # In draft nothing has been consumed yet, and once completed the
+        # run is frozen. Either way there is nothing in the flask.
+        flash(_("Il recupero si registra solo mentre il run è in corso."), "warning")
+        return redirect(url_for("runs.detail", run_id=run_id))
+
+    raw_volume = (request.form.get("recovered_volume") or "").strip()
+    try:
+        volume_mL = float(raw_volume)
+    except ValueError:
+        flash(_("Volume recuperato non valido."), "danger")
+        return redirect(url_for("runs.detail", run_id=run_id))
+
+    component_ids: list[int] = []
+    for raw in request.form.getlist("component_ids"):
+        try:
+            component_ids.append(int(raw))
+        except ValueError:
+            continue
+
+    # Declared composition: one "percent_<component id>" field per
+    # candidate. Pre-filled by the template from the recorded
+    # quantities, but the operator's value is the one that counts —
+    # recovery is not proportional, so the charged ratio is a
+    # suggestion, not a measurement.
+    percentages: dict[int, float] = {}
+    for cid in component_ids:
+        raw = (request.form.get(f"percent_{cid}") or "").strip()
+        if not raw:
+            continue
+        try:
+            percentages[cid] = float(raw.replace(",", "."))
+        except ValueError:
+            flash(_("Percentuale non valida."), "danger")
+            return redirect(url_for("runs.detail", run_id=run_id))
+
+    try:
+        result = solvent_recovery.register_recovery(
+            step,
+            component_ids,
+            volume_mL,
+            percentages=percentages or None,
+            user_id=current_user.id if current_user.is_authenticated else None,
+            location=(request.form.get("location") or "").strip() or None,
+        )
+    except solvent_recovery.RecoveryError as e:
+        flash(str(e), "danger")
+        return redirect(url_for("runs.detail", run_id=run_id))
+
+    db.session.commit()
+
+    flash(
+        _(
+            "Solvente recuperato: lotto %(code)s, %(vol)g mL. Riutilizzi: %(uses)d.",
+            code=result.lot.batch_code,
+            vol=volume_mL,
+            uses=result.use_count,
+        ),
+        "success",
+    )
+    if result.mixture is not None and not result.reused_catalogue_entry:
+        flash(
+            _(
+                "Creata la miscela «%(name)s» in anagrafica.",
+                name=result.mixture.name,
+            ),
+            "info",
+        )
+    return redirect(url_for("runs.detail", run_id=run_id))
+
+
 @bp.route("/<int:run_id>/step-parameter/<int:pid>", methods=["POST"])
 @login_required
 def set_step_parameter(run_id: int, pid: int):

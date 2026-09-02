@@ -38,6 +38,51 @@ def _has_column(insp, table: str, column: str) -> bool:
     return any(c["name"] == column for c in insp.get_columns(table))
 
 
+# ── v1.5.0: solvent recovery ────────────────────────────────────────
+#
+# Same reasoning as above: nullable columns and plain INTEGERs, no FK,
+# so SQLite adds them in place. The two NOT NULL flags get a DEFAULT so
+# existing rows are backfilled by the ALTER itself — an existing lot is
+# not recovered, and has been round-tripped zero times.
+RECOVERY_COLUMNS: dict[str, dict[str, str]] = {
+    "inventory_item": {
+        "is_recovered": "BOOLEAN NOT NULL DEFAULT 0",
+        "recovery_use_count": "INTEGER NOT NULL DEFAULT 0",
+        "recovered_at": "DATETIME",
+        "recovered_from_step_id": "INTEGER",
+        "origin_reaction_id": "INTEGER",
+    },
+    "mixture": {
+        "is_recovered": "BOOLEAN NOT NULL DEFAULT 0",
+        "recovery_signature": "VARCHAR(200)",
+    },
+}
+
+
+def ensure_recovery_columns(engine: Engine) -> list[str]:
+    """Add the v1.5.0 solvent-recovery columns if missing.
+
+    Idempotent, like every migration in this module.
+    """
+    insp = inspect(engine)
+    tables = set(insp.get_table_names())
+    actions: list[str] = []
+
+    for table, columns in RECOVERY_COLUMNS.items():
+        if table not in tables:
+            actions.append(f"table {table} absent — db.create_all() will create it complete")
+            continue
+        for column, sql_type in columns.items():
+            if _has_column(insp, table, column):
+                actions.append(f"{table}.{column} already present — skip")
+                continue
+            with engine.begin() as conn:
+                conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {column} {sql_type}"))
+            actions.append(f"{table}.{column} added ({sql_type})")
+
+    return actions
+
+
 def ensure_step_deduction_columns(engine: Engine) -> list[str]:
     """Add the ``run_step_component.deducted_*`` columns if missing.
 

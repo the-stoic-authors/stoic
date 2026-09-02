@@ -7233,3 +7233,48 @@ msgstr "Waste — not stocked"
 # ── Step-component inventory consumption (v1.4.4) ────────────────
 msgid "Lotto %(lot)s: mancavano %(qty)g %(unit)s per %(name)s. Quantità registrata comunque, lotto azzerato."
 msgstr "Lot %(lot)s: %(qty)g %(unit)s short for %(name)s. Quantity recorded anyway, lot set to zero."
+
+
+# ── Solvent recovery (v1.5.0) ────────────────────────────────────
+msgid "Solvente recuperato"
+msgstr "Recovered solvent"
+
+
+msgid "Volume recuperato"
+msgstr "Recovered volume"
+
+msgid "Ubicazione"
+msgstr "Location"
+
+msgid "opzionale"
+msgstr "optional"
+
+msgid "Registra recupero"
+msgstr "Record recovery"
+
+msgid "Il recupero si registra solo mentre il run è in corso."
+msgstr "Recovery can only be recorded while the run is in progress."
+
+msgid "Volume recuperato non valido."
+msgstr "Invalid recovered volume."
+
+msgid "Solvente recuperato: lotto %(code)s, %(vol)g mL. Riutilizzi: %(uses)d."
+msgstr "Solvent recovered: lot %(code)s, %(vol)g mL. Reuses: %(uses)d."
+
+msgid "Creata la miscela «%(name)s» in anagrafica."
+msgstr "Created mixture “%(name)s” in the catalogue."
+
+
+# ── Composizione dichiarata (v1.5.1) ─────────────────────────────
+msgid "Spunta da quali componenti hai recuperato il solvente. Con più di un componente, indica la composizione: il recupero non è proporzionale, quindi le percentuali suggerite sono solo un punto di partenza."
+msgstr "Tick which components the solvent was recovered from. With more than one, state the composition: recovery is not proportional, so the suggested percentages are only a starting point."
+
+msgid "Con un solo componente spuntato la percentuale è ignorata."
+msgstr "With a single component ticked the percentage is ignored."
+
+msgid "Percentuale"
+msgstr "Percentage"
+
+msgid "Percentuale non valida."
+msgstr "Invalid percentage."
+

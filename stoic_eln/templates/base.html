@@ -62,7 +62,8 @@
     })();
   </script>
 </head>
-<body class="{% if false %}{% endif %}">
+<body class="{% if false %}{% endif %}"
+      hx-headers='{"X-CSRFToken": "{{ csrf_token() }}"}'>
   {% if current_user.is_authenticated %}
   <div class="app-shell">
 

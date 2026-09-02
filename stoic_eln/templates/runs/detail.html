@@ -697,6 +697,82 @@
     </div>
     {% endif %}
 
+    {# ── Solvent recovery (v1.5.0) ────────────────────────────────
+       Only while the run is in progress: in draft nothing has been
+       consumed yet, and a completed run is frozen. Deliberately a
+       plain form with an explicit button — creating a lot is an
+       action, not an annotation, so no auto-save on change. #}
+    {% if run.is_in_progress %}
+      {% set recoverable = recoverable_components(step) %}
+      {% if recoverable %}
+      <div class="border rounded p-3 mb-3 bg-body-tertiary">
+        <strong class="small d-block mb-2">
+          <i data-lucide="recycle" class="me-1"></i>{{ _("Solvente recuperato") }}
+        </strong>
+        <form method="post"
+              action="{{ url_for('runs.recover_solvent', run_id=run.id, step_id=step.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <p class="text-muted small mb-2">
+            {{ _("Spunta da quali componenti hai recuperato il solvente. Con più di un componente, indica la composizione: il recupero non è proporzionale, quindi le percentuali suggerite sono solo un punto di partenza.") }}
+          </p>
+          {% set suggested = recovery_suggested_percentages(recoverable) %}
+          <div class="mb-2">
+            {% for sc in recoverable %}
+            <div class="row g-2 align-items-center mb-1">
+              <div class="col-7 col-sm-8">
+                <div class="form-check mb-0">
+                  <input class="form-check-input" type="checkbox" name="component_ids"
+                         value="{{ sc.id }}" id="rec-{{ step.id }}-{{ sc.id }}"
+                         {% if recovery_default_ticked(sc) %}checked{% endif %}>
+                  <label class="form-check-label small" for="rec-{{ step.id }}-{{ sc.id }}">
+                    {{ sc.substance.name }}
+                  </label>
+                </div>
+              </div>
+              <div class="col-5 col-sm-4">
+                <div class="input-group input-group-sm">
+                  <input type="number" inputmode="decimal" step="any" min="0" max="100"
+                         class="form-control" name="percent_{{ sc.id }}"
+                         aria-label="{{ _('Percentuale') }} {{ sc.substance.name }}"
+                         value="{{ suggested.get(sc.id, '') if suggested else '' }}">
+                  <span class="input-group-text">%</span>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          <p class="text-muted small mb-2">
+            {{ _("Con un solo componente spuntato la percentuale è ignorata.") }}
+          </p>
+          <div class="row g-2 align-items-end">
+            <div class="col-6 col-sm-4">
+              <label class="form-label small mb-1"
+                     for="rec-vol-{{ step.id }}">{{ _("Volume recuperato") }}</label>
+              <div class="input-group input-group-sm">
+                <input type="number" inputmode="decimal" step="any" min="0"
+                       class="form-control" name="recovered_volume"
+                       id="rec-vol-{{ step.id }}" required>
+                <span class="input-group-text">mL</span>
+              </div>
+            </div>
+            <div class="col-6 col-sm-4">
+              <label class="form-label small mb-1"
+                     for="rec-loc-{{ step.id }}">{{ _("Ubicazione") }}</label>
+              <input type="text" class="form-control form-control-sm"
+                     name="location" id="rec-loc-{{ step.id }}"
+                     placeholder="{{ _('opzionale') }}">
+            </div>
+            <div class="col-12 col-sm-4">
+              <button type="submit" class="btn btn-sm btn-outline-success w-100">
+                {{ _("Registra recupero") }}
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+      {% endif %}
+    {% endif %}
+
     {# Procedure / description #}
     {% if step.description %}
     <strong class="small d-block mb-1">{{ _("Procedimento") }}</strong>

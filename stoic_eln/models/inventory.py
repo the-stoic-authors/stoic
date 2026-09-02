@@ -94,6 +94,29 @@ class InventoryItem(db.Model):
         index=True,
     )
 
+    # ── Solvent recovery (v1.5.0) ───────────────────────────────
+    # A recovered lot is the solvent that came off the rotavap after a
+    # workup or a column. It is a normal lot in every respect — it has
+    # a quantity, it gets consumed — but it carries three extra facts.
+    #
+    # ``recovery_use_count`` is how many times this material has been
+    # round-tripped, worst case: a lot born from sources with 0 and 2
+    # uses starts at 3. Non-volatile impurities accumulate and topping
+    # up with fresh solvent dilutes without removing them, so counting
+    # by the worst source is the honest reading.
+    #
+    # ``origin_reaction_id`` is the reuse constraint: recovered solvent
+    # goes back only into the reaction it came from. It lives here on
+    # the lot rather than on the mixture, because a mixture is a shared
+    # catalogue entry while this is a property of the actual bottle.
+    is_recovered: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, index=True)
+    recovery_use_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    recovered_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    # Plain Integers, not FKs: SQLite cannot add a FK to an existing
+    # table without a rebuild (same reasoning as source_run_id above).
+    recovered_from_step_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    origin_reaction_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
+
     # Status
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False, index=True)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)

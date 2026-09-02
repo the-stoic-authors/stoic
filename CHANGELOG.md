@@ -14,6 +14,102 @@ and Stoic adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   completion into separate recovered-solvent lots, with a
   worst-case use counter and a soft per-run reuse limit
 
+## [1.5.4] — 2026-09-02
+
+### Fixed
+
+- Assigning an inventory lot to a step component did nothing. The step
+  controls in the run page posted with bare `hx-post` attributes,
+  outside any `<form>`, so no CSRF token was sent and Flask-WTF
+  rejected every request with 400. With `hx-swap="none"` nothing was
+  shown, and the dropdown kept displaying the chosen lot, so the
+  assignment looked successful. Main components were unaffected
+  because their controls sit inside a `<form>` carrying a hidden
+  token. The token is now set once on `<body>` via `hx-headers`, so
+  all HTMX requests inherit it.
+- This also explains the apparent failure of v1.4.4's step inventory
+  deduction: a component whose lot never persisted has nothing to
+  deduct. No fix was needed there.
+
+### Testing
+
+- `TestingConfig` disables CSRF, which is why the whole suite stayed
+  green through this. New tests in `test_htmx_csrf.py` re-enable it
+  for the app under test.
+- Those tests reuse fixtures from `test_step_inventory_deduction` and
+  must import them without a package prefix: `tests/` has no
+  `__init__.py`, so pytest puts that directory on `sys.path` rather
+  than the project root.
+
+## [1.5.2] — 2026-09-01
+
+### Fixed
+
+- Recovery refused to run when none of the ticked components was bound
+  to an inventory lot, claiming it could not assign a group. That check
+  was redundant: `InventoryItem` already has a `before_insert` hook
+  that falls back to the Default group. Recovering solvent whose bottle
+  was never registered is ordinary, not an error.
+
+## [1.5.1] — 2026-08-22
+
+### Fixed
+
+- The recovery section never appeared on steps where no actual
+  quantities had been recorded yet. Candidate components required a
+  recorded volume, and the template hides an empty candidate list, so
+  the whole block vanished without explanation.
+
+### Changed
+
+- **Composition is declared, not computed.** Recovery is not
+  proportional: hexane boils at 69 °C and ethyl acetate at 77 °C, so
+  what condenses is enriched in the more volatile component — and that
+  is before gradients and before concentrating only the fractions that
+  carry product. The charged ratio now pre-fills a per-component
+  percentage field which the operator confirms or overrides.
+- A single ticked component needs no composition and no quantities at
+  all: it is that solvent at 100%.
+- Percentages are normalised before rounding, so 30/30/30 is accepted
+  rather than rejected for summing to 90.
+
+## [1.5.0] — 2026-08-21
+
+### Added
+
+- **Solvent recovery.** What comes off the rotavap after a workup or a
+  column can now be recorded as a real inventory lot, from the step
+  where it happens. The step knows which lots went in, so the recovered
+  material carries a composition instead of being an anonymous volume.
+- Recovering from a single component creates a `Substance` lot;
+  recovering from several creates a `Mixture` lot whose composition is
+  computed v/v from the actual quantities.
+- Catalogue entries are deduplicated by composition rounded to steps of
+  10% v/v: fifty columns at 90:10 give one catalogue row and fifty
+  lots. Rounding is deliberate — what condenses in the flask is a
+  running average over the fractions, never an exact ratio.
+- Recovered lots carry a use counter following the worst source
+  (`max(counts) + 1`, fresh counting as zero) and an
+  `origin_reaction_id` recording which reaction they may be reused in.
+
+### Notes
+
+- Which components feed a recovery is an explicit choice (checkboxes,
+  pre-ticked on solvent roles), never inferred. An extraction step
+  holds DCM *and* water: summing every solvent would invent a
+  "DCM/water" lot that exists nowhere, and recovered lots get reused.
+- Recording a recovery is a form with a button, not an auto-saving
+  field: creating a lot is an action with consequences in the
+  catalogue.
+
+### Migration
+
+- `inventory_item` gains `is_recovered`, `recovery_use_count`,
+  `recovered_at`, `recovered_from_step_id`, `origin_reaction_id`;
+  `mixture` gains `is_recovered` and `recovery_signature`. Run
+  `flask migrate-solvent-recovery`. Existing rows are backfilled by the
+  column DEFAULTs (not recovered, zero uses).
+
 ## [1.4.4] — 2026-08-20
 
 ### Fixed

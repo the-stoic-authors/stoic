@@ -221,6 +221,16 @@ class Mixture(db.Model):
     # Free-text notes (post-creation commentary)
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
 
+    # ── Solvent recovery (v1.5.0) ───────────────────────────────
+    # A recovered eluent gets a catalogue entry like any other
+    # preparation, but one shared by every recovery that rounds to the
+    # same composition: fifty columns at 90:10 give one row here and
+    # fifty lots. ``recovery_signature`` is that dedup key, built from
+    # substance ids and rounded percentages (``rec:12@60|7@40``) so
+    # renaming a substance does not fork the catalogue.
+    is_recovered: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, index=True)
+    recovery_signature: Mapped[str | None] = mapped_column(String(200), nullable=True, index=True)
+
     # Audit
     created_by_id: Mapped[int | None] = mapped_column(
         Integer,

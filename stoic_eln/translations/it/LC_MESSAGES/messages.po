@@ -5128,3 +5128,48 @@ msgstr "Modalità banco — schermo intero per esecuzione al laboratorio"
 #: stoic_eln/blueprints/runs/routes.py
 msgid "Lotto %(lot)s: mancavano %(qty)g %(unit)s per %(name)s. Quantità registrata comunque, lotto azzerato."
 msgstr "Lotto %(lot)s: mancavano %(qty)g %(unit)s per %(name)s. Quantità registrata comunque, lotto azzerato."
+
+
+# ── Recupero solventi (v1.5.0) ───────────────────────────────────
+msgid "Solvente recuperato"
+msgstr "Solvente recuperato"
+
+
+msgid "Volume recuperato"
+msgstr "Volume recuperato"
+
+msgid "Ubicazione"
+msgstr "Ubicazione"
+
+msgid "opzionale"
+msgstr "opzionale"
+
+msgid "Registra recupero"
+msgstr "Registra recupero"
+
+msgid "Il recupero si registra solo mentre il run è in corso."
+msgstr "Il recupero si registra solo mentre il run è in corso."
+
+msgid "Volume recuperato non valido."
+msgstr "Volume recuperato non valido."
+
+msgid "Solvente recuperato: lotto %(code)s, %(vol)g mL. Riutilizzi: %(uses)d."
+msgstr "Solvente recuperato: lotto %(code)s, %(vol)g mL. Riutilizzi: %(uses)d."
+
+msgid "Creata la miscela «%(name)s» in anagrafica."
+msgstr "Creata la miscela «%(name)s» in anagrafica."
+
+
+# ── Composizione dichiarata (v1.5.1) ─────────────────────────────
+msgid "Spunta da quali componenti hai recuperato il solvente. Con più di un componente, indica la composizione: il recupero non è proporzionale, quindi le percentuali suggerite sono solo un punto di partenza."
+msgstr "Spunta da quali componenti hai recuperato il solvente. Con più di un componente, indica la composizione: il recupero non è proporzionale, quindi le percentuali suggerite sono solo un punto di partenza."
+
+msgid "Con un solo componente spuntato la percentuale è ignorata."
+msgstr "Con un solo componente spuntato la percentuale è ignorata."
+
+msgid "Percentuale"
+msgstr "Percentuale"
+
+msgid "Percentuale non valida."
+msgstr "Percentuale non valida."
+

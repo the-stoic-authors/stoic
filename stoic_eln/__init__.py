@@ -30,7 +30,7 @@ from sqlalchemy import func
 from stoic_eln.config import Config, DevelopmentConfig, ProductionConfig, TestingConfig
 from stoic_eln.extensions import babel, csrf, db, login_manager, migrate
 
-__version__ = "1.4.4"
+__version__ = "1.5.4"
 
 CONFIG_MAP: dict[str, type[Config]] = {
     "debug": DevelopmentConfig,
@@ -442,6 +442,12 @@ def _register_template_context(app: Flask) -> None:
 
     app.jinja_env.globals["compute_run_step_component"] = _step_calc.compute_run_step_component
 
+    from stoic_eln.services import solvent_recovery as _recovery
+
+    app.jinja_env.globals["recoverable_components"] = _recovery.recoverable_components
+    app.jinja_env.globals["recovery_default_ticked"] = _recovery.is_default_ticked
+    app.jinja_env.globals["recovery_suggested_percentages"] = _recovery.suggested_percentages
+
     # Currency configuration (Settimana 6 patch 6.1) — `format_currency`
     # available as a global, and `|currency` as a filter, so templates
     # can simply write `{{ amount|currency }}` instead of hardcoding "€".
@@ -721,6 +727,18 @@ def _register_cli(app: Flask) -> None:
         from stoic_eln.services.schema_migrations import ensure_step_deduction_columns
 
         for line in ensure_step_deduction_columns(db.engine):
+            click.echo(f"  - {line}")
+
+    @app.cli.command("migrate-solvent-recovery")
+    def migrate_solvent_recovery_command() -> None:
+        """Add the v1.5.0 solvent-recovery columns.
+
+        Idempotent. Inside the container:
+            docker compose exec stoic flask migrate-solvent-recovery
+        """
+        from stoic_eln.services.schema_migrations import ensure_recovery_columns
+
+        for line in ensure_recovery_columns(db.engine):
             click.echo(f"  - {line}")
 
     @app.cli.command("create-user")
