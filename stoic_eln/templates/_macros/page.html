@@ -1,0 +1,18 @@
+{# Page-level orientation helpers.
+
+   The icon is the one the sidebar shows for the current section
+   (``section_icon`` is a Jinja global, see stoic_eln/navigation.py).
+   Import WITHOUT context: it keeps the macro from holding on to the
+   page's render context.
+
+       {% from "_macros/page.html" import page_icon %}
+       <h1 class="page-title">{{ page_icon() }}{{ _("Magazzino") }}</h1>
+       <li class="breadcrumb-item">{{ page_icon("crumb") }}<a …>…</a></li>
+#}
+
+{% macro page_icon(kind="title") -%}
+{%- set icon = section_icon(request.endpoint) -%}
+{%- if icon -%}
+<span class="{{ 'crumb-icon' if kind == 'crumb' else 'page-icon' }}" aria-hidden="true"><i data-lucide="{{ icon }}"></i></span>
+{%- endif -%}
+{%- endmacro %}

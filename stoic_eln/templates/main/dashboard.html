@@ -1,9 +1,10 @@
 {% extends "base.html" %}
+{% from "_macros/page.html" import page_icon %}
 {% block title %}{{ _("Dashboard") }}{% endblock %}
 
 {% block content %}
 <div class="page-header mb-4">
-  <h1>{{ _("Benvenuto") }}, {{ current_user.full_name }}</h1>
+  <h1 class="page-title">{{ page_icon() }}{{ _("Benvenuto") }}, {{ current_user.full_name }}</h1>
 </div>
 
 {# ─── KPI cards ──────────────────────────────────────────────────── #}

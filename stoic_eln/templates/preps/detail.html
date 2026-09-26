@@ -1,11 +1,12 @@
 {% extends "base.html" %}
+{% from "_macros/page.html" import page_icon %}
 {% block title %}{{ prep.code }}{% endblock %}
 
 {% block content %}
 <div class="page-header mb-3">
   <nav aria-label="breadcrumb">
     <ol class="breadcrumb small mb-1">
-      <li class="breadcrumb-item">
+      <li class="breadcrumb-item">{{ page_icon("crumb") }}
         <a href="{{ url_for('preps.list_view') }}">{{ _("Preparazioni") }}</a>
       </li>
       <li class="breadcrumb-item active">{{ prep.code }}</li>

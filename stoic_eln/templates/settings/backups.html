@@ -1,10 +1,11 @@
 {% extends "base.html" %}
+{% from "_macros/page.html" import page_icon %}
 {% block title %}{{ _("Backup") }}{% endblock %}
 
 {% block content %}
 <div class="page-header d-flex align-items-center justify-content-between mb-3">
   <div>
-    <h1 class="mb-1">{{ _("Backup") }}</h1>
+    <h1 class="page-title mb-1">{{ page_icon() }}{{ _("Backup") }}</h1>
     <p class="text-muted mb-0">{{ _("Snapshot del database compressi e gestiti automaticamente.") }}</p>
   </div>
   <a href="{{ url_for('settings.index') }}" class="btn btn-link">

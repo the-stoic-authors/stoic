@@ -3,26 +3,43 @@
    Light/dark theme via Bootstrap data-bs-theme + custom CSS variables
    ───────────────────────────────────────────────────────────────────────── */
 
+/* Palette: navy and teal come from the logo (stoicw.pdf). One rule
+   governs their use across the app:
+     navy  = structure and action (header, titles, links, buttons)
+     teal  = "active right now" (current section, running run, focus)
+     grey  = data (codes, most badges, table headers)
+   --stoic-teal is the logo teal for fills and icons; as text it only
+   reaches 3.3:1 on white, so text uses --stoic-teal-text (4.6:1). */
 :root,
 [data-bs-theme="light"] {
-  /* Brand colors */
-  --stoic-primary: #1F3864;
-  --stoic-primary-hover: #2a4a82;
-  --stoic-accent: #2ABFBF;
-  --stoic-accent-hover: #34d4d4;
+  /* Brand */
+  --stoic-navy: #1f2a54;
+  --stoic-navy-hover: #2b3a70;
+  --stoic-navy-tint: #eef0f7;
+  --stoic-teal: #0a9ca7;
+  --stoic-teal-text: #07808a;
+  --stoic-teal-tint: #e6f5f6;
+  --stoic-teal-border: rgba(10, 156, 167, 0.35);
+  --stoic-title: var(--stoic-navy);
 
-  /* Logo colors (from SVG asset) */
-  --stoic-logo-fg: #0f1131;
-  --stoic-logo-accent: #0a9ca7;
+  /* Roles (kept for existing rules) */
+  --stoic-primary: var(--stoic-navy);
+  --stoic-primary-hover: var(--stoic-navy-hover);
+  --stoic-accent: var(--stoic-teal);
+  --stoic-accent-hover: var(--stoic-teal-text);
+
+  /* Logo: navy parts follow currentColor, accent stays teal */
+  --stoic-logo-fg: var(--stoic-navy);
+  --stoic-logo-accent: var(--stoic-teal);
 
   /* Surfaces */
-  --stoic-header-bg: #1F3864;
+  --stoic-header-bg: var(--stoic-navy);
   --stoic-header-fg: #ffffff;
-  --stoic-sidebar-bg: #f8f9fa;
-  --stoic-sidebar-fg: #2c3e50;
+  --stoic-sidebar-bg: #f7f8fa;
+  --stoic-sidebar-fg: #33394d;
   --stoic-sidebar-section: #6c757d;
-  --stoic-sidebar-active-bg: #e8f0fe;
-  --stoic-sidebar-active-fg: #1F3864;
+  --stoic-sidebar-active-bg: var(--stoic-navy-tint);
+  --stoic-sidebar-active-fg: var(--stoic-navy);
 
   /* Content */
   --stoic-content-bg: #ffffff;
@@ -33,38 +50,66 @@
   --stoic-auth-bg: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%);
   --stoic-auth-card-bg: #ffffff;
 
-  /* Bootstrap primary override */
-  --bs-primary: var(--stoic-primary);
-  --bs-primary-rgb: 31, 56, 100;
+  /* Bootstrap overrides: primary is navy, links are navy, codes are
+     text-coloured instead of Bootstrap pink. */
+  --bs-primary: var(--stoic-navy);
+  --bs-primary-rgb: 31, 42, 84;
+  --bs-primary-bg-subtle: var(--stoic-navy-tint);
+  --bs-primary-border-subtle: #c9cfe3;
+  --bs-primary-text-emphasis: var(--stoic-navy);
+  --bs-link-color: var(--stoic-navy);
+  --bs-link-color-rgb: 31, 42, 84;
+  --bs-link-hover-color: var(--stoic-teal-text);
+  --bs-link-hover-color-rgb: 7, 128, 138;
+  --bs-code-color: #4a5068;
+  --bs-focus-ring-color: rgba(10, 156, 167, 0.25);
 }
 
 [data-bs-theme="dark"] {
-  --stoic-primary: #4a6fa5;
-  --stoic-primary-hover: #5b85c1;
-  --stoic-accent: #2ABFBF;
-  --stoic-accent-hover: #4ce3e3;
+  /* Navy is lifted so it still reads as text on dark surfaces */
+  --stoic-navy: #34437d;
+  --stoic-navy-hover: #40519a;
+  --stoic-navy-tint: #1f2740;
+  --stoic-teal: #25b5bf;
+  --stoic-teal-text: #45c9d2;
+  --stoic-teal-tint: #11363a;
+  --stoic-teal-border: rgba(37, 181, 191, 0.4);
+  --stoic-title: #e3e8f6;
 
-  /* Logo: navy parts become white in dark, teal stays teal */
-  --stoic-logo-fg: #f0f3f7;
-  --stoic-logo-accent: #2ABFBF;
+  --stoic-primary: var(--stoic-navy);
+  --stoic-primary-hover: var(--stoic-navy-hover);
+  --stoic-accent: var(--stoic-teal);
+  --stoic-accent-hover: var(--stoic-teal-text);
 
-  --stoic-header-bg: #0f1f3d;
+  --stoic-logo-fg: #eef1f7;
+  --stoic-logo-accent: var(--stoic-teal);
+
+  --stoic-header-bg: #141b36;
   --stoic-header-fg: #f0f3f7;
-  --stoic-sidebar-bg: #1a1d23;
-  --stoic-sidebar-fg: #c8cdd4;
+  --stoic-sidebar-bg: #171a21;
+  --stoic-sidebar-fg: #c3c8d4;
   --stoic-sidebar-section: #6c757d;
-  --stoic-sidebar-active-bg: #2c3e50;
-  --stoic-sidebar-active-fg: #4a90e2;
+  --stoic-sidebar-active-bg: var(--stoic-navy-tint);
+  --stoic-sidebar-active-fg: #dfe5f6;
 
-  --stoic-content-bg: #14161b;
-  --stoic-card-bg: #1e2128;
+  --stoic-content-bg: #111318;
+  --stoic-card-bg: #1a1d24;
   --stoic-card-border: #2c3038;
 
   --stoic-auth-bg: linear-gradient(135deg, #14161b 0%, #1a1d23 100%);
   --stoic-auth-card-bg: #1e2128;
 
-  --bs-primary: var(--stoic-primary);
-  --bs-primary-rgb: 74, 111, 165;
+  --bs-primary: var(--stoic-navy);
+  --bs-primary-rgb: 52, 67, 125;
+  --bs-primary-bg-subtle: var(--stoic-navy-tint);
+  --bs-primary-border-subtle: #34406a;
+  --bs-primary-text-emphasis: #c3cff0;
+  --bs-link-color: #b3c2ec;
+  --bs-link-color-rgb: 179, 194, 236;
+  --bs-link-hover-color: var(--stoic-teal-text);
+  --bs-link-hover-color-rgb: 69, 201, 210;
+  --bs-code-color: #b7bccb;
+  --bs-focus-ring-color: rgba(37, 181, 191, 0.3);
 }
 
 /* ─── Body & layout ────────────────────────────────────────────────────────── */
@@ -950,4 +995,159 @@ select.htmx-just-saved {
 .molecule-depiction svg {
   max-width: 100%;
   height: auto;
+}
+
+
+/* ─── Colour grammar (v1.5.5) ─────────────────────────────────────────────
+   Navy is structure and action, teal is "active right now", grey carries
+   the data. See the palette comment at the top of this file.            */
+
+/* Codes (run, lot, CAS, template): monospace in the text colour */
+code { color: var(--bs-code-color); font-size: 0.9em; }
+
+/* Links: navy, discreet underline; none inside tables and breadcrumbs */
+a { text-decoration-color: rgba(var(--bs-link-color-rgb), 0.35); text-underline-offset: 0.2em; }
+table a, .breadcrumb a { text-decoration: none; }
+table a:hover, .breadcrumb a:hover { text-decoration: underline; }
+.btn-link { --bs-btn-color: var(--bs-link-color); --bs-btn-hover-color: var(--bs-link-hover-color); }
+
+/* Page title: one size everywhere, with the sidebar icon of the section */
+.app-content .page-title {
+  font-size: 1.55rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  color: var(--stoic-title);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  text-wrap: balance;
+}
+.page-header h1 { color: var(--stoic-title); }
+.page-icon {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 0.45rem;
+  background: var(--stoic-teal-tint);
+  color: var(--stoic-teal-text);
+}
+.page-icon svg { width: 1.1rem; height: 1.1rem; }
+.crumb-icon svg {
+  width: 0.95rem;
+  height: 0.95rem;
+  vertical-align: -0.15rem;
+  margin-right: 0.3rem;
+  color: var(--stoic-teal-text);
+}
+
+/* Sidebar: current section carries the teal bar and a teal icon */
+.nav-item.active { font-weight: 600; }
+.nav-item.active svg { color: var(--stoic-teal); }
+
+/* Badges: one voice. Tinted background, full-strength text. Colour only
+   where it means something (limiting, product/done, warning, danger);
+   role labels such as reagent/base/solvent are grey. */
+.badge { font-weight: 600; letter-spacing: 0.01em; border: 1px solid transparent; }
+.badge.text-bg-primary,
+.badge.text-bg-secondary,
+.badge.text-bg-info {
+  background-color: var(--bs-secondary-bg-subtle) !important;
+  color: var(--bs-secondary-text-emphasis) !important;
+  border-color: var(--bs-secondary-border-subtle);
+}
+.badge.text-bg-success {
+  background-color: var(--bs-success-bg-subtle) !important;
+  color: var(--bs-success-text-emphasis) !important;
+  border-color: var(--bs-success-border-subtle);
+}
+.badge.text-bg-warning {
+  background-color: var(--bs-warning-bg-subtle) !important;
+  color: var(--bs-warning-text-emphasis) !important;
+  border-color: var(--bs-warning-border-subtle);
+}
+.badge.text-bg-danger {
+  background-color: var(--bs-danger-bg-subtle) !important;
+  color: var(--bs-danger-text-emphasis) !important;
+  border-color: var(--bs-danger-border-subtle);
+}
+.badge.text-bg-light {
+  background-color: var(--bs-tertiary-bg) !important;
+  color: var(--bs-secondary-color) !important;
+  border-color: var(--bs-border-color);
+}
+.badge.text-bg-dark {
+  background-color: var(--bs-secondary-bg) !important;
+  color: var(--bs-body-color) !important;
+}
+/* Run in progress (Run.status_color == "running"): the only teal badge */
+.badge.text-bg-running {
+  background-color: var(--stoic-teal-tint);
+  color: var(--stoic-teal-text);
+  border-color: var(--stoic-teal-border);
+}
+.badge.text-bg-running::before {
+  content: "";
+  display: inline-block;
+  width: 0.45em;
+  height: 0.45em;
+  border-radius: 50%;
+  background: var(--stoic-teal);
+  margin-right: 0.35em;
+  vertical-align: 0.1em;
+}
+
+/* Run-in-progress banner (runs/detail.html uses alert-primary only there) */
+.alert-primary {
+  --bs-alert-bg: var(--stoic-teal-tint);
+  --bs-alert-border-color: var(--stoic-teal-border);
+  --bs-alert-color: var(--bs-body-color);
+}
+.alert-primary strong,
+.alert-primary > svg { color: var(--stoic-teal-text); }
+
+/* Outline buttons in the navy family instead of Bootstrap blue */
+.btn-outline-primary {
+  --bs-btn-color: var(--bs-link-color);
+  --bs-btn-border-color: var(--bs-link-color);
+  --bs-btn-hover-bg: var(--stoic-navy);
+  --bs-btn-hover-border-color: var(--stoic-navy);
+  --bs-btn-hover-color: #ffffff;
+  --bs-btn-active-bg: var(--stoic-navy-hover);
+  --bs-btn-active-border-color: var(--stoic-navy-hover);
+  --bs-btn-active-color: #ffffff;
+}
+
+/* Focus and checks: teal, the "you are here" colour */
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--stoic-teal);
+  box-shadow: 0 0 0 0.2rem var(--bs-focus-ring-color);
+}
+.form-check-input:checked {
+  background-color: var(--stoic-teal);
+  border-color: var(--stoic-teal);
+}
+
+/* Table headers: small, uppercase, grey */
+.table > thead th {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--bs-secondary-color);
+  font-weight: 600;
+}
+
+/* KPI */
+.kpi-value { font-weight: 650; }
+[data-bs-theme="dark"] .kpi-value { color: var(--stoic-title); }
+
+/* Header: lab name stays on one line on phones */
+.app-header-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }

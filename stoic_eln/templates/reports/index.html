@@ -1,9 +1,10 @@
 {% extends "base.html" %}
+{% from "_macros/page.html" import page_icon %}
 {% block title %}{{ _("Report") }} — Stoic{% endblock %}
 
 {% block content %}
 <div class="container py-4">
-  <h1 class="mb-4">{{ _("Report") }}</h1>
+  <h1 class="page-title mb-4">{{ page_icon() }}{{ _("Report") }}</h1>
 
   <div class="row g-3">
     <div class="col-md-6">

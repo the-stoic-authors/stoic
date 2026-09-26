@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_macros/page.html" import page_icon %}
 {% block title %}
   {% if reaction.is_draft %}{{ _("Modifica") }} —{% endif %}
   {{ reaction.display_code }} — {{ reaction.title }}
@@ -11,7 +12,7 @@
 <!-- ─── Breadcrumb + draft banner ─────────────────────────────────────── -->
 <nav aria-label="breadcrumb">
   <ol class="breadcrumb small mb-2">
-    <li class="breadcrumb-item">
+    <li class="breadcrumb-item">{{ page_icon("crumb") }}
       <a href="{{ url_for('reactions.list_view') }}" class="text-decoration-none">{{ _("Reazioni") }}</a>
     </li>
     <li class="breadcrumb-item active">

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_macros/page.html" import page_icon %}
 {% block title %}{% if item %}{{ _("Modifica lotto") }}{% else %}{{ _("Nuovo lotto") }}{% endif %}{% endblock %}
 
 {# Resolve which "owner" entity this lot belongs to. The route may
@@ -33,7 +34,7 @@
   <div class="col-12 col-lg-8 col-xl-6 mx-auto">
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb small">
-        <li class="breadcrumb-item">
+        <li class="breadcrumb-item">{{ page_icon("crumb") }}
           <a href="{{ owner_list_url }}">{{ owner_list_label }}</a>
         </li>
         <li class="breadcrumb-item">

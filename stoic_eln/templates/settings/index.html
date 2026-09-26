@@ -1,9 +1,10 @@
 {% extends "base.html" %}
+{% from "_macros/page.html" import page_icon %}
 {% block title %}{{ _("Impostazioni") }}{% endblock %}
 
 {% block content %}
 <div class="page-header mb-3">
-  <h1>{{ _("Impostazioni") }}</h1>
+  <h1 class="page-title">{{ page_icon() }}{{ _("Impostazioni") }}</h1>
   <p class="text-muted mb-0">{{ _("Configurazione del laboratorio") }}</p>
 </div>
 

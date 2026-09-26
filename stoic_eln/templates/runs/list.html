@@ -1,9 +1,10 @@
 {% extends "base.html" %}
+{% from "_macros/page.html" import page_icon %}
 {% block title %}{{ _("Storico run") }} — Stoic{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
-  <h2 class="mb-0">{{ _("Storico run") }}</h2>
+  <h1 class="page-title">{{ page_icon() }}{{ _("Storico run") }}</h1>
   <a href="{{ url_for('runs.stats') }}" class="btn btn-outline-primary">
     <i data-lucide="bar-chart-3"></i> {{ _("Statistiche") }}
   </a>

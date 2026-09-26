@@ -1,10 +1,11 @@
 {% extends "base.html" %}
+{% from "_macros/page.html" import page_icon %}
 {% block title %}{{ _("Lista della spesa") }}{% endblock %}
 
 {% block content %}
 <div class="page-header d-flex justify-content-between align-items-start mb-3">
   <div>
-    <h1>{{ _("Lista della spesa") }}</h1>
+    <h1 class="page-title">{{ page_icon() }}{{ _("Lista della spesa") }}</h1>
     <p class="text-muted mb-0">
       {{ _("Sostanze da riordinare in base allo stato del magazzino.") }}
     </p>

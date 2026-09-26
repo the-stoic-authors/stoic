@@ -159,7 +159,7 @@ class Run(db.Model):
         """Bootstrap badge color for the status."""
         return {
             STATUS_DRAFT: "secondary",
-            STATUS_IN_PROGRESS: "primary",
+            STATUS_IN_PROGRESS: "running",
             STATUS_COMPLETED: "success",
         }.get(self.status, "secondary")
 

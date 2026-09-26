@@ -95,8 +95,8 @@ def manifest():
         "scope": "/",
         "display": "standalone",
         "orientation": "any",
-        "theme_color": "#1F3864",
-        "background_color": "#1F3864",
+        "theme_color": "#1f2a54",
+        "background_color": "#1f2a54",
         "icons": [
             {
                 "src": url_for("static", filename="img/pwa/icon-192.png"),

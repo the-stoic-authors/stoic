@@ -1,9 +1,10 @@
 {% extends "base.html" %}
+{% from "_macros/page.html" import page_icon %}
 {% block title %}{{ _("Preparazioni") }}{% endblock %}
 
 {% block content %}
 <div class="page-header mb-3">
-  <h1>{{ _("Storico preparazioni") }}</h1>
+  <h1 class="page-title">{{ page_icon() }}{{ _("Storico preparazioni") }}</h1>
   <p class="text-muted mb-0">
     {{ _("Tutte le miscele preparate dai precursori, ordinate dalla più recente.") }}
   </p>

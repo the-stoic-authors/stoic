@@ -30,7 +30,7 @@ from sqlalchemy import func
 from stoic_eln.config import Config, DevelopmentConfig, ProductionConfig, TestingConfig
 from stoic_eln.extensions import babel, csrf, db, login_manager, migrate
 
-__version__ = "1.5.4"
+__version__ = "1.5.5"
 
 CONFIG_MAP: dict[str, type[Config]] = {
     "debug": DevelopmentConfig,
@@ -465,6 +465,14 @@ def _register_template_context(app: Flask) -> None:
     from stoic_eln.services import markdown as _markdown
 
     app.jinja_env.filters["markdown"] = _markdown.render_markdown
+
+    # A Jinja global (not a context variable) so macros imported
+    # WITHOUT context can call it: importing "with context" keeps the
+    # render context, and every ORM object in it, alive after the
+    # request.
+    from stoic_eln.navigation import section_icon
+
+    app.jinja_env.globals["section_icon"] = section_icon
 
     @app.context_processor
     def inject_globals() -> dict:

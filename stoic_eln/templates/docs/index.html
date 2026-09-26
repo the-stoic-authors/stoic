@@ -1,9 +1,10 @@
 {% extends "base.html" %}
+{% from "_macros/page.html" import page_icon %}
 {% block title %}{{ _("Documentazione") }}{% endblock %}
 
 {% block content %}
 <div class="page-header mb-3">
-  <h1 class="mb-1">{{ _("Documentazione") }}</h1>
+  <h1 class="page-title mb-1">{{ page_icon() }}{{ _("Documentazione") }}</h1>
   <p class="text-muted mb-0">
     {{ _("Guide e manuali di Stoic.") }}
     {{ _("Disponibile in italiano e inglese.") }}

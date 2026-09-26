@@ -14,6 +14,46 @@ and Stoic adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   completion into separate recovered-solvent lots, with a
   worst-case use counter and a soft per-run reuse limit
 
+## [1.5.5] — 2026-09-26
+
+### Changed
+
+- Colour grammar. Navy and teal now come from the logo (`#1f2a54`,
+  `#0a9ca7`) instead of the unrelated `#1F3864` and cyan `#2ABFBF`.
+  One rule governs them: navy is structure and action (header, titles,
+  links, buttons), teal is "active right now" (current section, a run
+  in progress, the focused field), grey carries the data.
+- Teal as text uses a darker shade of the same hue (`#07808a`): the
+  logo teal reaches only 3.3:1 on white.
+- Codes (run, lot, CAS, template) are no longer Bootstrap pink; they
+  keep the monospace face in the text colour.
+- Badges share one style: tinted background, full-strength text.
+  Colour is kept where it means something (limiting reagent, product,
+  completed, warnings); role labels such as reagent, base and solvent
+  are grey.
+- A run in progress has its own status colour (`running`): the only
+  teal badge in the app, with a dot, and a teal banner on the run page.
+- Page titles have one size (1.55rem) and carry the sidebar icon of
+  their section; detail pages carry it in the breadcrumb. Titles that
+  were `h2` on list pages are now `h1`.
+- Links, outline buttons, focus rings and checkboxes no longer use
+  Bootstrap blue.
+- Table headers are small, uppercase and grey.
+- The lab name in the header stays on one line on phones.
+- `theme-color`, the PWA manifest colours and the favicon follow the
+  new navy.
+
+### Added
+
+- `stoic_eln/navigation.py`: section → icon map, exposed to templates
+  as the Jinja global `section_icon`, and the `page_icon()` macro in
+  `templates/_macros/page.html`.
+
+### Testing
+
+- `tests/test_navigation.py` parses the sidebar in `base.html` and
+  fails if its icons drift from `section_icon`.
+
 ## [1.5.4] — 2026-09-02
 
 ### Fixed
