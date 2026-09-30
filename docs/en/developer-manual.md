@@ -25,6 +25,16 @@ internationalisation, testing, and contribution.
 - **APScheduler** for nightly backups
 - **pytest** for testing
 
+In production the same code runs behind:
+
+- **gunicorn** (`wsgi.py` + `gunicorn.conf.py`), sync workers. The
+  nightly-backup scheduler starts in the gunicorn **master** via the
+  `when_ready` hook, never in a worker — otherwise it would fire once
+  per worker.
+- **Caddy** as reverse proxy with automatic HTTPS, and
+  **Docker Compose** for the whole stack (`Dockerfile`,
+  `docker-compose.yml`, `compose.override.yml`, `Caddyfile`).
+
 ---
 
 ## Repository layout
@@ -43,17 +53,30 @@ stoic-eln/
 │   └── translations/        # IT (source) + EN (.po + .mo)
 ├── tests/                   # pytest test suite
 ├── scripts/                 # CLI utilities + migrations
-├── docs/                    # User/admin/developer manuals
-├── instance/                # DB + backups + attachments (not in repo)
+├── docs/                    # User/admin/developer manuals + install-docker
+├── instance/                # Instance dir (not in repo)
 │   ├── stoic_eln.db
 │   ├── backups/
-│   ├── attachments/
 │   ├── auth_source          # Marker for passphrase source
 │   └── backup.key           # Only if mode=file
+├── data/
+│   └── attachments/         # Uploads (ATTACHMENTS_DIR, NOT under instance/)
+├── wsgi.py                  # Production entrypoint (gunicorn)
+├── gunicorn.conf.py         # Workers, timeout, when_ready hook
+├── Dockerfile               # Multi-stage build (builder + runtime)
+├── docker-compose.yml       # stoic + caddy services, named volumes
+├── compose.override.yml     # Dev/ARM: replaces image: with build: .
+├── Caddyfile                # Reverse proxy + automatic HTTPS
 ├── babel.cfg                # pybabel extract config
 ├── pyproject.toml           # Dependencies + entry points
 └── Makefile                 # `make run`, `make test`, `make i18n`
 ```
+
+The instance directory is **not** where attachments live: uploads go
+to `ATTACHMENTS_DIR` (`data/attachments` by default). The instance
+directory holds the database, the backups, and the passphrase
+material — which is why its location is configurable, see
+*Application factory*.
 
 ---
 
@@ -118,7 +141,7 @@ mixture.
 Generic polymorphic file via `(entity_type, entity_id)`. Entity
 types: `run`, `reaction`, `substance`, `inventory_item`,
 `mixture`, `mixture_prep`. Filesystem storage in
-`instance/attachments/`, SHA-256 dedup.
+`data/attachments/` (`ATTACHMENTS_DIR`), SHA-256 dedup.
 
 ### AppSetting
 
@@ -140,27 +163,107 @@ admin), is_active, locale, theme.
 
 ---
 
+### Group / GroupMembership
+
+A research group or project that owns inventory and runs. Membership
+joins users to groups. Recovered and prepared lots inherit the group
+of the lots they came from, so ownership does not get lost in a
+workup.
+
+### Supplier
+
+An entry in the lab's contact book: name, contacts, portal
+credentials. Linked from orders, which is what makes "all orders for
+this supplier" answerable.
+
+### Order
+
+A planned or in-progress purchase of a **single** inventory lot,
+moving through plan → ordered → received. On receipt it becomes an
+`InventoryItem`.
+
+### StepTemplate (procedure)
+
+A reusable workup/extraction/purification procedure in a lab-global
+library, so the same column or aqueous workup is not retyped on
+every reaction.
+
+### ReactionStepComponent
+
+A component used inside a step rather than in the main reaction:
+the DCM of an extraction, the eluent of a column. It can point at a
+substance, a mixture, or be a **free entry** (celite, column
+diameter) with its own unit. This is the model `step_inventory.py`
+deducts from incrementally.
+
+### StepParameter
+
+A parameter *declaration* on a reaction step — a label and a unit
+(e.g. "bath temperature", °C). The operator fills in the value at
+run time.
+
+### ChecklistItem
+
+A single check-list entry, used at both reaction and step level.
+
+### Note
+
+A user-authored Markdown note attached to a Run, Reaction, or
+Substance.
+
+### HazardPhrase
+
+One H or P phrase with its text in each supported language. The
+catalogue ships 214 of them, so GHS data imported from PubChem
+renders in the user's language rather than as bare codes.
+
+---
+
 ## Architecture
 
 ### Application factory
 
-`stoic_eln.create_app(config_class, instance_path=None)`. Factory
-pattern: each call produces a fresh Flask app. Boot sequence:
+`stoic_eln.create_app(config_class, instance_path=None,
+start_scheduler=True)`. Factory pattern: each call produces a fresh
+Flask app. Boot sequence:
 
-1. `Flask(__name__, instance_path=...)` — instance path
-   overridable for test isolation
-2. `config_class.init_app(app)`
-3. `_configure_logging`
-4. `_register_extensions` — SQLAlchemy, Babel, Login, CSRF,
+1. Resolve the instance path: the `instance_path` argument wins;
+   otherwise `STOIC_INSTANCE_PATH` from the environment; otherwise
+   Flask's own default.
+2. `Flask(__name__, instance_path=...)`
+3. `config_class.init_app(app)`
+4. `_configure_logging`
+5. `_migrate_legacy_instance_dir` — copies files left at Flask's
+   default location into the active one (see below)
+6. `_register_extensions` — SQLAlchemy, Babel, Login, CSRF,
    possibly SQLCipher integration via `_maybe_enable_sqlcipher`
-5. `_register_blueprints`
-6. `_register_template_context` — global functions and
+7. `_register_blueprints`
+8. `_register_template_context` — global functions and
    variables in templates
-7. `_register_error_handlers`
-8. `_register_cli` — commands `flask init-db`, `flask backup`,
-   `flask db-encrypt`, etc.
-9. `_ensure_schema(app)` — idempotent `db.create_all()`
-10. Scheduler startup (skipped in TESTING)
+9. `_register_error_handlers`
+10. `_register_cli` — commands `flask init-db`, `flask backup`,
+    `flask db-encrypt`, etc.
+11. `_ensure_schema(app)` — idempotent `db.create_all()`
+12. Scheduler startup, unless `start_scheduler=False` (skipped in
+    TESTING regardless)
+
+**Why the instance path is read from the environment inside the
+factory**, and not in `wsgi.py`: the CLI (`flask --app stoic_eln
+backup`) does not go through `wsgi.py`. If the variable were read
+there, a CLI backup and a gunicorn worker would write to two
+different directories — a worse bug than the one this replaced.
+
+**What lives in the instance directory**: `backups/`, `backup.key`,
+`auth_source`. Flask's default computes it from the package
+location; when Stoic is pip-installed into a virtualenv — as it is
+in the Docker image — that resolves inside the venv, which in a
+container is the writable layer and not a volume. Releases up to
+1.5.5 lost every nightly backup on `docker compose up -d` for
+exactly this reason. `STOIC_INSTANCE_PATH` pins it, and
+`_migrate_legacy_instance_dir` copies (never moves, never
+overwrites, atomic per file so concurrent workers are safe) anything
+still sitting at the old path. The database escaped the bug only
+because `DATABASE_URL` carries an absolute path.
 
 ### Boot path with encrypted DB
 
@@ -200,10 +303,21 @@ Conventions:
 Services in `stoic_eln/services/` contain business logic
 **without direct Flask dependencies** where possible. Examples:
 
-- `stoich.py`: given a component with eq and a reference scale,
-  computes g/mL/mmol. Pure functions.
-- `run_calc.py`, `step_calc.py`: same for run-component and
-  run-step specific calculations.
+- `stoichiometry.py`, `reaction_stoich.py`: given a component with
+  eq and a reference scale, compute g/mL/mmol. Pure functions.
+- `step_calc.py`, `run_setup.py`, `run_cost.py`: run-component and
+  run-step calculations, and cost roll-up.
+- `step_inventory.py`: incremental stock deduction for step
+  components — each component remembers how much it already took
+  and from which lot, so an edit moves only the difference. Never
+  refuses a quantity: a shortfall floors the lot at zero and
+  surfaces a warning, because a step quantity is a fact that
+  already happened at the bench.
+- `solvent_recovery.py`: turns recovered solvent into a real
+  inventory lot. Holds `recoverable_components()`,
+  `register_recovery()`, the composition signature used to
+  deduplicate mixture catalogue entries at 10% v/v, and lot-code
+  generation (`RX-2026-0500-REC1`).
 - `backup.py`: backup orchestration (create, list, restore).
   Depends on Flask for `current_app.instance_path` +
   AppSetting.
@@ -305,7 +419,8 @@ output.
 
 ## Testing
 
-`pytest` with coverage. ~400 tests. `make test` or:
+`pytest` with coverage. **791 tests**, all passing at v1.5.6.
+`make test` or:
 
 ```bash
 .venv/bin/pytest tests/ -v
@@ -342,6 +457,13 @@ canonical pattern. Never override `app.instance_path` after
 `create_app`: boot hooks (e.g. `_maybe_enable_sqlcipher`) read
 the path during `create_app` itself.
 
+The explicit argument deliberately beats `STOIC_INSTANCE_PATH`, so
+a stray variable in a developer's shell cannot redirect the suite.
+`_migrate_legacy_instance_dir` also returns immediately under
+`TESTING`: without that guard, every test app would copy in
+whatever happens to sit in the developer's real instance directory.
+Both properties are pinned in `tests/test_instance_path.py`.
+
 ### Opt-in SQLCipher in tests
 
 By default tests skip the `_maybe_enable_sqlcipher` hook (`if
@@ -358,12 +480,32 @@ class _Cfg(TestingConfig):
 
 ## DB migrations
 
-Stoic takes an idempotent approach: `db.create_all()` at boot
-creates missing tables/columns without touching existing data.
+Three mechanisms coexist, in increasing order of intervention.
 
-For **data migrations** (e.g. backfilling new columns,
-restructuring existing values), one-shot scripts in
-`scripts/migrate_*.py`. Pattern:
+**1. `db.create_all()` at boot** (`_ensure_schema`) creates missing
+*tables* without touching existing data. It does **not** add columns
+to a table that already exists — a common misreading that costs an
+afternoon.
+
+**2. Idempotent column adders** in
+`services/schema_migrations.py` — `ensure_recovery_columns()`,
+`ensure_step_deduction_columns()`. They inspect the live schema and
+`ALTER TABLE` only what is missing. This is where new columns on
+existing tables belong, because SQLite cannot add a foreign key to
+an existing table without a full rebuild (hence
+`RunStepComponent.deducted_lot_id` being a plain `Integer`).
+
+**3. Explicit CLI commands** for migrations an operator must
+trigger knowingly: `flask migrate-step-deduction`,
+`flask migrate-solvent-recovery`. In Docker:
+`docker compose exec stoic flask --app stoic_eln migrate-...`.
+They are idempotent and tested against an old schema with data in
+it. A fresh install never needs them — `create_all()` builds the
+full schema — so they matter only to someone upgrading.
+
+For **data migrations** (backfilling new columns, restructuring
+existing values), one-shot scripts in `scripts/migrate_*.py`.
+Pattern:
 
 ```python
 """Migrate week N patch M — short description."""

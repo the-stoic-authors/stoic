@@ -268,6 +268,32 @@ Sul tablet al banco: clic **Modalità banco** nell'intestazione del run.
 La sidebar sparisce, i tasti ingrandiscono, il font cresce. Clic
 **Esci** per tornare alla visualizzazione normale.
 
+### Recuperare solvente da un passo
+Mentre il run è **in corso**, apri il passo dove hai tirato via il
+solvente. In **Solvente recuperato**: spunta i componenti che hai
+recuperato davvero (i solventi sono pre-spuntati — togli la spunta
+alla fase acquosa di un'estrazione), dai la composizione se ne hai
+spuntato più di uno, inserisci il volume in mL e clic su **Registra
+recupero**. Un componente ti dà un lotto di quella sostanza, più
+d'uno un lotto di miscela. Nel manuale utente trovi come funzionano
+l'arrotondamento della composizione e il contatore di riusi.
+
+---
+
+## Installare Stoic su tablet o telefono
+
+Apri Stoic nel browser del dispositivo, poi:
+
+- **iPad / iPhone (Safari)** — Condividi → *Aggiungi a Home*
+- **Android (Chrome)** — menu → *Installa app*
+
+Funziona solo su HTTPS fidato. Con un nome server `.local` devi
+prima installare **e rendere attendibile** il certificato radice del
+server sul dispositivo; su iOS renderlo attendibile è un secondo
+passaggio a parte (Impostazioni → Generali → Info → Impostazioni
+certificati). Prova del nove: aperta dalla schermata Home, l'app non
+deve avere **la barra degli indirizzi**.
+
 ---
 
 ## Configurare il backup

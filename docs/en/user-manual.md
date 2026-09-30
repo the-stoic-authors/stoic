@@ -155,6 +155,33 @@ While the run is in progress, tick checklist items as you
 complete them. Add free-form notes if needed (e.g. "TLC after 4h
 still shows SM, extending reflux").
 
+**Step quantities draw from stock as you record them.** The main
+reagents come off inventory in one go at Start, because you declare
+them in advance. Step components — the DCM of an extraction, the
+eluent of a column — usually do not exist yet at that moment and
+change several times afterwards, so they are deducted
+*incrementally*: each one remembers how much it has already taken
+and from which lot, and every edit moves only the difference.
+
+| What you do | What happens to the lot |
+|---|---|
+| declare 50 mL | 50 mL are drawn |
+| correct it to 40 mL | 10 mL go back |
+| change the lot | everything returns to the old one, then is drawn from the new |
+| clear the field | everything goes back |
+| save the same value again | nothing moves |
+
+In `draft` nothing is consumed — you are still planning. Deduction
+starts at **Start execution**, which also picks up step quantities
+you had already filled in, and stays live for the whole run.
+
+If a lot does not hold enough, Stoic **records the quantity anyway**
+and warns you: a step quantity is something that already happened at
+the bench, and refusing to write it down would be the wrong answer.
+The lot is floored at zero rather than going negative, and the
+warning usually means an unregistered residue or the wrong lot
+selected.
+
 ### 5. Complete the run
 
 Once you've isolated the product:
@@ -292,6 +319,62 @@ Quantity modes for free entries:
     (silica bulk density 0.5 g/mL). The Run shows it as
     "suggested: 23 mm" — round to the column you own. Doubling
     the scale widens the diameter by √2, as it should.
+
+## Recovering solvent from a step
+
+The solvent you take off at the rotavap can go back into inventory
+as a real batch instead of down the drain. The **Recovered
+solvent** panel appears inside a step card, and only **while the
+run is in progress** — recovery is something you record as it
+happens, at the step where it happens, not at the end of the run.
+
+Recording it at the step is what makes the batch useful: the step
+knows which lots went into it, so what you recover carries a
+composition instead of being an anonymous volume.
+
+1. **Tick what you actually recovered.** Components with a solvent
+   role are pre-ticked, but the ticks are yours to change. An
+   extraction step holds DCM *and* water: you keep the organic
+   phase and discard the aqueous one, so untick the water. Stoic
+   does not guess this — it knows physical state and density, not
+   miscibility, and a wrong guess would come back at you in a
+   future column.
+2. **Give the composition** when more than one component is
+   ticked. Suggested percentages are pre-filled, but recovery is
+   not proportional to what went in, so treat them as a starting
+   point and correct them. With a single component ticked the
+   percentage is ignored.
+3. **Enter the recovered volume** in mL, and optionally a
+   location.
+4. Click **Record recovery**.
+
+What you get:
+
+- **One component ticked** → a new batch of that substance.
+- **More than one** → a new batch of a *mixture*, with the v/v
+  composition you gave.
+
+The batch gets a code derived from the run (`RX-2026-0500-REC1`,
+then `-REC2`…) and inherits the group of the lots it came from.
+
+Two behaviours worth knowing, because they are deliberate:
+
+- **Mixture entries are deduplicated on composition rounded to
+  10% v/v.** Fifty columns run at roughly 90:10 produce one
+  catalogue entry and fifty batches, rather than fifty near-identical
+  catalogue rows. A component that rounds to zero is dropped: below
+  about 5% of the volume it does not define the solvent you are
+  holding.
+- **The reuse counter follows the worst case.** If fresh ethyl
+  acetate (never recovered) and hexane already recovered twice both
+  flow into the same step, the new batch starts at 3, not at the
+  average. Non-volatile impurities accumulate, and topping up with
+  fresh solvent dilutes them without removing them — if the count
+  has to be wrong, it is wrong on the safe side. The counter is
+  recorded on the batch; the interface does not display it yet.
+
+A recovered batch also remembers which reaction it came from, so
+it can be constrained to reuse within that chemistry.
 
 ## Attachments
 
@@ -455,6 +538,39 @@ from (in `instance/backups/`). Don't manually touch
 `instance/stoic_eln.db` — that's a sysadmin operation.
 
 ---
+
+## Using Stoic on a tablet or phone
+
+Stoic is a **Progressive Web App**: it installs on a tablet or
+phone straight from the browser, with no app store involved. On
+the tablet at the bench this is the difference between a browser
+tab you keep losing and something that behaves like an app.
+
+**Installing it.** Open Stoic in the device browser, then:
+
+- **iPad / iPhone (Safari)** — Share → *Add to Home Screen*
+- **Android (Chrome)** — menu → *Install app* / *Add to Home
+  screen*
+
+The installed app takes the name of your lab, the one you set in
+the onboarding wizard.
+
+**It must be a trusted HTTPS connection.** If your server uses a
+`.local` name with a self-signed certificate, install and *trust*
+the server's root certificate on the device first — on iOS that is
+two separate steps, and the second one (Settings → General → About
+→ Certificate Trust Settings) is the one everybody forgets. Without
+it the "Add to Home Screen" button still exists, but what you get
+is a Safari tab in disguise. Your administrator will find the
+procedure in the Docker installation guide.
+
+**How to tell it worked**: open it from the Home screen. A real
+install has **no address bar**.
+
+**Bench mode** is separate and works anywhere, installed or not:
+in the run header, click **Bench mode** to drop the sidebar and
+enlarge buttons and text for gloved hands. Click **Exit** to go
+back.
 
 ## Language
 

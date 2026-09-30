@@ -10,8 +10,8 @@ Self-hosted · Multi-user · Audit-ready · AGPLv3
 
 [![License: AGPL v3](https://img.shields.io/badge/license-AGPLv3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
-[![Tests](https://img.shields.io/badge/tests-414%2F420-green.svg)](#testing)
-[![Version](https://img.shields.io/badge/version-0.9.0-orange.svg)](CHANGELOG.md)
+[![Tests](https://img.shields.io/badge/tests-791%2F791-green.svg)](#testing)
+[![Version](https://img.shields.io/badge/version-1.5.6-blue.svg)](CHANGELOG.md)
 
 [Documentation](docs/) · [Changelog](CHANGELOG.md) · [Contributing](CONTRIBUTING.md)
 
@@ -38,8 +38,11 @@ It's built for chemistry labs that want:
   Avery and thermal labels with GHS pictograms and QR codes.
 - **Multilingual** — full Italian and English UI.
 
-Stoic is in **active development** (v0.9.x → v1.0.0 in progress).
-Use in production at your own risk; keep backups.
+Stoic is in **active development**. v1.0.0 shipped in June 2026;
+the current release is **v1.5.6**. Use in production at your own
+risk, and keep backups — see the [Administrator
+manual](docs/en/admin-manual.md) for how they work and what they
+do *not* cover.
 
 ## Architecture
 
@@ -145,25 +148,39 @@ flask run
 # → open http://localhost:5000 in your browser
 ```
 
-For deployment with systemd, Raspberry Pi, encryption setup, and
-automatic backups, see the [Administrator manual](docs/en/admin-manual.md)
+For a lab server, the recommended path is Docker + Caddy with
+automatic HTTPS: see **[Installing Stoic with
+Docker](docs/en/install-docker.md)** (also in
+[Italian](docs/it/install-docker.md)). It covers Raspberry Pi,
+where the image is built locally because no arm64 image is
+published yet.
+
+For deployment with systemd, encryption setup and automatic
+backups, see the [Administrator manual](docs/en/admin-manual.md)
 (also in [Italian](docs/it/manuale-amministratore.md)).
 
 ## Documentation
 
-Stoic ships with three manuals, available both in this repository
+Stoic ships with four manuals, available both in this repository
 and inside the app at `/docs/` once logged in:
 
 - **[User manual](docs/en/user-manual.md)** — lab workflow:
   substances, reactions, runs, mixtures, labels, attachments
+- **[How-to guide](docs/en/how-to.md)** — short recipes for common
+  tasks, for when you know what you want and not where it lives
 - **[Administrator manual](docs/en/admin-manual.md)** —
   installation, user management, encryption, backups, deployment
 - **[Developer manual](docs/en/developer-manual.md)** —
   architecture, models, blueprints, testing, internationalization
 
+Deploying with Docker has its own guide:
+**[Installing Stoic with Docker](docs/en/install-docker.md)**.
+
 Italian versions: [Manuale utente](docs/it/manuale-utente.md),
+[Come si fa](docs/it/come-si-fa.md),
 [Manuale amministratore](docs/it/manuale-amministratore.md),
-[Manuale sviluppatore](docs/it/manuale-sviluppatore.md).
+[Manuale sviluppatore](docs/it/manuale-sviluppatore.md),
+[Installare con Docker](docs/it/install-docker.md).
 
 ## Screenshots
 
@@ -222,9 +239,9 @@ cryptography · APScheduler · pytest
 .venv/bin/pytest tests/ -q
 ```
 
-Stoic ships with ~420 tests. Current state at v0.9.0: 414 passing,
-6 known legacy failures in `test_reactions.py` (pre-existing, not
-blocking; tracked for fix before v1.0).
+Stoic ships with 791 tests, all passing at v1.5.6. They cover the
+domain logic (stoichiometry, mixtures, inventory deduction, cost
+roll-up), the HTTP layer, and the deployment manifests.
 
 ## License
 
@@ -289,12 +306,12 @@ contribution is always available under AGPLv3 to everyone else.
 
 | | |
 |---|---|
-| Version | 0.9.0 (preparing 1.0) |
+| Version | 1.5.6 |
 | First public release | 2026 |
-| Tests | 414 / 420 passing |
+| Tests | 791 / 791 passing |
 | Languages | Italian, English |
-| Platforms tested | macOS (Intel, Apple Silicon), Linux x86_64 |
-| Platforms planned | Raspberry Pi (ARM64) |
+| Platforms tested | macOS (Intel, Apple Silicon), Linux x86_64, Raspberry Pi 3B (Pi OS Lite 64-bit) |
+| Platforms planned | published arm64 image (today ARM builds locally) |
 | Platforms not supported | Windows (use WSL2) |
 
 ## Acknowledgments

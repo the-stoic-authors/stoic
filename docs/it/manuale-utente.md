@@ -152,6 +152,34 @@ Mentre il run è in corso, spunta le voci della checklist man mano
 che le completi. Aggiungi note libere se serve (es. "TLC dopo 4h
 mostra ancora SM, prolungo riflusso").
 
+**Le quantità dei passi scalano il magazzino mentre le registri.**
+I reagenti principali escono dall'inventario in un colpo solo
+all'Avvio, perché li dichiari prima. I componenti di passo — il DCM
+di un'estrazione, l'eluente di una colonna — di solito a
+quell'istante non esistono ancora e poi cambiano più volte, quindi
+vengono scalati **in modo incrementale**: ognuno ricorda quanto ha
+già preso e da quale lotto, e ogni modifica muove solo la
+differenza.
+
+| Cosa fai | Cosa succede al lotto |
+|---|---|
+| dichiari 50 mL | vengono prelevati 50 mL |
+| correggi a 40 mL | 10 mL rientrano |
+| cambi lotto | tutto torna al vecchio, poi si preleva dal nuovo |
+| svuoti il campo | rientra tutto |
+| ri-salvi lo stesso valore | non si muove niente |
+
+In `draft` non si consuma niente: stai ancora pianificando. Lo
+scarico parte da **Avvia esecuzione**, che recupera anche le
+quantità di passo già compilate in bozza, e resta attivo per tutto
+il run.
+
+Se il lotto non basta, Stoic **registra la quantità lo stesso** e ti
+avvisa: una quantità di passo è un fatto già avvenuto al banco, e
+rifiutarsi di scriverla sarebbe la risposta sbagliata. Il lotto si
+ferma a zero invece di andare negativo, e l'avviso di solito
+significa un residuo non registrato o il lotto sbagliato.
+
 ### 5. Completa il run
 
 Quando hai isolato il prodotto:
@@ -289,6 +317,64 @@ Quantità disponibili per le voci libere:
     cilindro (densità silice 0.5 g/mL). Nel Run appare come
     "suggerito: 23 mm" — arrotonda alla colonna che possiedi.
     Raddoppiare la scala allarga il diametro di √2, com'è giusto.
+
+## Recuperare solvente da un passo
+
+Il solvente che tiri via al rotavapor può tornare in magazzino come
+lotto vero invece di finire nel bidone. Il pannello **Solvente
+recuperato** compare dentro la card di un passo, e **solo mentre il
+run è in corso**: il recupero si registra nel momento in cui
+avviene, sul passo dove avviene, non a fine run.
+
+Registrarlo sul passo è ciò che rende utile il lotto: il passo sa
+quali lotti ci sono confluiti, quindi il recuperato porta con sé una
+composizione invece di essere un volume anonimo.
+
+1. **Spunta da cosa hai recuperato davvero.** I componenti con
+   ruolo solvente sono pre-spuntati, ma le spunte sono tue. Un
+   passo di estrazione ha DCM *e* acqua: tu tieni la fase organica e
+   butti quella acquosa, quindi togli la spunta all'acqua. Stoic non
+   lo indovina — conosce stato fisico e densità, non la
+   miscibilità, e un'ipotesi sbagliata ti tornerebbe indietro in una
+   colonna futura.
+2. **Dai la composizione** se hai spuntato più di un componente. Le
+   percentuali suggerite sono precompilate, ma il recupero non è
+   proporzionale a ciò che è entrato: trattale come punto di
+   partenza e correggile. Con un solo componente spuntato la
+   percentuale è ignorata.
+3. **Inserisci il volume recuperato** in mL, e se vuoi
+   un'ubicazione.
+4. Clic su **Registra recupero**.
+
+Cosa ottieni:
+
+- **Un solo componente spuntato** → un nuovo lotto di quella
+  sostanza.
+- **Più di uno** → un nuovo lotto di una *miscela*, con la
+  composizione v/v che hai indicato.
+
+Il lotto prende un codice derivato dal run (`RX-2026-0500-REC1`,
+poi `-REC2`…) ed eredita il gruppo dai lotti di provenienza.
+
+Due comportamenti che vale la pena conoscere, perché sono voluti:
+
+- **Le voci di miscela sono deduplicate sulla composizione
+  arrotondata al 10% v/v.** Cinquanta colonne fatte intorno a 90:10
+  danno una voce in anagrafica e cinquanta lotti, invece di
+  cinquanta righe quasi identiche. Un componente che arrotonda a
+  zero viene scartato: sotto il 5% circa del volume non definisce il
+  solvente che hai in mano.
+- **Il contatore di riusi segue il caso peggiore.** Se nello stesso
+  passo confluiscono acetato di etile vergine (mai recuperato) ed
+  esano già recuperato due volte, il lotto nuovo nasce con 3, non
+  con la media. Le impurità non volatili si accumulano, e
+  rabboccare con solvente fresco le diluisce senza rimuoverle: se il
+  conteggio dev'essere sbagliato, meglio che lo sia per eccesso. Il
+  contatore è registrato sul lotto; l'interfaccia non lo mostra
+  ancora.
+
+Un lotto recuperato ricorda anche da quale reazione viene, così può
+essere vincolato al riuso dentro quella chimica.
 
 ## Allegati
 
@@ -451,6 +537,40 @@ l'amministratore. C'è quasi sempre un backup recente da ripristinare
 stoic_eln.db` — è un'operazione di sistema.
 
 ---
+
+## Usare Stoic su tablet o telefono
+
+Stoic è una **Progressive Web App**: si installa su tablet o
+telefono direttamente dal browser, senza passare da nessuno store.
+Sul tablet al banco è la differenza fra una scheda del browser che
+perdi ogni volta e qualcosa che si comporta come un'app.
+
+**Come si installa.** Apri Stoic nel browser del dispositivo, poi:
+
+- **iPad / iPhone (Safari)** — Condividi → *Aggiungi a Home*
+- **Android (Chrome)** — menu → *Installa app* / *Aggiungi a
+  schermata Home*
+
+L'app installata prende il nome del tuo laboratorio, quello che hai
+impostato nel wizard iniziale.
+
+**Serve una connessione HTTPS fidata.** Se il server usa un nome
+`.local` con certificato autofirmato, prima devi installare **e
+rendere attendibile** il certificato radice del server sul
+dispositivo — su iOS sono due passaggi distinti, e il secondo
+(Impostazioni → Generali → Info → Impostazioni certificati) è quello
+che dimenticano tutti. Senza, il tasto "Aggiungi a Home" c'è lo
+stesso ma quello che ottieni è una scheda Safari travestita. Il tuo
+amministratore trova la procedura nella guida di installazione con
+Docker.
+
+**Come capisci che ha funzionato**: aprila dalla schermata Home. Se
+l'installazione è vera, **non c'è la barra degli indirizzi**.
+
+**La modalità banco** è un'altra cosa e funziona comunque, app
+installata o no: nell'intestazione del run clic su **Modalità
+banco** per far sparire la sidebar e ingrandire tasti e testo per le
+mani con i guanti. Clic su **Esci** per tornare.
 
 ## Lingua
 

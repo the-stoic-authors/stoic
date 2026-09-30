@@ -13,7 +13,9 @@ user manual; for code modifications see the developer manual.
 
 - Python 3.12 or later
 - ~500 MB disk for the software + ~10–50 MB for the initial DB
-- Mac, Linux x86_64, or Raspberry Pi (4 or 5 recommended)
+- Mac, Linux x86_64, or Raspberry Pi. A **3B with 1 GB of RAM** is
+  the lowest configuration verified in the field (see *Production
+  on Raspberry Pi*); a 4 or 5 obviously has more headroom
 
 ### Development environment setup (Mac/Linux)
 
@@ -160,8 +162,11 @@ From `Settings → Encryption & backups → Passphrase source`:
   finds only encrypted data without key.
 - **Linux server with auto-restart**: `env` (via systemd
   EnvironmentFile or systemd-creds + TPM).
-- **Small Raspberry Pi**: `prompt` with tmux for persistent
-  sessions, or `file` if the Pi is in a physically secure place.
+- **Raspberry Pi or any unattended lab server**: `file` if the
+  machine is physically secure, or `env` via the container's
+  environment. `prompt` also works, but on a headless box it means
+  the server stays down after every reboot until someone SSHes in
+  to type the passphrase — see *Production on Raspberry Pi*.
 
 ### Enabling live DB encryption
 
@@ -318,6 +323,36 @@ see the full log. Users see their own records from `Profile`.
 
 Described above. `flask run` on localhost:5000.
 
+### Docker + Caddy (recommended for a lab server)
+
+This is the shortest path to a working server with HTTPS, and the
+one most installs should take. The full walkthrough lives in
+**[Installing Stoic with Docker](install-docker.md)**; what matters
+from an administrator's point of view is where the state lives,
+because that is what you back up and what you must not throw away.
+
+| Volume | Mounted at | Holds |
+|---|---|---|
+| `stoic-instance` | `/app/instance` | the SQLite database, `backups/`, `backup.key`, `auth_source` |
+| `stoic-attachments` | `/app/data/attachments` | files attached to runs |
+| `caddy-data`, `caddy-config` | Caddy's own | TLS certificates and the local CA |
+
+`STOIC_INSTANCE_PATH=/app/instance` in `docker-compose.yml` is what
+keeps backups and the passphrase file on that first volume. Do not
+remove it: without it Flask falls back to a path inside the image's
+virtualenv, which lives in the container's writable layer and is
+destroyed by the next `docker compose up -d`. Releases before 1.5.6
+had exactly that bug; see the upgrade note in the Docker guide.
+
+Two container-specific habits:
+
+- `FLASK_APP` is deliberately unset inside the image, so every CLI
+  command in this manual becomes
+  `docker compose exec stoic flask --app stoic_eln <command>`.
+- After `docker compose up -d` on a fresh install, run `init-db`
+  before opening the browser. Nothing creates the admin user
+  otherwise.
+
 ### Production on Linux + systemd
 
 Stoic ships a production-ready entrypoint (`wsgi.py`) and a tuned
@@ -387,29 +422,57 @@ systemctl status stoic
 
 ### Production on Raspberry Pi
 
-Same systemd configuration, but with `STOIC_WORKERS=1` (the Pi
-has less RAM) in `/etc/stoic/stoic.env`. The reverse proxy
-recommendation still applies: put Caddy in front for HTTPS.
+Use the Docker path above. A Raspberry Pi 3B — the weakest machine
+Stoic claims as a natural home — has been run through a three-week
+endurance test on Pi OS Lite 64-bit, and the numbers are
+comfortable rather than marginal:
 
-For `prompt` mode on Pi (passphrase never on disk):
+| | Measured | Threshold |
+|---|---|---|
+| Free RAM with 2 workers | 466 MB (lowest over 18 days: 465 MB) | ≥ 200 MB |
+| Resident set of the app container | ~230 MiB | — |
+| Reaction page with a server-rendered scheme | 210 ms | < 3 s |
+| Run PDF, warm | 0.9 s | < 20 s |
+| Peak temperature over 5217 samples | 47.8 °C | < 75 °C |
+| Reboot to healthy | 75 s | < 120 s |
 
-```bash
-# SSH to the Pi
-ssh pi@stoic-server
+So **leave `STOIC_WORKERS` at 2 on a Pi 3B.** Earlier versions of
+this manual recommended 1; the measurement does not support it, and
+the second worker roughly halves the 99th-percentile latency under
+concurrent use.
 
-# Persistent tmux session
-tmux new -s stoic
-cd /opt/stoic-eln
-source .venv/bin/activate
-flask run --host 0.0.0.0 --port 5000
-# Enter passphrase when asked
-# Ctrl-B D to detach (session stays in background)
-# tmux attach -t stoic to re-attach
-```
+Three settings are worth applying before you measure anything on a
+Pi, none of which Stoic can do for you:
 
-Drawback: if the Pi restarts (kernel update, blackout), you need
-manual SSH to re-type the passphrase. Classic security vs
-availability tradeoff.
+- `gpu_mem=16` in `/boot/firmware/config.txt` — on a headless
+  machine the firmware otherwise reserves 76 MB to the GPU. Worth
+  ~50 MB of usable RAM.
+- `cgroup_enable=memory cgroup_memory=1` appended to
+  `/boot/firmware/cmdline.txt` — Pi OS ships with the memory cgroup
+  controller **disabled**, which makes `docker stats` report `0B`
+  and hides the one number that matters when sizing workers. That
+  file is a single line with no trailing newline: append with
+  `sudo sed -i '1s/$/ cgroup_enable=memory cgroup_memory=1/'`,
+  never with `echo >>`, and back it up first.
+- 64-bit Pi OS is not optional: RDKit publishes aarch64 wheels
+  only, and on the 32-bit build the image tries to compile it from
+  source.
+
+No arm64 image is published yet, so on a Pi you build locally and
+update with `git pull && docker compose build && docker compose up
+-d`. Never `docker compose pull` there — it would replace your
+arm64 build with the amd64 one and the container would stop with
+`exec format error`.
+
+**On `prompt` passphrase mode**: it works on a Pi as anywhere else,
+but it means a human must type the passphrase over SSH after every
+reboot — kernel update, power cut, anything. On an unattended lab
+server that is usually the wrong trade: prefer `file` mode with the
+key on the instance volume, and keep the disk itself protected.
+Whichever you choose, do not run `flask run` as a long-lived
+service: it is Werkzeug's development server, single-process and
+not hardened for exposure, and it bypasses the gunicorn setup that
+runs the nightly backup in the master.
 
 ### Network and firewall
 
@@ -454,8 +517,18 @@ to be run manually after upgrade: `python scripts/migrate_weekN.py`.
 ## Off-site backups
 
 The local nightly backup protects you from DB corruption but
-not from fire or computer theft. Configure periodic sync of the
-`instance/backups/` folder to external storage:
+not from fire or computer theft.
+
+Note first what a backup **is**: a gzipped copy of the SQLite
+database, nothing else. Attachments live outside it — under
+`data/attachments/`, or the `stoic-attachments` volume on Docker —
+and are not included. A lab that attaches spectra and photos to its
+runs needs those in the off-site plan too, or the restore will come
+back with every record intact and every file missing.
+
+Configure periodic sync of the `instance/backups/` folder to
+external storage (on Docker, that is `backups/` inside the
+`stoic-instance` volume):
 
 - Rclone to S3/Backblaze B2/Google Drive
 - Restic with remote repository
@@ -470,10 +543,26 @@ whoever takes the file cannot open it without the passphrase.
 
 ## Updating
 
+From a source install:
+
 ```bash
 cd ~/Projects/stoic-eln
 git pull  # or tar -xzvf new-patch.tar.gz
 .venv/bin/pip install -e .  # update if deps changed
+```
+
+On Docker, x86_64:
+
+```bash
+cd ~/stoic
+docker compose pull && docker compose up -d
+```
+
+On Docker, arm64 (Raspberry Pi) — build locally, **never pull**:
+
+```bash
+cd ~/stoic
+git pull && docker compose build && docker compose up -d
 ```
 
 Schema migrations are automatic (idempotent). If a patch includes

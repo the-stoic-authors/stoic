@@ -264,6 +264,31 @@ On a tablet at the bench: clic **Bench mode** in the run header.
 The sidebar disappears, buttons enlarge, font size increases. Clic
 **Exit** to return to normal view.
 
+### Recover solvent from a step
+While the run is **in progress**, open the step where you took the
+solvent off. In **Recovered solvent**: tick the components you
+actually recovered (solvents come pre-ticked — untick the aqueous
+phase of an extraction), give the composition if more than one is
+ticked, enter the volume in mL, and clic **Record recovery**.
+One component gives you a batch of that substance, several give you
+a batch of a mixture. See the User manual for how composition
+rounding and the reuse counter work.
+
+---
+
+## Install Stoic on a tablet or phone
+
+Open Stoic in the device browser, then:
+
+- **iPad / iPhone (Safari)** — Share → *Add to Home Screen*
+- **Android (Chrome)** — menu → *Install app*
+
+It works only over trusted HTTPS. With a `.local` server name you
+must first install **and trust** the server's root certificate on
+the device; on iOS trusting it is a second, separate step
+(Settings → General → About → Certificate Trust Settings). Test:
+opened from the Home screen, the app must have **no address bar**.
+
 ---
 
 ## Configure backup

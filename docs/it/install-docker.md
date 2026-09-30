@@ -12,7 +12,13 @@ Deployment testati:
   - Linux x86_64 (Ubuntu 22.04+, Debian 12+)
   - macOS (Intel + Apple Silicon) tramite Docker Desktop
   - Windows 11 tramite Docker Desktop + WSL2
-  - Raspberry Pi 4 + Pi OS 64-bit (immagine arm64 — vedi Patch E)
+  - Raspberry Pi 3B e successivi, Pi OS Lite 64-bit. La 64-bit è
+    obbligatoria (RDKit pubblica wheel solo per aarch64).
+    **Non esiste ancora un'immagine arm64 pubblicata**, quindi su un
+    Pi si builda in locale — vedi [Aggiornare](#aggiornare). Un 3B
+    con 1 GB di RAM regge due worker con margine; nel manuale
+    amministratore trovi le impostazioni di `gpu_mem` e dei cgroup
+    che conviene applicare prima.
 
 ## Prerequisiti
 
@@ -46,10 +52,22 @@ nano .env
 # 3. Avvia
 docker compose up -d
 
-# 4. Aspetta ~15 secondi per il primo avvio, poi apri il browser
+# 4. Crea il database e l'account amministratore
+docker compose exec stoic flask --app stoic_eln init-db --admin-password 'scegli-una-password-vera'
+
+# 5. Aspetta ~15 secondi per il primo avvio, poi apri il browser
 #    Con STOIC_DOMAIN=stoic.local → https://stoic.local
 #    Con STOIC_DOMAIN=lab.example.com → https://lab.example.com
 ```
+
+**Il passo 4 non è facoltativo.** Nessuno crea l'utente
+amministratore al posto tuo: se lo salti la pagina di login compare
+ma nessuna password funziona. Omettendo `--admin-password` l'account
+viene creato con `admin123` — cambiala subito, o meglio passa la tua.
+
+`--app stoic_eln` serve perché dentro il container `FLASK_APP` non è
+impostata di proposito. Aggiungi `--no-seed` se non vuoi le sostanze
+e gli schemi di reazione di esempio.
 
 La prima richiesta fa partire Caddy per generare il certificato TLS:
 
@@ -103,9 +121,10 @@ serve una delle seguenti:
 | Variabile | Default | Note |
 |-----------|---------|------|
 | `STOIC_TLS_EMAIL` | (vuoto) | Usato per le notifiche Let's Encrypt |
-| `STOIC_WORKERS` | `2` | Worker gunicorn. Usa `1` su Pi 3B |
+| `STOIC_WORKERS` | `2` | Worker gunicorn. `2` vanno bene anche su un Raspberry Pi 3B (misurato: ~230 MiB residenti, 460 MB ancora liberi) |
 | `STOIC_TIMEOUT` | `120` | Timeout per richiesta in secondi |
-| `STOIC_IMAGE` | `ghcr.io/the-stoic-authors/stoic:latest` | Fissa una versione |
+| `STOIC_IMAGE` | `ghcr.io/the-stoic-authors/stoic:latest` | Fissa una versione, o nomina un'immagine buildata in locale |
+| `STOIC_INSTANCE_PATH` | `/app/instance` (impostata nel manifest) | Dove vivono `backups/`, `backup.key` e `auth_source`. Deve stare dentro un volume — vedi [Backup](#backup) |
 | `LAB_NAME` | `Mio Laboratorio` | Nome di default finché non parte il wizard |
 | `DEFAULT_LOCALE` | `it` | Lingua UI di default (`it` o `en`) |
 | `STOIC_BACKUP_PASSPHRASE` | (vuoto) | Abilita i backup notturni cifrati |
@@ -173,6 +192,21 @@ docker compose pull
 docker compose up -d
 ```
 
+**Su arm64 (Raspberry Pi e simili) non lanciare `docker compose
+pull`.** L'immagine pubblicata è buildata solo per `linux/amd64`,
+quindi un pull sostituisce una build locale funzionante con una che
+la macchina non sa eseguire, e il container muore con
+`exec format error`. Si builda in locale — `compose.override.yml`
+nel repository trasforma `image:` in `build: .` — e si aggiorna con:
+
+```bash
+git pull && docker compose build && docker compose up -d
+```
+
+Impostare `STOIC_IMAGE` con un nome che sul registry non esiste
+(per esempio `stoic-local:arm64`) trasforma un `pull` distratto in
+un fallimento innocuo invece che in un container rotto.
+
 Per fissare una versione specifica (raccomandato in produzione):
 
 ```bash
@@ -185,17 +219,55 @@ Poi `docker compose up -d`.
 ## Backup
 
 Il container Stoic fa un backup notturno automatico alle 03:00 UTC
-nel processo master. Il file cifrato finisce nel named volume
-`stoic-backups`. Per estrarre un backup verso l'host:
+nel processo master. I file finiscono in `backups/` dentro la
+instance directory — `/app/instance/backups`, sul volume
+`stoic-instance`, accanto al database:
 
 ```bash
-docker compose exec stoic ls -la /app/var/backups
-docker compose cp stoic:/app/var/backups/<nomefile> ./
+docker compose exec stoic flask --app stoic_eln backups-list
+docker compose cp stoic:/app/instance/backups/<nomefile> ./
 ```
 
-Per abilitare la cifratura, imposta `STOIC_BACKUP_PASSPHRASE`
-in `.env` (trattalo come il seed di un password manager —
-perderlo rende i backup esistenti irrecuperabili).
+I backup sono file SQLite compressi con gzip. Sono *anche* cifrati
+soltanto se imposti `STOIC_BACKUP_PASSPHRASE` in `.env` (o metti una
+passphrase in `instance/backup.key`) — trattalo come il seed di un
+password manager, perché perderlo rende i backup esistenti
+irrecuperabili.
+
+Attenzione: un backup contiene **solo il database**. Gli allegati
+stanno su un volume separato e non sono inclusi; se il tuo
+laboratorio allega file ai run, salva `stoic-attachments` a parte.
+
+### Aggiornare da una versione precedente alla 1.5.6
+
+Le versioni precedenti scrivevano la instance directory nel percorso
+che Flask calcolava dalla posizione del pacchetto. Dentro
+l'immagine quel percorso è `/opt/venv/var/stoic_eln-instance`, cioè
+il **layer scrivibile** del container e non un volume: quindi
+`docker compose up -d` distruggeva tutti i backup notturni, e con
+loro `backup.key` se la cifratura era attiva. Il volume
+`stoic-backups` che il manifest montava non è mai stato scritto.
+
+Dalla 1.5.6 il percorso è fissato da `STOIC_INSTANCE_PATH` (impostata
+a `/app/instance` in `docker-compose.yml`), e al primo avvio Stoic
+copia nella nuova posizione i file rimasti nella vecchia, scrivendo
+a log che cosa ha spostato. Gli originali restano dove sono.
+
+**Prima di aggiornare, metti in salvo quello che c'è nella vecchia
+posizione**, perché l'aggiornamento ricrea il container e quella
+directory se ne va con lui:
+
+```bash
+docker compose cp stoic:/opt/venv/var/stoic_eln-instance/backups ./backup-salvati
+ls -la ./backup-salvati
+```
+
+Poi aggiorna, e rimettili dentro se la nuova instance directory è
+vuota:
+
+```bash
+docker compose cp ./backup-salvati/. stoic:/app/instance/backups/
+```
 
 ## Fermare e rimuovere
 

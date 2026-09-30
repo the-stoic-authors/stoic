@@ -11,7 +11,12 @@ Tested deployments:
   - Linux x86_64 (Ubuntu 22.04+, Debian 12+)
   - macOS (Intel + Apple Silicon) via Docker Desktop
   - Windows 11 via Docker Desktop + WSL2
-  - Raspberry Pi 4 + Pi OS 64-bit (arm64 image — see Patch E)
+  - Raspberry Pi 3B and later, Pi OS Lite 64-bit. The 64-bit image
+    is required (RDKit ships aarch64 wheels only). **No arm64 image
+    is published yet**, so on a Pi you build locally — see
+    [Upgrading](#upgrading). A 3B with 1 GB of RAM runs two workers
+    with room to spare; see the Administrator manual for the
+    `gpu_mem` and cgroup settings worth applying first.
 
 ## Prerequisites
 
@@ -45,10 +50,22 @@ nano .env
 # 3. Start
 docker compose up -d
 
-# 4. Wait ~15 seconds for first-boot, then open your browser
+# 4. Create the database and the admin account
+docker compose exec stoic flask --app stoic_eln init-db --admin-password 'choose-a-real-password'
+
+# 5. Wait ~15 seconds for first-boot, then open your browser
 #    For STOIC_DOMAIN=stoic.local → https://stoic.local
 #    For STOIC_DOMAIN=lab.example.com → https://lab.example.com
 ```
+
+**Step 4 is not optional.** Nothing creates the admin user for you:
+skip it and the login page appears but no password works. If you
+omit `--admin-password` the account is created with `admin123` —
+change it immediately or, better, pass your own.
+
+`--app stoic_eln` is required because `FLASK_APP` is deliberately
+unset inside the container. Add `--no-seed` if you do not want the
+example substances and reaction templates.
 
 The first request triggers Caddy to issue a TLS certificate:
 
@@ -100,9 +117,10 @@ either:
 | Variable | Default | Notes |
 |----------|---------|-------|
 | `STOIC_TLS_EMAIL` | (blank) | Used for Let's Encrypt renewal notices |
-| `STOIC_WORKERS` | `2` | Gunicorn workers. Use `1` on a Pi 3B |
+| `STOIC_WORKERS` | `2` | Gunicorn workers. `2` is fine even on a Raspberry Pi 3B (measured: ~230 MiB resident, 460 MB still free) |
 | `STOIC_TIMEOUT` | `120` | Per-request timeout in seconds |
-| `STOIC_IMAGE` | `ghcr.io/the-stoic-authors/stoic:latest` | Pin a specific version |
+| `STOIC_IMAGE` | `ghcr.io/the-stoic-authors/stoic:latest` | Pin a specific version, or name a locally built image |
+| `STOIC_INSTANCE_PATH` | `/app/instance` (set in the manifest) | Where `backups/`, `backup.key` and `auth_source` live. Must be inside a volume — see [Backups](#backups) |
 | `LAB_NAME` | `Mio Laboratorio` | Default name shown until onboarding wizard runs |
 | `DEFAULT_LOCALE` | `it` | UI default language (`it` or `en`) |
 | `STOIC_BACKUP_PASSPHRASE` | (blank) | Enables encrypted nightly backups |
@@ -168,6 +186,21 @@ docker compose pull
 docker compose up -d
 ```
 
+**On arm64 (Raspberry Pi and friends), do not run `docker compose
+pull`.** The published image is built for `linux/amd64` only, so a
+pull replaces a working local build with one the machine cannot
+execute, and the container dies with `exec format error`. Build
+locally instead — `compose.override.yml` in the repository turns
+`image:` into `build: .` — and update with:
+
+```bash
+git pull && docker compose build && docker compose up -d
+```
+
+Setting `STOIC_IMAGE` to a name that does not exist on the registry
+(for example `stoic-local:arm64`) turns an absent-minded `pull`
+into a harmless failure rather than a broken container.
+
 To pin a specific version (recommended in production):
 
 ```bash
@@ -180,17 +213,52 @@ Then `docker compose up -d`.
 ## Backups
 
 The Stoic container runs a nightly backup automatically at 03:00 UTC
-inside the master process. The encrypted file lands in the
-`stoic-backups` named volume. To extract a backup to the host:
+inside the master process. Files land in `backups/` under the
+instance directory — `/app/instance/backups`, on the
+`stoic-instance` volume alongside the database:
 
 ```bash
-docker compose exec stoic ls -la /app/var/backups
-docker compose cp stoic:/app/var/backups/<filename> ./
+docker compose exec stoic flask --app stoic_eln backups-list
+docker compose cp stoic:/app/instance/backups/<filename> ./
 ```
 
-To enable encryption, set `STOIC_BACKUP_PASSPHRASE` in `.env`
-(treat it like a password manager seed — losing it makes existing
-backups unreadable).
+Backups are gzipped SQLite files. They are *also* encrypted only if
+you set `STOIC_BACKUP_PASSPHRASE` in `.env` (or place a passphrase
+in `instance/backup.key`) — treat that secret like a password
+manager seed, because losing it makes existing backups unreadable.
+
+Note that a backup contains the **database only**. Attachments live
+in a separate volume and are not included; back up
+`stoic-attachments` separately if your lab stores files on runs.
+
+### Upgrading from a version before 1.5.6
+
+Earlier versions wrote the instance directory to whatever path Flask
+computed from the package location. Inside the image that resolved
+to `/opt/venv/var/stoic_eln-instance` — the container's **writable
+layer**, not a volume — so `docker compose up -d` destroyed every
+nightly backup, along with `backup.key` if backup encryption was on.
+The `stoic-backups` volume the manifest mounted was never written to.
+
+From 1.5.6 the path is pinned by `STOIC_INSTANCE_PATH` (set to
+`/app/instance` in `docker-compose.yml`), and on first boot Stoic
+copies any files still sitting at the old path into the new one,
+logging what it moved. The originals are left where they are.
+
+**Before upgrading, rescue what is in the old location**, because
+the upgrade recreates the container and that directory goes with it:
+
+```bash
+docker compose cp stoic:/opt/venv/var/stoic_eln-instance/backups ./backups-rescued
+ls -la ./backups-rescued
+```
+
+Then upgrade, and copy them back in if the new instance directory
+is empty:
+
+```bash
+docker compose cp ./backups-rescued/. stoic:/app/instance/backups/
+```
 
 ## Stopping and removing
 
