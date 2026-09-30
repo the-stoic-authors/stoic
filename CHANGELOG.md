@@ -9,10 +9,107 @@ and Stoic adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - Inventory decrement for mixture-as-component preparations
   (e.g. preparing HCl 6N consumes a lot of HCl 12N)
-- Docker multi-arch arm64 image (Raspberry Pi 4 support)
-- Solvent recovery (green chemistry): recover solvent at run
-  completion into separate recovered-solvent lots, with a
-  worst-case use counter and a soft per-run reuse limit
+- Docker multi-arch arm64 image published from CI. Building locally
+  on a Pi already works; this is only about publishing.
+- Consumption of recovered lots: elastic multi-source draws and a
+  soft reuse threshold. The recovery side shipped in 1.5.0; the
+  threshold belongs with consumption, because that is where the
+  warning means something.
+- Surface `is_recovered` and `recovery_use_count` in the interface.
+  Both are recorded on the lot today but shown nowhere, so a
+  recovered bottle looks like any other in the warehouse.
+- Green metrics (E-factor, atom economy, PMI)
+
+## [1.5.6] — 2026-09-30
+
+### Fixed
+
+- **Backups were written outside every volume, and an upgrade
+  destroyed them.** `get_backup_dir()` builds on
+  `current_app.instance_path`, which Flask derives from the package
+  location. With Stoic pip-installed into a virtualenv — as it is in
+  the Docker image — that resolved to
+  `/opt/venv/var/stoic_eln-instance`, inside the container's
+  writable layer. The `stoic-backups` volume the manifest mounted
+  was never written to once. So `docker compose up -d`, the upgrade
+  step in our own documentation, deleted every nightly backup, and
+  would have taken `backup.key` with it where backup encryption was
+  enabled — leaving an operator holding backups they could no longer
+  decrypt. The database escaped only because `DATABASE_URL` carries
+  an absolute path into the volume. Found during the Raspberry Pi 3B
+  endurance test; one install in the field had already lost its
+  whole backup history to a single upgrade.
+- `create_app()` now reads `STOIC_INSTANCE_PATH`, and
+  `docker-compose.yml` sets it to `/app/instance` — the volume that
+  already held the database. The variable is read inside the factory
+  rather than in `wsgi.py`, because the CLI does not go through
+  `wsgi.py` and a CLI backup writing somewhere else than gunicorn
+  would be a worse bug than the original.
+- On first boot after the upgrade, files still sitting at the old
+  path are copied into the new one and the move is logged. Copied,
+  never moved: a rollback must still find them where it left them.
+  Existing destinations are never overwritten, and each file lands
+  via a `.partial` rename, so the several workers that all run this
+  at boot cannot collide or expose a half-written file.
+
+### Documentation
+
+Four months of features had shipped without reaching the manuals.
+
+- **Installation (Docker, IT+EN)**: `init-db` was missing entirely —
+  follow the guide as written and no admin user exists, so no
+  password works. The backup section described the wrong directory
+  and called the files encrypted when they are only gzipped unless a
+  passphrase is set. Added `STOIC_INSTANCE_PATH`, the upgrade path
+  for pre-1.5.6 installs, and a warning that `docker compose pull`
+  on arm64 replaces a working build with one the machine cannot
+  execute.
+- **Administrator manual (IT+EN)**: gained the Docker deployment it
+  never had — it predated the Docker stack by one day. The Raspberry
+  Pi section recommended `flask run` on `0.0.0.0` inside a tmux
+  session, three lines after recommending Caddy in front; it now
+  documents the Docker path, `gpu_mem=16` and the memory cgroup, and
+  the measured numbers. `STOIC_WORKERS` on a Pi 3B goes from 1 to 2:
+  the measurement does not support 1. Backups are now stated to
+  cover the database only — attachments live on another volume.
+- **User manual and how-to (IT+EN)**: solvent recovery, incremental
+  step inventory deduction, and installing the PWA on a tablet were
+  all undocumented.
+- **Developer manual (IT+EN)**: the service layer named two files
+  that do not exist (`stoich.py`, `run_calc.py`); attachments were
+  documented under `instance/` instead of `data/attachments`; nine
+  models were missing (Group, Supplier, Order, StepTemplate,
+  ReactionStepComponent, StepParameter, ChecklistItem, Note,
+  HazardPhrase); the production stack (gunicorn, Caddy, Docker) was
+  absent; and DB migrations described one mechanism where three now
+  coexist.
+- **README**: claimed version 0.9.0 and 414/420 tests for a project
+  at 1.5.5 with 791 passing, said v1.0.0 was "in progress" three
+  months after it shipped, advertised three manuals out of four, and
+  sent Raspberry Pi users to the pre-Docker administrator manual.
+
+### Testing
+
+- `tests/test_instance_path.py` (13 tests) pins the environment
+  variable, the precedence of the explicit argument over it, and the
+  properties that make the migration safe to run in every worker at
+  once: copy-not-move, no overwrite, idempotent, no `.partial`
+  residue, permissions preserved on `backup.key`.
+- Two tests in `test_docker_compose.py` pin that
+  `STOIC_INSTANCE_PATH` resolves inside a mounted volume and that
+  the database sits on the same volume, so the two cannot drift
+  apart again.
+- 791 tests passing.
+
+### Verified on hardware
+
+Stoic ran for three weeks on a Raspberry Pi 3B (1 GB RAM, Pi OS Lite
+64-bit, USB flash drive rather than an SSD — deliberately the worst
+case). Two workers, 466 MB free, zero OOM, zero container restarts,
+peak 47.8 °C over 5217 samples, 75 s from reboot to healthy, and
+`integrity_check = ok` after two hard power cuts — the second during
+a stream of committed writes, which lost none of 7410 acknowledged
+commits.
 
 ## [1.5.5] — 2026-09-26
 
