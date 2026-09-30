@@ -130,6 +130,36 @@ def test_compose_stoic_mounts_all_state_volumes(compose):
     assert "stoic-backups" in mounts_str
 
 
+def test_compose_pins_instance_path_inside_a_volume(compose):
+    """The instance directory holds backups/, backup.key and
+    auth_source. Left to Flask's default it resolves next to the
+    installed package — inside the image's virtualenv, i.e. the
+    container's writable layer — and `docker compose up -d` throws
+    it away. An install in the field lost its whole backup history
+    that way, so pin it here: the variable must be set, and it must
+    land under a path that is actually mounted from a volume."""
+    stoic = compose["services"]["stoic"]
+    instance_path = stoic.get("environment", {}).get("STOIC_INSTANCE_PATH")
+    assert instance_path, "STOIC_INSTANCE_PATH must be set for the stoic service"
+
+    targets = [m.split(":")[1] for m in stoic.get("volumes", []) if ":" in m]
+    assert any(
+        instance_path == t or instance_path.startswith(t.rstrip("/") + "/") for t in targets
+    ), f"STOIC_INSTANCE_PATH={instance_path} is not inside any mounted volume ({targets})"
+
+
+def test_compose_database_lives_beside_the_instance_dir(compose):
+    """DATABASE_URL already carried an absolute path into the volume,
+    which is the only reason the database survived while the backups
+    did not. Keep the two pointing at the same volume so they cannot
+    drift apart again."""
+    env = compose["services"]["stoic"].get("environment", {})
+    db_url = env.get("DATABASE_URL", "")
+    instance_path = env.get("STOIC_INSTANCE_PATH", "")
+    assert db_url.startswith("sqlite:////"), "expected an absolute sqlite path"
+    assert db_url[len("sqlite:///") :].startswith(instance_path.rstrip("/") + "/")
+
+
 def test_compose_caddy_depends_on_healthy_stoic(compose):
     """Caddy should wait for Stoic to actually be ready before
     starting to proxy — otherwise the first user request after

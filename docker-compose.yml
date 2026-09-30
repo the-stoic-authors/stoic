@@ -44,6 +44,13 @@ services:
       # DATABASE_URL points inside the named volume so the DB
       # survives container restarts.
       DATABASE_URL: "sqlite:////app/instance/stoic_eln.db"
+      # Instance directory: home of backups/, backup.key and
+      # auth_source. Must point inside a volume. Flask's default
+      # sits next to the installed package (in the image, inside
+      # the /opt/venv virtualenv) — the container's writable layer,
+      # which docker compose up -d throws away. Existing files are
+      # copied across automatically on first boot after this change.
+      STOIC_INSTANCE_PATH: "/app/instance"
       ATTACHMENTS_DIR: "/app/data/attachments"
       FLASK_ENV: "production"
     volumes:

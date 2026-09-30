@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import logging
 import os
+import shutil
 from pathlib import Path
 
 from flask import Flask
@@ -30,7 +31,7 @@ from sqlalchemy import func
 from stoic_eln.config import Config, DevelopmentConfig, ProductionConfig, TestingConfig
 from stoic_eln.extensions import babel, csrf, db, login_manager, migrate
 
-__version__ = "1.5.5"
+__version__ = "1.5.6"
 
 CONFIG_MAP: dict[str, type[Config]] = {
     "debug": DevelopmentConfig,
@@ -49,10 +50,21 @@ def create_app(
 
     Args:
         config_class: A specific config class, or None to read from FLASK_ENV.
-        instance_path: Override Flask's default instance directory. Useful
-            for tests that need an isolated location for files like
-            ``backup.key`` and ``auth_source``. When None (production),
-            Flask computes it from the package location.
+        instance_path: Override Flask's default instance directory —
+            the home of ``backups/``, ``backup.key`` and ``auth_source``.
+            When None, falls back to the ``STOIC_INSTANCE_PATH``
+            environment variable, and only then to Flask's own default
+            (computed from the package location).
+
+            Deployments should set ``STOIC_INSTANCE_PATH`` to a path on
+            persistent storage. Flask's default puts it next to the
+            installed package, which in the Docker image means inside
+            the virtualenv at ``/opt/venv`` — the container's writable
+            layer, destroyed by every ``docker compose up -d``. Reading
+            the variable here rather than in ``wsgi.py`` matters: the
+            CLI (``flask --app stoic_eln backup``) does not go through
+            ``wsgi.py``, and a CLI that wrote somewhere else than
+            gunicorn would be a worse bug than the one this fixes.
         start_scheduler: Whether to start the in-process background
             scheduler (nightly backup, etc.). Default True so that
             ``flask run`` and one-shot scripts continue to schedule
@@ -62,6 +74,9 @@ def create_app(
             Tests bypass scheduling regardless of this flag via the
             ``TESTING`` check inside ``init_scheduler``.
     """
+    if instance_path is None:
+        instance_path = os.environ.get("STOIC_INSTANCE_PATH") or None
+
     app = Flask(
         __name__,
         instance_relative_config=False,
@@ -92,6 +107,7 @@ def create_app(
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 
     _configure_logging(app)
+    _migrate_legacy_instance_dir(app)
     _register_extensions(app)
     _register_blueprints(app)
     _register_template_context(app)
@@ -134,6 +150,67 @@ def _ensure_schema(app: Flask) -> None:
             db.create_all()
         except Exception as e:
             app.logger.warning("Could not auto-create tables on startup: %s", e)
+
+
+def _migrate_legacy_instance_dir(app: Flask) -> None:
+    """Copy instance files left behind in Flask's default location.
+
+    Before ``STOIC_INSTANCE_PATH`` existed, every deployment used
+    whatever Flask computed from the package location. In the Docker
+    image the package lives in a virtualenv, so that directory —
+    ``/opt/venv/var/stoic_eln-instance`` — sat in the container's
+    writable layer rather than on a volume. It holds ``backups/``,
+    ``auth_source`` and ``backup.key``, so a ``docker compose up -d``
+    (the documented upgrade step) destroyed the nightly backups *and*
+    the key needed to decrypt them. Observed in the field: an install
+    whose entire backup history was wiped by one upgrade.
+
+    So, when the active instance path differs from Flask's default and
+    the default still holds files, bring them across.
+
+    **Copy, never move.** A rollback to an older version looks in the
+    old location and must still find its files there. Each file is
+    written to a ``.partial`` sibling and then renamed, so a worker
+    reading concurrently sees either nothing or the whole file, and
+    existing destinations are never overwritten — which also makes
+    this idempotent across the several workers that all run it at boot.
+    """
+    if app.config.get("TESTING"):
+        return
+
+    try:
+        legacy = Path(app.auto_find_instance_path())
+        current = Path(app.instance_path)
+        if legacy == current or not legacy.is_dir():
+            return
+
+        copied = 0
+        for src in sorted(legacy.rglob("*")):
+            if not src.is_file():
+                continue
+            dst = current / src.relative_to(legacy)
+            if dst.exists():
+                continue
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            tmp = dst.with_name(dst.name + ".partial")
+            shutil.copy2(src, tmp)  # copy2 preserves backup.key's 0600
+            os.replace(tmp, dst)
+            copied += 1
+
+        if copied:
+            app.logger.warning(
+                "Migrated %d file(s) from the legacy instance directory %s "
+                "to %s. The originals were left in place; they are not on "
+                "persistent storage and will be lost when this container is "
+                "recreated.",
+                copied,
+                legacy,
+                current,
+            )
+    except Exception as e:
+        # Never let this stop the app from booting: the files are
+        # still readable at the old path, and the log says where.
+        app.logger.warning("could not migrate legacy instance directory: %s", e)
 
 
 def _configure_logging(app: Flask) -> None:
