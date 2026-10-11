@@ -463,7 +463,7 @@ sono la source of truth. I `.po` sono solo output.
 
 ## Testing
 
-`pytest` con coverage. **791 test**, tutti verdi alla v1.5.6.
+`pytest` con coverage. **792 test**, tutti verdi alla v1.5.7.
 `make test` o:
 
 ```bash

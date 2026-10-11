@@ -116,7 +116,6 @@ either:
 
 | Variable | Default | Notes |
 |----------|---------|-------|
-| `STOIC_TLS_EMAIL` | (blank) | Used for Let's Encrypt renewal notices |
 | `STOIC_WORKERS` | `2` | Gunicorn workers. `2` is fine even on a Raspberry Pi 3B (measured: ~230 MiB resident, 460 MB still free) |
 | `STOIC_TIMEOUT` | `120` | Per-request timeout in seconds |
 | `STOIC_IMAGE` | `ghcr.io/the-stoic-authors/stoic:latest` | Pin a specific version, or name a locally built image |
@@ -178,13 +177,47 @@ per profile.
 
 ## Upgrading
 
-```bash
-# Pull the new image version
-docker compose pull
+**Two things move: the image and the manifests.** Pulling only the
+image leaves new code running on old configuration, and that is not
+always harmless — `docker-compose.yml` carries settings the
+application needs. Since 1.5.6 it sets `STOIC_INSTANCE_PATH`, and an
+upgrade that skips it leaves backups writing to a directory that the
+*next* upgrade deletes, with nothing in the logs to tell you.
 
-# Restart with the new image (state in volumes is preserved)
-docker compose up -d
+So update both. Which command depends on how you installed:
+
+**If you cloned the repository:**
+
+```bash
+cd ~/stoic
+git pull
+docker compose pull && docker compose up -d
 ```
+
+**If you downloaded the manifests** (the Quick start above):
+
+```bash
+cd ~/stoic
+cp docker-compose.yml docker-compose.yml.bak
+cp Caddyfile Caddyfile.bak
+curl -fsSL https://raw.githubusercontent.com/the-stoic-authors/stoic/main/docker-compose.yml -o docker-compose.yml
+curl -fsSL https://raw.githubusercontent.com/the-stoic-authors/stoic/main/Caddyfile -o Caddyfile
+diff docker-compose.yml.bak docker-compose.yml
+docker compose pull && docker compose up -d
+```
+
+Your `.env` is never touched by either route — it is yours, and the
+manifests read from it.
+
+Re-downloading the `Caddyfile` is safe from 1.5.7 onwards. Before
+that it shipped an `email {$STOIC_TLS_EMAIL}` line that made Caddy
+refuse to start whenever the variable was blank, which was the
+default, so every install patched the file by hand. If yours is
+patched, the downloaded copy simply does the same thing properly.
+
+**Coming from a version before 1.5.6?** Rescue your backups first —
+see [Backups](#backups). The upgrade recreates the container, and on
+those versions the backups lived inside it.
 
 **On arm64 (Raspberry Pi and friends), do not run `docker compose
 pull`.** The published image is built for `linux/amd64` only, so a

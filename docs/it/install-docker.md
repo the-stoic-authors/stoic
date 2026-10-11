@@ -120,7 +120,6 @@ serve una delle seguenti:
 
 | Variabile | Default | Note |
 |-----------|---------|------|
-| `STOIC_TLS_EMAIL` | (vuoto) | Usato per le notifiche Let's Encrypt |
 | `STOIC_WORKERS` | `2` | Worker gunicorn. `2` vanno bene anche su un Raspberry Pi 3B (misurato: ~230 MiB residenti, 460 MB ancora liberi) |
 | `STOIC_TIMEOUT` | `120` | Timeout per richiesta in secondi |
 | `STOIC_IMAGE` | `ghcr.io/the-stoic-authors/stoic:latest` | Fissa una versione, o nomina un'immagine buildata in locale |
@@ -184,13 +183,50 @@ la scelta per profilo.
 
 ## Aggiornare
 
-```bash
-# Scarica la nuova versione dell'immagine
-docker compose pull
+**Le cose che si spostano sono due: l'immagine e i manifest.**
+Scaricare solo l'immagine lascia il codice nuovo su una
+configurazione vecchia, e non è sempre innocuo — il
+`docker-compose.yml` porta impostazioni di cui l'applicazione ha
+bisogno. Dalla 1.5.6 imposta `STOIC_INSTANCE_PATH`, e un
+aggiornamento che la salta lascia i backup a scrivere in una
+directory che l'aggiornamento *successivo* cancella, senza una riga
+nei log che te lo dica.
 
-# Riavvia con la nuova immagine (lo stato nei volume è preservato)
-docker compose up -d
+Quindi si aggiornano entrambi. Quale comando dipende da come hai
+installato:
+
+**Se hai clonato il repository:**
+
+```bash
+cd ~/stoic
+git pull
+docker compose pull && docker compose up -d
 ```
+
+**Se hai scaricato i manifest** (l'avvio rapido qui sopra):
+
+```bash
+cd ~/stoic
+cp docker-compose.yml docker-compose.yml.bak
+cp Caddyfile Caddyfile.bak
+curl -fsSL https://raw.githubusercontent.com/the-stoic-authors/stoic/main/docker-compose.yml -o docker-compose.yml
+curl -fsSL https://raw.githubusercontent.com/the-stoic-authors/stoic/main/Caddyfile -o Caddyfile
+diff docker-compose.yml.bak docker-compose.yml
+docker compose pull && docker compose up -d
+```
+
+Il tuo `.env` non viene toccato da nessuna delle due strade: è tuo,
+e sono i manifest a leggerlo.
+
+Riscaricare il `Caddyfile` è sicuro **dalla 1.5.7 in poi**. Prima
+conteneva una riga `email {$STOIC_TLS_EMAIL}` che faceva rifiutare
+l'avvio a Caddy ogni volta che la variabile era vuota — cioè il
+default — e ogni installazione se la sistemava a mano. Se la tua è
+sistemata, la copia scaricata fa la stessa cosa fatta bene.
+
+**Vieni da una versione precedente alla 1.5.6?** Salva prima i
+backup — vedi [Backup](#backup). L'aggiornamento ricrea il
+container, e su quelle versioni i backup stavano dentro di lui.
 
 **Su arm64 (Raspberry Pi e simili) non lanciare `docker compose
 pull`.** L'immagine pubblicata è buildata solo per `linux/amd64`,

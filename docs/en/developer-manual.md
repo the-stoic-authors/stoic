@@ -419,7 +419,7 @@ output.
 
 ## Testing
 
-`pytest` with coverage. **791 tests**, all passing at v1.5.6.
+`pytest` with coverage. **792 tests**, all passing at v1.5.7.
 `make test` or:
 
 ```bash

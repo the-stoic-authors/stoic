@@ -10,8 +10,8 @@ Self-hosted · Multi-user · Audit-ready · AGPLv3
 
 [![License: AGPL v3](https://img.shields.io/badge/license-AGPLv3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
-[![Tests](https://img.shields.io/badge/tests-791%2F791-green.svg)](#testing)
-[![Version](https://img.shields.io/badge/version-1.5.6-blue.svg)](CHANGELOG.md)
+[![Tests](https://img.shields.io/badge/tests-792%2F792-green.svg)](#testing)
+[![Version](https://img.shields.io/badge/version-1.5.7-blue.svg)](CHANGELOG.md)
 
 [Documentation](docs/) · [Changelog](CHANGELOG.md) · [Contributing](CONTRIBUTING.md)
 
@@ -39,7 +39,7 @@ It's built for chemistry labs that want:
 - **Multilingual** — full Italian and English UI.
 
 Stoic is in **active development**. v1.0.0 shipped in June 2026;
-the current release is **v1.5.6**. Use in production at your own
+the current release is **v1.5.7**. Use in production at your own
 risk, and keep backups — see the [Administrator
 manual](docs/en/admin-manual.md) for how they work and what they
 do *not* cover.
@@ -117,10 +117,11 @@ Then install `stoichub-ca.crt` on each client:
 **Option B — Use a real domain with automatic Let's Encrypt**
 
 If you own a domain (e.g. `lab.example.com`), point it to your
-server's LAN IP and set `STOIC_DOMAIN=lab.example.com` plus
-`STOIC_TLS_EMAIL=your@email.com` in `.env`. Caddy handles
-certificate issuance automatically. Green padlock everywhere,
-no manual CA installation needed.
+server's LAN IP and set `STOIC_DOMAIN=lab.example.com` in `.env`.
+Caddy handles certificate issuance automatically. Green padlock
+everywhere, no manual CA installation needed. An ACME contact
+address is optional; if you want expiry notices, add
+`email you@example.com` to the Caddyfile's global block.
 
 The domain can point to a private LAN IP — external users will
 see the DNS record but cannot reach the server unless they are on
@@ -239,7 +240,7 @@ cryptography · APScheduler · pytest
 .venv/bin/pytest tests/ -q
 ```
 
-Stoic ships with 791 tests, all passing at v1.5.6. They cover the
+Stoic ships with 792 tests, all passing at v1.5.7. They cover the
 domain logic (stoichiometry, mixtures, inventory deduction, cost
 roll-up), the HTTP layer, and the deployment manifests.
 
@@ -306,9 +307,9 @@ contribution is always available under AGPLv3 to everyone else.
 
 | | |
 |---|---|
-| Version | 1.5.6 |
+| Version | 1.5.7 |
 | First public release | 2026 |
-| Tests | 791 / 791 passing |
+| Tests | 792 / 792 passing |
 | Languages | Italian, English |
 | Platforms tested | macOS (Intel, Apple Silicon), Linux x86_64, Raspberry Pi 3B (Pi OS Lite 64-bit) |
 | Platforms planned | published arm64 image (today ARM builds locally) |
