@@ -20,6 +20,66 @@ and Stoic adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   recovered bottle looks like any other in the warehouse.
 - Green metrics (E-factor, atom economy, PMI)
 
+## [1.5.7] — 2026-10-11
+
+### Fixed
+
+- **A fresh clone could not start Caddy.** The Caddyfile carried
+  `email {$STOIC_TLS_EMAIL}` in the global block, and
+  `.env.example` shipped that variable blank — the documented
+  default for anyone not using a public domain. With it blank the
+  directive expands to no argument at all and Caddy rejects the
+  whole file (`wrong argument count or unexpected line ending after
+  'email'`), so the config never loads, the container exits, and
+  compose restarts it forever. The comment above the line claimed
+  the opposite: that an empty value merely costs you expiry
+  notifications. Every install has patched this file by hand since
+  the Docker stack landed in June; the fix removes the directive,
+  because an ACME contact is optional for Let's Encrypt and ignored
+  entirely for `*.local`. Anyone who wants expiry notices adds
+  `email you@example.com` by hand — a literal address, not a
+  variable.
+- `STOIC_TLS_EMAIL` is gone from `.env.example`, `docker-compose.yml`
+  and the installation guides: it no longer drives anything.
+- **Re-downloading the manifests is now safe**, which is what makes
+  the upgrade instructions below possible at all.
+
+### Documentation
+
+- **The upgrade instructions published with 1.5.6 were wrong**, and
+  wrong in the way that matters: they said to pull the image and
+  nothing else. But 1.5.6's fix lives in `docker-compose.yml`
+  (`STOIC_INSTANCE_PATH`), so an upgrade that updated only the image
+  left the application resolving its instance directory to Flask's
+  default — inside the container — exactly as before. The migration
+  sees source and destination as the same path and returns without
+  doing anything, nothing is logged, and the operator believes they
+  are fixed. Found by upgrading a real install rather than by
+  re-reading the text.
+- *Upgrading* now covers both install shapes — `git pull` for a
+  clone, `curl` of the manifests otherwise — says plainly that image
+  and manifests move together, and points at the backup rescue for
+  anyone coming from before 1.5.6.
+
+### Testing
+
+- `test_caddyfile_has_no_env_driven_email_directive` pins the
+  regression. The fix was verified against Caddy itself before and
+  after: `caddy validate` fails with the variable blank on the old
+  file, and passes both blank and unset on the new one.
+- 792 tests passing.
+
+### Notes
+
+- Both machines in the field were upgraded to 1.5.6 while preparing
+  this release, and the migration was exercised on each rather than
+  trusted: 30 files on one, 14 on the other, copied into the volume
+  with the originals left in place, the one already-present file
+  skipped, no `.partial` residue, permissions and timestamps intact,
+  and `backups-list` seeing the history afterwards. `docker diff` on
+  both containers is now empty — nothing is written outside the
+  volumes any more.
+
 ## [1.5.6] — 2026-09-30
 
 ### Fixed
