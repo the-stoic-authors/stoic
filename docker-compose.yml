@@ -87,7 +87,6 @@ services:
     env_file: .env
     environment:
       STOIC_DOMAIN: "${STOIC_DOMAIN:-stoic.local}"
-      STOIC_TLS_EMAIL: "${STOIC_TLS_EMAIL:-}"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy-data:/data

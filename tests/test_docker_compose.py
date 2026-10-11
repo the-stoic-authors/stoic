@@ -199,6 +199,28 @@ def test_caddyfile_uses_stoic_domain_variable(caddyfile):
     assert "{$STOIC_DOMAIN}" in caddyfile
 
 
+def test_caddyfile_has_no_env_driven_email_directive(caddyfile):
+    """`email {$STOIC_TLS_EMAIL}` with the variable unset expands to
+    a directive with no argument, and Caddy rejects the entire file:
+    "wrong argument count or unexpected line ending after 'email'".
+    The config never loads, the container exits, compose restarts it
+    forever.
+
+    Blank was the default in .env.example, so a fresh clone
+    crash-looped out of the box and every install patched this file
+    by hand — for months, on two machines, before anyone wrote the
+    cause down. An ACME contact is optional for Let's Encrypt and
+    ignored for *.local, so the directive stays out; anyone who
+    wants it adds a literal address.
+    """
+    live = [
+        line.strip()
+        for line in caddyfile.splitlines()
+        if line.strip().startswith("email ")
+    ]
+    assert not live, f"Caddyfile must not carry a live email directive, found: {live}"
+
+
 def test_caddyfile_has_security_headers(caddyfile):
     """A handful of headers come essentially for free and are
     expected on any modern HTTPS site."""

@@ -26,12 +26,27 @@
 
 {
 	# Global options
-	# Email used for Let's Encrypt ACME registration (only matters
-	# when STOIC_DOMAIN is a real public domain). If STOIC_TLS_EMAIL
-	# is empty Caddy still fetches the certificate — you just won't
-	# get expiry notification emails. For *.local / *.lan (internal
-	# CA) this directive has no effect at all.
-	email {$STOIC_TLS_EMAIL}
+	#
+	# No `email` directive here, deliberately. An ACME contact
+	# address is optional — Let's Encrypt issues and renews without
+	# one, and for *.local / *.lan (internal CA) it is ignored
+	# entirely. What it is NOT is safe to leave empty: an
+	# environment-driven `email {$STOIC_TLS_EMAIL}` with the
+	# variable unset expands to a directive with no argument, and
+	# Caddy refuses the whole file:
+	#
+	#   Error: parsing caddyfile tokens for 'email':
+	#   wrong argument count or unexpected line ending after 'email'
+	#
+	# The config never loads, the container exits, and compose
+	# restarts it forever. That was the default state of a fresh
+	# clone until v1.5.7, and every install had to patch this file
+	# by hand.
+	#
+	# If you run a real public domain and want expiry notices, add
+	# the line yourself with a literal address — not a variable:
+	#
+	#   email you@example.com
 }
 
 {$STOIC_DOMAIN} {
