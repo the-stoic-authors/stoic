@@ -71,14 +71,17 @@ and Stoic adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Notes
 
-- Both machines in the field were upgraded to 1.5.6 while preparing
-  this release, and the migration was exercised on each rather than
-  trusted: 30 files on one, 14 on the other, copied into the volume
-  with the originals left in place, the one already-present file
-  skipped, no `.partial` residue, permissions and timestamps intact,
-  and `backups-list` seeing the history afterwards. `docker diff` on
-  both containers is now empty — nothing is written outside the
-  volumes any more.
+- The instance-directory migration introduced in 1.5.6 was
+  exercised on live installations while preparing this release,
+  rather than trusted from its unit tests: backup files copied into
+  the volume with the originals left in place, an already-present
+  file correctly skipped, no `.partial` residue, permissions and
+  timestamps preserved, and `backups-list` showing the restored
+  history afterwards. `docker diff` on an upgraded container is
+  empty — nothing is written outside the volumes any more.
+- Upgrading from 1.5.6 needs no backup rescue: the backups are
+  already on a volume. Upgrading from 1.5.5 or earlier does — see
+  *Backups* in the Docker guide.
 
 ## [1.5.6] — 2026-09-30
 
