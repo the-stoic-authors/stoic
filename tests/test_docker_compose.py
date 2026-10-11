@@ -213,11 +213,7 @@ def test_caddyfile_has_no_env_driven_email_directive(caddyfile):
     ignored for *.local, so the directive stays out; anyone who
     wants it adds a literal address.
     """
-    live = [
-        line.strip()
-        for line in caddyfile.splitlines()
-        if line.strip().startswith("email ")
-    ]
+    live = [line.strip() for line in caddyfile.splitlines() if line.strip().startswith("email ")]
     assert not live, f"Caddyfile must not carry a live email directive, found: {live}"
 
 
